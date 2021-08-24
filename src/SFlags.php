@@ -9,13 +9,11 @@
 
 namespace Toolkit\PFlag;
 
-use Toolkit\PFlag\Exception\FlagException;
-use Toolkit\PFlag\Traits\FlagParsingTrait;
 use Toolkit\Cli\Helper\FlagHelper;
+use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\Stdlib\Arr;
-use Toolkit\Stdlib\Obj\AbstractObj;
-use Toolkit\Stdlib\Obj\Traits\NameAliasTrait;
 use Toolkit\Stdlib\Str;
+use function array_slice;
 use function current;
 use function escapeshellarg;
 use function explode;
@@ -35,13 +33,9 @@ use function trim;
  *
  * @package Toolkit\PFlag
  */
-class SFlags extends AbstractObj
+class SFlags extends AbstractParser
 {
-    use FlagParsingTrait;
-
-    use NameAliasTrait;
-
-    public const SHORT_STYLE_GUN   = 'gnu';
+    public const SHORT_STYLE_GUN = 'gnu';
 
     public const SHORT_STYLE_POSIX = 'posix';
 
@@ -105,13 +99,6 @@ class SFlags extends AbstractObj
      * @var array
      */
     private $optDefines = [];
-
-    /**
-     * The required option names.
-     *
-     * @var array
-     */
-    private $requiredOpts = [];
 
     /**
      * Parsed option values
@@ -212,19 +199,22 @@ class SFlags extends AbstractObj
      * $optRules = [];
      * $argRules = [];
      *
-     * $rawArgs = SFlags::new()->parseDefined($rawFlags, $optRules, $argRules);
+     * $fs = SFlags::new()->parseDefined($rawFlags, $optRules, $argRules);
+     *
+     * // get value
+     * $rawArgs = $this->getRawArgs();
      * ```
      *
      * @param array $rawFlags
      * @param array $optRules The want parsed options rules defines {@see $optRules}
      * @param array $argRules The arg rules {@see $argRules}. if not empty, will parse arguments after option parsed
      *
-     * @return array
+     * @return self
      */
-    public function parseDefined(array $rawFlags, array $optRules, array $argRules = []): array
+    public function parseDefined(array $rawFlags, array $optRules, array $argRules = []): self
     {
         if ($this->parsed) {
-            return $this->rawArgs;
+            return $this;
         }
 
         $this->setArgRules($argRules);
@@ -265,12 +255,12 @@ class SFlags extends AbstractObj
      *
      * @param array $rawFlags
      *
-     * @return array
+     * @return self
      */
-    public function parse(array $rawFlags): array
+    public function parse(array $rawFlags): self
     {
         if ($this->parsed) {
-            return $this->rawArgs;
+            return $this;
         }
 
         $this->parsed   = true;
@@ -320,7 +310,7 @@ class SFlags extends AbstractObj
                 // resolve alias
                 $option = $this->resolveAlias($option);
                 if (!isset($this->optDefines[$option])) {
-                    throw new FlagException("flag option provided but not defined: $option", 404);
+                    throw new FlagException("flag option provided but not defined: $p", 404);
                 }
 
                 $define = $this->optDefines[$option];
@@ -378,7 +368,7 @@ class SFlags extends AbstractObj
             $this->parseDefinedArgs($this->argRules);
         }
 
-        return $this->rawArgs;
+        return $this;
     }
 
     /**
@@ -455,24 +445,8 @@ class SFlags extends AbstractObj
      */
     public function parseDefinedArgs(array $argRules): void
     {
-        $args = [];
-
         // parse arguments
-        foreach ($this->rawArgs as $arg) {
-            // value specified inline (<arg>=<value>)
-            if (strpos($arg, '=') > 0) {
-                [$name, $value] = explode('=', $arg, 2);
-
-                // ensure is valid name.
-                if (FlagHelper::isValidName($name)) {
-                    $args[$name] = $value;
-                } else {
-                    $args[] = $arg;
-                }
-            } else {
-                $args[] = $arg;
-            }
-        }
+        $args = $this->parseRawArgs();
 
         // init with default value.
         $hasArrayArg = $hasOptional = false;
@@ -509,8 +483,13 @@ class SFlags extends AbstractObj
             $hasArrayArg = $hasArrayArg || $isArray;
             $hasOptional = $hasOptional || !$required;
 
-            // save values
-            $this->args[$index] = $args[$index];
+            // collect value
+            if ($isArray) {
+                $this->args[] = array_slice($args, $index); // remain args
+            } else {
+                $this->args[] = $args[$index];
+            }
+
             $index++;
         }
     }
@@ -546,7 +525,7 @@ class SFlags extends AbstractObj
         $this->opts = $this->args = [];
 
         if ($resetDefines) {
-            $this->optRules = $this->optDefines= [];
+            $this->optRules = $this->optDefines = [];
             $this->argRules = $this->argDefines = [];
         }
     }
@@ -865,13 +844,5 @@ class SFlags extends AbstractObj
     public function getOptDefines(): array
     {
         return $this->optDefines;
-    }
-
-    /**
-     * @return array
-     */
-    public function getRequiredOpts(): array
-    {
-        return $this->requiredOpts;
     }
 }

@@ -33,7 +33,8 @@ class FlagsTest extends BaseTestCase
 
         $fs->reset();
         $args = ['--name', 'inhere', '-s', 'sv', '-f'];
-        self::expectException(FlagException::class);
+        $this->expectException(FlagException::class);
+        $this->expectExceptionMessage('flag option provided but not defined: -s');
         $fs->parse($args);
     }
 }

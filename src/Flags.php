@@ -13,10 +13,8 @@ use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\Traits\FlagArgumentsTrait;
 use Toolkit\PFlag\Traits\FlagOptionsTrait;
-use Toolkit\PFlag\Traits\FlagParsingTrait;
-use Toolkit\Stdlib\Obj\AbstractObj;
-use Toolkit\Stdlib\Obj\Traits\NameAliasTrait;
 use function array_shift;
+use function array_slice;
 use function count;
 use function ltrim;
 use function strlen;
@@ -27,15 +25,11 @@ use function substr;
  *
  * @package Toolkit\PFlag
  */
-class Flags extends AbstractObj
+class Flags extends AbstractParser
 {
     use FlagArgumentsTrait;
 
     use FlagOptionsTrait;
-
-    use FlagParsingTrait;
-
-    use NameAliasTrait;
 
     /**
      * @var self
@@ -53,13 +47,6 @@ class Flags extends AbstractObj
     private $autoBindArgs = false;
 
     /**
-     * Whether stop parse option on found undefined option
-     *
-     * @var bool
-     */
-    private $stopOnUndefined = true;
-
-    /**
      * @return $this
      */
     public static function std(): self
@@ -71,19 +58,19 @@ class Flags extends AbstractObj
         return self::$std;
     }
 
-    /**************************************************************************
-     * parse command option flags
-     **************************************************************************/
-
     /**
      * @param array|null $args
      *
-     * @return array
+     * @return self
      */
-    public static function parseArgs(array $args = null): array
+    public static function parseArgs(array $args = null): self
     {
         return (new self())->parse($args);
     }
+
+    /**************************************************************************
+     * parse command option flags
+     **************************************************************************/
 
     /**
      * @var string
@@ -92,32 +79,39 @@ class Flags extends AbstractObj
 
     private $parseStatus = self::STATUS_OK;
 
-    public const STATUS_OK   = 0;
+    public const STATUS_OK = 0;
 
-    public const STATUS_ERR  = 1;
+    public const STATUS_ERR = 1;
 
-    public const STATUS_END  = 2;
+    public const STATUS_END = 2;
 
     public const STATUS_HELP = 3; // found `-h|--help` flag
 
     /**
      * @param array|null $args
      *
-     * @return array
+     * @return self
      */
-    public function parse(array $args = null): array
+    public function parse(array $args = null): self
     {
         if ($args === null) {
             $args = $_SERVER['argv'];
+            array_shift($args);
         }
 
         $this->parsed  = true;
-        $this->rawFlags = $this->rawArgs = $args;
+        $this->rawArgs = $this->rawFlags = $args;
 
+        $breakStatus = self::STATUS_OK;
         while (true) {
             [$goon, $status] = $this->parseOne();
             if ($goon) {
                 continue;
+            }
+
+            if (self::STATUS_HELP === $status) {
+                // TODO show help
+                break;
             }
 
             if (self::STATUS_OK === $status) {
@@ -125,12 +119,27 @@ class Flags extends AbstractObj
             }
         }
 
+        if ($breakStatus === self::STATUS_HELP) {
+            // TODO show help
+
+            return $this;
+        }
+
+        // check required opts
+        if ($this->requiredOpts) {
+            foreach ($this->requiredOpts as $name) {
+                if (!isset($this->opts[$name])) {
+                    throw new FlagException("flag option '$name' is required");
+                }
+            }
+        }
+
         // binding remaining args.
-        if ($this->autoBindArgs && $this->rawArgs) {
+        if ($this->autoBindArgs) {
             $this->bindingArguments();
         }
 
-        return [];
+        return $this;
     }
 
     /**
@@ -144,35 +153,35 @@ class Flags extends AbstractObj
      */
     protected function parseOne(): array
     {
-        $count = count($this->rawArgs);
-        if ($count === 0) {
+        if (!$args = $this->rawArgs) {
             return [false, self::STATUS_OK];
         }
 
-        $args = $this->rawArgs;
-        $arg  = array_shift($this->rawArgs);
-
-        // empty, continue.
-        if ('' === $arg) {
-            return [true, self::STATUS_OK];
-        }
-
-        // is not an option flag. exit.
-        if ($arg[0] !== '-') {
-            $this->rawArgs = $args; // revert args on exit
-            return [false, self::STATUS_OK];
-        }
+        $arg = array_shift($this->rawArgs);
 
         // NOTICE: will stop parse option on found '--'
         if ($arg === '--') {
             return [false, self::STATUS_OK];
         }
 
+        // empty.
+        // is not an option.
+        if ('' === $arg || $arg[0] !== '-') {
+            $this->rawArgs = $args; // revert args on exit
+            return [false, self::STATUS_OK];
+        }
+
         $name = ltrim($arg, '-');
 
-        // invalid arg. eg: '--' // ignore
+        // invalid option name as argument. eg: '- '
         if ('' === $name) {
-            return [true, self::STATUS_OK];
+            $this->rawArgs = $args; // revert args on exit
+            return [false, self::STATUS_OK];
+        }
+
+        // show help
+        if ($name === 'h' || $name === 'help') {
+            return [false, self::STATUS_HELP];
         }
 
         $value  = '';
@@ -254,17 +263,35 @@ class Flags extends AbstractObj
      **************************************************************************/
 
     /**
-     * parse and binding command arguments
+     * Parse and binding command arguments
      *
      * NOTICE: must call it on options parsed.
      */
-    public function bindingArguments(): void
+    public function bindingArguments(): self
     {
-        if (!$this->rawArgs) {
-            return;
+        // parse arguments
+        $args = $this->parseRawArgs();
+
+        // collect argument values
+        foreach ($this->arguments as $index => $arg) {
+            if (!isset($args[$index]) && $arg->isRequired()) {
+                $mark = $arg->getNameMark();
+                throw new FlagException("flag argument $mark is required");
+            }
+
+            if ($arg->isArray()) {
+                // remain args
+                $values = array_slice($args, $index);
+
+                foreach ($values as $value) {
+                    $arg->setValue($value);
+                }
+            } else {
+                $arg->setValue($args[$index]);
+            }
         }
 
-        // TODO ...
+        return $this;
     }
 
     /**

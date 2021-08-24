@@ -28,12 +28,11 @@ class SFlagsTest extends BaseTestCase
 
         // string
         $flags = ['--name', 'inhere', 'arg0', 'arg1'];
-        $rArgs = $fs->parseDefined($flags, [
+        $fs->parseDefined($flags, [
             'name', // string
         ]);
 
         $this->assertTrue($fs->isParsed());
-        $this->assertCount(2, $rArgs);
         $this->assertCount(2, $fs->getRawArgs());
         $this->assertSame('inhere', $fs->getOption('name'));
         $this->assertNotEmpty($fs->getOptRules());
@@ -47,34 +46,34 @@ class SFlagsTest extends BaseTestCase
 
         // int
         $flags = ['-n', 'inhere', '--age', '99'];
-        $rArgs = $fs->parseDefined($flags, [
+        $fs->parseDefined($flags, [
             'name, n' => FlagType::STRING, // add an alias
             'age'     => FlagType::INT,
         ]);
         // vdump($fs);
         $this->assertSame('inhere', $fs->getOption('name'));
         $this->assertSame(99, $fs->getOption('age'));
-        $this->assertCount(0, $rArgs);
+        $this->assertCount(0, $fs->getRawArgs());
 
         $fs->reset();
         $this->assertFalse($fs->isParsed());
 
         // bool
         $flags = ['--name', 'inhere', '-f', 'arg0'];
-        $rArgs = $fs->parseDefined($flags, [
+        $fs->parseDefined($flags, [
             'name', // string
             'f' => FlagType::BOOL,
         ]);
         $this->assertTrue($fs->getOpt('f'));
         $this->assertSame('inhere', $fs->getOption('name'));
-        $this->assertCount(1, $rArgs);
+        $this->assertCount(1, $fs->getRawArgs());
 
         $fs->reset();
         $this->assertFalse($fs->isParsed());
 
         // array
         $flags = ['--name', 'inhere', '--tags', 'php', '-t', 'go', '--tags', 'java', '-f', 'arg0'];
-        $rArgs = $fs->parseDefined($flags, [
+        $fs->parseDefined($flags, [
             'name', // string
             'tags,t' => FlagType::ARRAY,
             'f'      => FlagType::BOOL,
@@ -85,24 +84,24 @@ class SFlagsTest extends BaseTestCase
         // [php, go, java]
         $this->assertIsArray($tags = $fs->getOption('tags'));
         $this->assertCount(3, $tags);
-        $this->assertCount(1, $rArgs);
+        $this->assertCount(1, $rArgs = $fs->getRawArgs());
         $this->assertCount(0, $fs->getArgs());
         $this->assertSame('arg0', $rArgs[0]);
-        // vdump($fs->getOpts(), $fs->getArgs());
+        // vdump($rArgs, $fs->getOpts());
 
         $fs->reset();
         $this->assertFalse($fs->isParsed());
 
         // int[]
         $flags = ['--id', '23', '--id', '45'];
-        $rArgs = $fs->parseDefined($flags, [
+        $fs->parseDefined($flags, [
             'id' => FlagType::INTS,
         ]);
         // [23, 45]
         $this->assertIsArray($ids = $fs->getOption('id'));
         $this->assertCount(2, $ids);
         $this->assertSame([23, 45], $ids);
-        $this->assertCount(0, $rArgs);
+        $this->assertCount(0, $fs->getRawArgs());
         // vdump($fs->getOpts(), $fs->getArgs());
 
         $fs->reset();
@@ -111,7 +110,7 @@ class SFlagsTest extends BaseTestCase
         // parse undefined
         $flags = ['--name', 'inhere'];
         $this->expectException(FlagException::class);
-        $this->expectExceptionMessage('flag option provided but not defined: name');
+        $this->expectExceptionMessage('flag option provided but not defined: --name');
         $fs->parseDefined($flags, []);
     }
 
@@ -132,8 +131,9 @@ class SFlagsTest extends BaseTestCase
 
         $this->expectException(FlagException::class);
         $this->expectExceptionMessage("flag option 'name' is required");
-        $fs->parseDefined([], [
+        $fs->setOptRules([
             'name' => 'string,required',
         ]);
+        $fs->parse([]);
     }
 }

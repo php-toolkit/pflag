@@ -9,6 +9,7 @@
 
 namespace Toolkit\PFlag\Flag;
 
+use Toolkit\PFlag\FlagType;
 use function implode;
 
 /**
@@ -43,33 +44,9 @@ class Option extends AbstractFlag
     /**
      * @return bool
      */
-    public function isArray(): bool
-    {
-        return $this->hasMode(self::OPT_IS_ARRAY);
-    }
-
-    /**
-     * @return bool
-     */
-    public function isOptional(): bool
-    {
-        return $this->hasMode(self::OPT_OPTIONAL);
-    }
-
-    /**
-     * @return bool
-     */
-    public function isRequired(): bool
-    {
-        return $this->hasMode(self::OPT_REQUIRED);
-    }
-
-    /**
-     * @return bool
-     */
     public function isBoolean(): bool
     {
-        return $this->hasMode(self::OPT_BOOLEAN);
+        return $this->type === FlagType::BOOL;
     }
 
     /**

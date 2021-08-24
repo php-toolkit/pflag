@@ -38,12 +38,12 @@ trait FlagOptionsTrait
      * @param string $name
      * @param string $shorts
      * @param string $desc
-     * @param int    $mode
+     * @param bool   $required
      * @param mixed  $default
      */
-    public function addOpt(string $name, string $shorts, string $desc, int $mode = 0, $default = null): void
+    public function addOpt(string $name, string $shorts, string $desc, bool $required = false, $default = null): void
     {
-        $opt = Option::new($name, $desc, $mode, $default);
+        $opt = Option::new($name, $desc, $required, $default);
         $opt->setShortcut($shorts);
 
         $this->addOption($opt);
@@ -57,7 +57,17 @@ trait FlagOptionsTrait
         $name = $option->getName();
 
         if (isset($this->defined[$name])) {
-            throw new FlagException('cannot repeat option: ' . $name);
+            throw new FlagException('cannot repeat add option: ' . $name);
+        }
+
+        if ($alias = $option->getAlias()) {
+            $this->setAlias($name, $alias, true);
+        }
+
+        if ($ss = $option->getShorts()) {
+            foreach ($ss as $s) {
+                $this->setAlias($name, $s, true);
+            }
         }
 
         // add to defined
@@ -72,6 +82,16 @@ trait FlagOptionsTrait
         foreach ($options as $option) {
             $this->addOption($option);
         }
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return Option|null
+     */
+    public function getOption(string $name): ?Option
+    {
+        return $this->matched[$name] ?? null;
     }
 
     /**

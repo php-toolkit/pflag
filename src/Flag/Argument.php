@@ -9,7 +9,9 @@
 
 namespace Toolkit\PFlag\Flag;
 
-use Inhere\Console\IO\Input;
+use Toolkit\PFlag\Exception\FlagException;
+use Toolkit\PFlag\FlagType;
+use function sprintf;
 
 /**
  * Class InputArgument
@@ -27,27 +29,38 @@ class Argument extends AbstractFlag
     private $index = 0;
 
     /**
-     * @return bool
+     * @param string $type
      */
-    public function isArray(): bool
+    public function setType(string $type): void
     {
-        return $this->hasMode(Input::ARG_IS_ARRAY);
+        if (!FlagType::isValid($type)) {
+            $name = $this->getName();
+            $mark = $name ? "(name: $name)" : "(#$this->index)";
+            throw new FlagException("cannot define invalid flag type: $type$mark");
+        }
+
+        $this->type = $type;
     }
 
     /**
-     * @return bool
+     * @param string $name
      */
-    public function isOptional(): bool
+    public function setName(string $name): void
     {
-        return $this->hasMode(Input::ARG_OPTIONAL);
+        if ($name) {
+            parent::setName($name);
+        }
     }
 
     /**
-     * @return bool
+     * @return string
      */
-    public function isRequired(): bool
+    public function getNameMark(): string
     {
-        return $this->hasMode(Input::ARG_REQUIRED);
+        $name = $this->name;
+        $mark = $name ? "($name)" : '';
+
+        return sprintf('#%d%s', $this->index, $mark);
     }
 
     /**

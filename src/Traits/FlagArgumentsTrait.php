@@ -9,8 +9,10 @@
 
 namespace Toolkit\PFlag\Traits;
 
+use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\Flag\Argument;
 use function count;
+use function is_string;
 
 /**
  * Class CmdArgumentsTrait
@@ -31,10 +33,67 @@ trait FlagArgumentsTrait
     private $arguments = [];
 
     /**
+     * Has array argument
+     *
+     * @var bool
+     */
+    private $arrayArg = false;
+
+    /**
+     * Has optional argument
+     *
+     * @var bool
+     */
+    private $optionalArg = false;
+
+    /**
+     * @param string     $name
+     * @param string     $desc
+     * @param bool       $required
+     * @param string     $type The argument data type. (eg: 'string', 'array', 'mixed')
+     * @param null|mixed $default
+     * @param string     $alias
+     */
+    public function addArg(
+        string $name,
+        string $desc = '',
+        bool $required = false,
+        string $type = '',
+        $default = null,
+        string $alias = ''
+    ): void {
+        $argObj = Argument::new($name, $desc, $required, $default);
+        $argObj->setType($type);
+        $argObj->setAlias($alias);
+
+        $this->addArgument($argObj);
+    }
+
+    /**
      * @param Argument $argument
      */
     public function addArgument(Argument $argument): void
     {
+        $isArray  = $argument->isArray();
+        $required = $argument->isRequired();
+
+        $index = count($this->arguments);
+        $argument->setIndex($index);
+
+        $mark = $argument->getNameMark();
+
+        // NOTICE: only allow one array argument and must be at last.
+        if ($this->arrayArg && $isArray) {
+            throw new FlagException("cannot add argument $mark after an array argument");
+        }
+
+        if ($this->optionalArg && $required) {
+            throw new FlagException("cannot add a required argument $mark after an optional one");
+        }
+
+        $this->arrayArg    = $this->arrayArg || $isArray;
+        $this->optionalArg = $this->optionalArg || !$required;
+
         // record index
         $this->name2index[$argument->getName()] = count($this->arguments);
         // append
@@ -42,26 +101,38 @@ trait FlagArgumentsTrait
     }
 
     /**
-     * @param string      $name
-     * @param string      $desc
-     * @param int|null    $mode
-     * @param string|null $type The argument data type. (eg: 'string', 'array', 'mixed')
-     * @param null|mixed        $default
-     * @param string      $alias
+     * @param string|int $nameOrIndex
+     * @param null|mixed $default
+     *
+     * @return mixed|null
      */
-    public function add(
-        string $name,
-        string $desc = '',
-        int $mode = 0,
-        string $type = '',
-        $default = null,
-        string $alias = ''
-    ): void {
-        $argObj = Argument::new($name, $desc, $mode, $default);
-        $argObj->setType($type);
-        $argObj->setAlias($alias);
+    public function getArg($nameOrIndex, $default = null)
+    {
+        if ($arg = $this->getArgument($nameOrIndex)) {
+            return $arg->getValue();
+        }
 
-        $this->addArgument($argObj);
+        return $default;
+    }
+
+    /**
+     * @param string|int $nameOrIndex
+     *
+     * @return Argument|null
+     */
+    public function getArgument($nameOrIndex): ?Argument
+    {
+        if (is_string($nameOrIndex)) {
+            if (!isset($this->name2index[$nameOrIndex])) {
+                throw new FlagException("flag argument '$nameOrIndex' is undefined");
+            }
+
+            $index = $this->name2index[$nameOrIndex];
+        } else {
+            $index = (int)$nameOrIndex;
+        }
+
+        return $this->arguments[$index] ?? null;
     }
 
     /**
@@ -73,16 +144,34 @@ trait FlagArgumentsTrait
     }
 
     /**
-     * @param array $arguments
+     * @param Argument[] $arguments
      */
     public function setArguments(array $arguments): void
     {
-        $this->arguments = $arguments;
+        foreach ($arguments as $argument) {
+            $this->addArgument($argument);
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasOptionalArg(): bool
+    {
+        return $this->optionalArg;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasArrayArg(): bool
+    {
+        return $this->arrayArg;
     }
 
     protected function resetArguments(): void
     {
         $this->name2index = [];
-        $this->arguments = [];
+        $this->arguments  = [];
     }
 }
