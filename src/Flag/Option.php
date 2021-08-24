@@ -74,11 +74,11 @@ class Option extends AbstractFlag
     }
 
     /**
-     * @param string $shortcut eg: 'a|b'
+     * @param string $shortcut eg: 'a,b' Or '-a,-b'
      */
     public function setShortcut(string $shortcut): void
     {
-        $shortcuts = preg_split('{(\|)-?}', ltrim($shortcut, '-'));
+        $shortcuts = preg_split('{(,)-?}', ltrim($shortcut, '-'));
         $shortcuts = array_filter($shortcuts);
 
         $this->setShorts($shortcuts);

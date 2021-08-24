@@ -38,12 +38,24 @@ trait FlagOptionsTrait
      * @param string $name
      * @param string $shorts
      * @param string $desc
+     * @param string $type The argument data type. default is: string. {@see FlagType}
      * @param bool   $required
      * @param mixed  $default
+     * @param string $alias
      */
-    public function addOpt(string $name, string $shorts, string $desc, bool $required = false, $default = null): void
-    {
+    public function addOpt(
+        string $name,
+        string $shorts,
+        string $desc,
+        string $type = '',
+        bool $required = false,
+        $default = null,
+        string $alias = ''
+    ): void {
+        /** @var Option $opt */
         $opt = Option::new($name, $desc, $required, $default);
+        $opt->setType($type);
+        $opt->setAlias($alias);
         $opt->setShortcut($shorts);
 
         $this->addOption($opt);
@@ -70,6 +82,8 @@ trait FlagOptionsTrait
             }
         }
 
+        $option->init();
+
         // add to defined
         $this->defined[$name] = $option;
     }
@@ -85,6 +99,25 @@ trait FlagOptionsTrait
     }
 
     /**
+     * @param string     $name
+     * @param null|mixed $default
+     *
+     * @return mixed|null
+     */
+    public function getOpt(string $name, $default = null)
+    {
+        if ($arg = $this->getOption($name)) {
+            return $arg->getValue();
+        }
+
+        if ($default === null && ($arg = $this->getDefinedOption($name))) {
+            return $arg->hasDefault() ? $arg->getDefault() : $default;
+        }
+
+        return $default;
+    }
+
+    /**
      * @param string $name
      *
      * @return Option|null
@@ -92,6 +125,16 @@ trait FlagOptionsTrait
     public function getOption(string $name): ?Option
     {
         return $this->matched[$name] ?? null;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return Option|null
+     */
+    public function getDefinedOption(string $name): ?Option
+    {
+        return $this->defined[$name] ?? null;
     }
 
     /**

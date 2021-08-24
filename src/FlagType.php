@@ -10,6 +10,7 @@
 namespace Toolkit\PFlag;
 
 use Toolkit\Cli\Helper\FlagHelper;
+use function is_scalar;
 use function is_string;
 
 /**
@@ -100,6 +101,10 @@ class FlagType
      */
     public static function fmtBasicTypeValue(string $type, $value)
     {
+        if (!is_scalar($value)) {
+            return $value;
+        }
+
         // format value by type
         switch ($type) {
             case self::INT:

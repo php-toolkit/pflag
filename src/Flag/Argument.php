@@ -33,6 +33,10 @@ class Argument extends AbstractFlag
      */
     public function setType(string $type): void
     {
+        if (!$type) {
+            return;
+        }
+
         if (!FlagType::isValid($type)) {
             $name = $this->getName();
             $mark = $name ? "(name: $name)" : "(#$this->index)";

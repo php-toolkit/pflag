@@ -11,6 +11,7 @@ namespace Toolkit\PFlag\Traits;
 
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\Flag\Argument;
+use Toolkit\PFlag\FlagType;
 use function count;
 use function is_string;
 
@@ -49,24 +50,24 @@ trait FlagArgumentsTrait
     /**
      * @param string     $name
      * @param string     $desc
+     * @param string     $type The argument data type. default is: string. {@see FlagType}
      * @param bool       $required
-     * @param string     $type The argument data type. (eg: 'string', 'array', 'mixed')
      * @param null|mixed $default
      * @param string     $alias
      */
     public function addArg(
         string $name,
-        string $desc = '',
-        bool $required = false,
+        string $desc,
         string $type = '',
+        bool $required = false,
         $default = null,
         string $alias = ''
     ): void {
-        $argObj = Argument::new($name, $desc, $required, $default);
-        $argObj->setType($type);
-        $argObj->setAlias($alias);
+        /** @var Argument $arg */
+        $arg = Argument::new($name, $desc, $required, $default);
+        $arg->setType($type);
 
-        $this->addArgument($argObj);
+        $this->addArgument($arg);
     }
 
     /**
@@ -79,7 +80,9 @@ trait FlagArgumentsTrait
 
         $index = count($this->arguments);
         $argument->setIndex($index);
+        $argument->init();
 
+        $name = $argument->getName();
         $mark = $argument->getNameMark();
 
         // NOTICE: only allow one array argument and must be at last.
@@ -94,10 +97,10 @@ trait FlagArgumentsTrait
         $this->arrayArg    = $this->arrayArg || $isArray;
         $this->optionalArg = $this->optionalArg || !$required;
 
-        // record index
-        $this->name2index[$argument->getName()] = count($this->arguments);
         // append
         $this->arguments[] = $argument;
+        // record index
+        $this->name2index[$name] = $index;
     }
 
     /**

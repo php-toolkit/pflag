@@ -13,6 +13,7 @@ use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\PFlag\Contract\FlagInterface;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\FlagType;
+use function vdump;
 
 /**
  * Class Flag
@@ -101,17 +102,9 @@ abstract class AbstractFlag implements FlagInterface
 
     public function init(): void
     {
-        if ($this->isArray()) {
-            $this->type = FlagType::ARRAY;
+        if ($this->default !== null) {
+            $this->default = FlagType::fmtBasicTypeValue($this->type, $this->default);
         }
-    }
-
-    /**
-     * @return bool
-     */
-    public function hasDefault(): bool
-    {
-        return $this->default !== null;
     }
 
     /**
@@ -159,6 +152,22 @@ abstract class AbstractFlag implements FlagInterface
         $this->validator = $validator;
     }
 
+    /**
+     * @return bool
+     */
+    public function hasValue(): bool
+    {
+        return $this->value !== null;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasDefault(): bool
+    {
+        return $this->default !== null;
+    }
+
     /******************************************************************
      *
      *****************************************************************/
@@ -185,6 +194,10 @@ abstract class AbstractFlag implements FlagInterface
      */
     public function setType(string $type): void
     {
+        if (!$type) {
+            return;
+        }
+
         if (!FlagType::isValid($type)) {
             $name = $this->name;
             throw new FlagException("cannot define invalid flag type: $type(name: $name)");
