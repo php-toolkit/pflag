@@ -17,6 +17,4 @@ vendor/
 .phpstorm.meta.php
 .DS_Store
 .kite.php
-bin/php-cs-fixer
-/plugin/local/
 node_modules/

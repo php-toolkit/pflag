@@ -1,9 +1,9 @@
 <?php
 
 $header = <<<'EOF'
-This file is part of phpcom-lab/cli-markdown.
+This file is part of toolkit/pflag.
 
-@link     https://github.com/inhere
+@link     https://github.com/php-toolkit
 @author   https://github.com/inhere
 @license  MIT
 EOF;

@@ -33,8 +33,8 @@ help:
 clean:  ## Clean all created artifacts
 	git clean --exclude=.idea/ -fdx
 
-cs-fix:  ## Fix code style for all files
-	gofmt -w ./
+csfix:  ## Fix code style for all files
+	php-cs-fixer fix ./
 
 cs-diff:   ## Display code style error files
 	gofmt -l ./

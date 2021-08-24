@@ -1,9 +1,9 @@
 {
-  "name": "inherelab/php-pkg-template",
-  "description": "TODO: package description",
-  "type": "template",
+  "name": "toolkit/pflag",
+  "description": "Command line flag parse library of the php",
+  "type": "library",
   "license": "MIT",
-  "homepage": "https://github.com/inherelab/php-pkg-template",
+  "homepage": "https://github.com/php-toolkit/pflag.git",
   "authors": [
     {
       "name": "inhere",
@@ -13,15 +13,21 @@
   "require": {
     "php": ">7.1.0",
     "ext-mbstring": "*",
-    "toolkit/cli-utils":"~1.0"
+    "toolkit/cli-utils":"~1.0",
+    "toolkit/stdlib":"~1.0"
   },
   "autoload": {
     "psr-4": {
-      "PkgOwner\\PkgName\\": "src/"
+      "Toolkit\\PFlag\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Toolkit\\PFlagTest\\": "test/"
     }
   },
   "bin": [
-    
+
   ],
   "scripts": {
     "test": "php vender/bin/phpunit"

@@ -1,26 +1,23 @@
-# php-pkg-template
+# PHP Flag
 
-[![License](https://img.shields.io/packagist/l/inherelab/php-pkg-template.svg?style=flat-square)](LICENSE)
-[![Php Version](https://img.shields.io/badge/php-%3E=7.2.0-brightgreen.svg?maxAge=2592000)](https://packagist.org/packages/inherelab/php-pkg-template)
-[![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/inherelab/php-pkg-template)](https://github.com/inherelab/php-pkg-template)
-[![Actions Status](https://github.com/inherelab/php-pkg-template/workflows/Unit-Tests/badge.svg)](https://github.com/inherelab/php-pkg-template/actions)
+[![License](https://img.shields.io/packagist/l/toolkit/pflag.svg?style=flat-square)](LICENSE)
+[![Php Version](https://img.shields.io/badge/php-%3E=7.2.0-brightgreen.svg?maxAge=2592000)](https://packagist.org/packages/toolkit/pflag)
+[![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/toolkit/pflag)](https://github.com/toolkit/pflag)
+[![Actions Status](https://github.com/toolkit/pflag/workflows/Unit-Tests/badge.svg)](https://github.com/toolkit/pflag/actions)
 
-TODO: package description
+Command line flag parse library
 
 ## Install
 
 **composer**
 
 ```bash
-composer require inherelab/php-pkg-template
+composer require toolkit/pflag
 ```
 
 ## Usage
 
-- clone this repository to local
-- update readme description
-- search all `inherelab/php-pkg-template` and replace to your package name.
-- update `composer.json` contents: name, description, require, autoload
+TODO
 
 ## License
 
