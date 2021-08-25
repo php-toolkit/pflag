@@ -10,7 +10,10 @@
 namespace Toolkit\PFlag\Flag;
 
 use Toolkit\PFlag\FlagType;
+use function array_filter;
 use function implode;
+use function rtrim;
+use function trim;
 
 /**
  * Class Option
@@ -62,6 +65,10 @@ class Option extends AbstractFlag
      */
     public function setAlias(string $alias): void
     {
+        if ($alias = trim($alias)) {
+
+        }
+
         $this->alias = $alias;
     }
 
@@ -74,14 +81,13 @@ class Option extends AbstractFlag
     }
 
     /**
-     * @param string $shortcut eg: 'a,b' Or '-a,-b'
+     * @param string $shortcut eg: 'a,b' Or '-a,-b' Or '-a, -b'
      */
     public function setShortcut(string $shortcut): void
     {
-        $shortcuts = preg_split('{(,)-?}', ltrim($shortcut, '-'));
-        $shortcuts = array_filter($shortcuts);
+        $shortcuts = preg_split('{,\s?-?}', ltrim($shortcut, '-'));
 
-        $this->setShorts($shortcuts);
+        $this->setShorts(array_filter($shortcuts));
     }
 
     /**
@@ -98,6 +104,35 @@ class Option extends AbstractFlag
     public function setShorts(array $shorts): void
     {
         $this->shorts   = $shorts;
-        $this->shortcut = implode('|', $shorts);
+        $this->shortcut = '-' . rtrim(implode(', -', $shorts));
+    }
+
+    /**
+     * @return string
+     */
+    public function getHelpName(): string
+    {
+        $shorts = $this->shortcut;
+
+        $names = [];
+        if ($this->alias) {
+            $names[] = $this->alias;
+        }
+
+        $names[] = $this->name;
+
+        return '-' . rtrim(implode(', -', $shorts));
+    }
+
+    /**
+     * @return array
+     */
+    public function toArray(): array
+    {
+        $info = parent::toArray();
+
+        $info['alias']  = $this->alias;
+        $info['shorts'] = $this->shorts;
+        return $info;
     }
 }

@@ -48,6 +48,14 @@ class Argument extends AbstractFlag
     }
 
     /**
+     * @return string
+     */
+    public function getHelpName(): string
+    {
+        return $this->name ?: 'ARG' . $this->index;
+    }
+
+    /**
      * @return int
      */
     public function getIndex(): int

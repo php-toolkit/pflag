@@ -168,6 +168,8 @@ $rules = [
 
 **For options**
 
+- option allow set alias/shorts
+
 > TIP: name `long,s` - first is the option name. remaining is short names.
 
 **For arguments**
@@ -187,11 +189,17 @@ The const `SFlags::DEFINE_ITEM`:
         // 'index'    => 0, // only for argument
         'required'  => false,
         'default'   => null,
-        'aliases'   => [], // only for option
+        'shorts'    => [], // only for option
         // value validator
         'validator' => null,
         // 'category' => null
     ];
+```
+
+## Unit tests
+
+```bash
+phpunit
 ```
 
 ## License

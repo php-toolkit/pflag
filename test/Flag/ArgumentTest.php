@@ -2,8 +2,10 @@
 
 namespace Toolkit\PFlagTest\Flag;
 
+use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\Flag\Argument;
 use Toolkit\PFlag\FlagType;
+use Toolkit\PFlag\Validator\EmptyValidator;
 use Toolkit\PFlagTest\BaseTestCase;
 
 /**
@@ -27,6 +29,18 @@ class ArgumentTest extends BaseTestCase
         $this->assertSame('89', $arg->getValue());
         $this->assertTrue($arg->hasValue());
         $this->assertSame('89', $arg->getDefault());
+    }
 
+    public function testValidate(): void
+    {
+        $arg = Argument::new('name');
+        $arg->setValidator(EmptyValidator::new());
+
+        $arg->setValue('inhere');
+        $this->assertSame('inhere', $arg->getValue());
+
+        $this->expectException(FlagException::class);
+        $this->expectExceptionMessage("flag 'name' value cannot be empty");
+        $arg->setValue('');
     }
 }

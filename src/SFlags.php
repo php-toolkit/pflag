@@ -50,7 +50,7 @@ class SFlags extends AbstractParser
         // 'index'    => 0, // only for argument
         'required'  => false,
         'default'   => null,
-        'aliases'   => [], // only for option
+        'shorts'    => [], // only for option. ['a', 'b']
         // value validator
         'validator' => null,
         // 'category' => null
@@ -75,7 +75,7 @@ class SFlags extends AbstractParser
      *  //  - array is define item self::DEFINE_ITEM
      *  'long,s',
      *  // name => rule
-     *  // TIP: name 'long,s' - first is the option name. remaining is aliases.
+     *  // TIP: name 'long,s' - first is the option name. remaining is shorts.
      *  'long,s' => int,
      *  'f'      => bool,
      *  'long'   => string,
@@ -499,25 +499,43 @@ class SFlags extends AbstractParser
 
             // collect value
             if ($isArray) {
-                $this->args[$index] = array_slice($args, $index); // remain args
+                $arrValues = array_slice($args, $index); // remain args
+                foreach ($arrValues as $arrValue) {
+                    $this->collectArgValue($arrValue, $index, true, $define);
+                }
             } else {
                 $value = $args[$index];
-
-                // has validator
-                if ($cb = $define['validator']) {
-                    $ok = $cb($value, $name ?: "#$index");
-                    if ($ok === false) {
-                        throw new FlagException("flag argument '$name' value not pass validate");
-                    }
-                }
-
-                $this->args[$index] = $value;
+                $this->collectArgValue($value, $index, false, $define);
             }
 
             $index++;
         }
     }
 
+    /**
+     * @param mixed $value
+     * @param int   $index
+     * @param bool  $isArray
+     * @param array $define
+     */
+    protected function collectArgValue($value, int $index, bool $isArray, array $define): void
+    {
+        // has validator
+        if ($cb = $define['validator']) {
+            $name = $define['name'] ?: "#$index";
+
+            $ok = $cb($value, $define['name'] ?: "#$index");
+            if ($ok === false) {
+                throw new FlagException("flag argument '$name' value not pass validate");
+            }
+        }
+
+        if ($isArray) {
+            $this->args[$index][] = $value;
+        } else {
+            $this->args[$index] = $value;
+        }
+    }
 
     /**
      * @param int          $index
@@ -588,11 +606,11 @@ class SFlags extends AbstractParser
     }
 
     /**
-     * Parse option name and aliases
+     * Parse option name and shorts
      *
      * @param string $key 'lang,s' => option name is 'lang', alias 's'
      *
-     * @return array [name, aliases]
+     * @return array [name, shorts]
      */
     protected function parseRuleOptName(string $key): array
     {
@@ -609,18 +627,18 @@ class SFlags extends AbstractParser
         $name = '';
         $keys = Str::explode($key, ',');
 
-        // TIP: first is the option name. remaining is aliases.
-        $aliases = [];
+        // TIP: first is the option name. remaining is shorts.
+        $shorts = [];
         foreach ($keys as $i => $k) {
             if ($i === 0) {
                 $name = $k;
             } else {
-                $aliases[] = $k;
+                $shorts[] = $k;
                 $this->setAlias($name, $k, true);
             }
         }
 
-        return [$name, $aliases];
+        return [$name, $shorts];
     }
 
     /**
@@ -651,11 +669,11 @@ class SFlags extends AbstractParser
      */
     protected function parseRule($rule, string $name = '', int $index = 0, bool $isOption = true): array
     {
-        $aliasesFromArr = [];
+        $shortsFromArr = [];
         if (is_array($rule)) {
             $item = Arr::replace(self::DEFINE_ITEM, $rule);
             // set alias by array item
-            $aliasesFromArr = $item['aliases'];
+            $shortsFromArr = $item['shorts'];
         } else { // parse string rule.
             $item = self::DEFINE_ITEM;
             $rule = trim((string)$rule, self::TRIM_CHARS);
@@ -683,10 +701,10 @@ class SFlags extends AbstractParser
         $name = $name ?: $item['name'];
         if ($isOption) {
             // parse option name.
-            [$name, $aliases] = $this->parseRuleOptName($name);
+            [$name, $shorts] = $this->parseRuleOptName($name);
 
             // save alias
-            $item['aliases'] = $aliases ?: $aliasesFromArr;
+            $item['shorts'] = $shorts ?: $shortsFromArr;
             if ($item['required']) {
                 $this->requiredOpts[] = $name;
             }
@@ -830,7 +848,6 @@ class SFlags extends AbstractParser
     /****************************************************************
      * helper methods
      ***************************************************************/
-
 
 
     /**

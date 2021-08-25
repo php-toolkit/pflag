@@ -11,8 +11,11 @@ namespace Toolkit\PFlag\Flag;
 
 use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\PFlag\Contract\FlagInterface;
+use Toolkit\PFlag\Contract\ValidatorInterface;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\FlagType;
+use function is_array;
+use function is_bool;
 
 /**
  * Class Flag
@@ -63,9 +66,9 @@ abstract class AbstractFlag implements FlagInterface
 
     /**
      * The flag value validator
-     * - if validate fail, please throw FlagException
+     * - if validate fail, please return for OR throw FlagException
      *
-     * @var callable
+     * @var callable|ValidatorInterface
      */
     protected $validator;
 
@@ -142,10 +145,12 @@ abstract class AbstractFlag implements FlagInterface
         // has validator
         if ($cb = $this->validator) {
             $ok  = true;
-            $ret = $cb($value);
+            $ret = $cb($value, $this->name);
 
-            if ($ret) {
+            if (is_array($ret)) {
                 [$ok, $value] = $ret;
+            } elseif (is_bool($ret)) {
+                $ok = $ret;
             }
 
             if (false === $ok) {
@@ -184,10 +189,6 @@ abstract class AbstractFlag implements FlagInterface
         return $this->default !== null;
     }
 
-    /******************************************************************
-     *
-     *****************************************************************/
-
     /**
      * @return string
      */
@@ -195,6 +196,10 @@ abstract class AbstractFlag implements FlagInterface
     {
         return $this->name;
     }
+
+    /******************************************************************
+     * getter/setter methods
+     *****************************************************************/
 
     /**
      * @return string

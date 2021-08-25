@@ -31,6 +31,11 @@ interface FlagInterface
     /**
      * @return string
      */
+    public function getHelpName(): string;
+
+    /**
+     * @return string
+     */
     public function getDesc(): string;
 
     /**
