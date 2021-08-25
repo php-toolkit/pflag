@@ -9,19 +9,19 @@
 
 namespace Toolkit\PFlag;
 
+use InvalidArgumentException;
 use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\Stdlib\Arr;
 use Toolkit\Stdlib\Str;
 use function array_slice;
 use function current;
-use function escapeshellarg;
 use function explode;
 use function is_array;
+use function is_callable;
 use function is_int;
 use function is_string;
 use function next;
-use function preg_match;
 use function str_split;
 use function strlen;
 use function strpos;
@@ -44,14 +44,16 @@ class SFlags extends AbstractParser
     private const TRIM_CHARS = ", \t\n\r\0\x0B";
 
     public const DEFINE_ITEM = [
-        'name'     => '',
-        'desc'     => '',
-        'type'     => FlagType::STRING,
+        'name'      => '',
+        'desc'      => '',
+        'type'      => FlagType::STRING,
         // 'index'    => 0, // only for argument
-        // 'aliases'  => 0, // only for option
-        'required' => false,
-        'default'  => null, // TODO allow default value.
-        // 'validator' => callable
+        'required'  => false,
+        'default'   => null,
+        'aliases'   => [], // only for option
+        // value validator
+        'validator' => null,
+        // 'category' => null
     ];
 
     /**
@@ -75,10 +77,10 @@ class SFlags extends AbstractParser
      *  // name => rule
      *  // TIP: name 'long,s' - first is the option name. remaining is aliases.
      *  'long,s' => int,
-     *  's'      => bool,
+     *  'f'      => bool,
      *  'long'   => string,
-     *  'long'   => array, // can also: int[], string[]
-     *  'name'   => 'type,required,default,the description message', // TODO with default, desc, required
+     *  'tags'   => array, // can also: int[], string[]
+     *  'name'   => 'type,required,default,the description message', // with default, desc, required
      * ]
      * ```
      *
@@ -124,7 +126,7 @@ class SFlags extends AbstractParser
      *  'type',
      *  'name' => 'type',
      *  'name' => 'type,required', // arg option
-     *  'name' => 'type,required,default,the description message', // TODO with default, desc, required
+     *  'name' => 'type,required,default,the description message', // with default, desc, required
      * ]
      * ```
      *
@@ -253,23 +255,23 @@ class SFlags extends AbstractParser
      *
      * @link http://php.net/manual/zh/function.getopt.php#83414
      *
-     * @param array $rawFlags
+     * @param array $flags
      *
      * @return self
      */
-    public function parse(array $rawFlags): self
+    public function parse(array $flags): self
     {
         if ($this->parsed) {
             return $this;
         }
 
-        $this->parsed   = true;
-        $this->rawFlags = $rawFlags;
+        $this->parsed = true;
+        $this->flags  = $flags;
         $this->parseOptRules($this->optRules);
 
         $optParseEnd = false;
-        while (false !== ($p = current($rawFlags))) {
-            next($rawFlags);
+        while (false !== ($p = current($flags))) {
+            next($flags);
 
             // option parse end, collect remaining arguments.
             if ($optParseEnd) {
@@ -314,28 +316,26 @@ class SFlags extends AbstractParser
                 }
 
                 $define = $this->optDefines[$option];
-                // option value data type
-                $type = $define['type'];
 
                 // only allow set bool value by inline. eg: -o=false
-                $isBool = $type === FlagType::BOOL;
+                $isBool = $define['type'] === FlagType::BOOL;
                 if ($hasVal && $isBool) {
-                    $this->setRealOptValue($option, $type, $value);
+                    $this->setRealOptValue($option, $value, $define);
                     continue;
                 }
 
                 // check if next element is a descriptor or a value
-                $next = current($rawFlags);
+                $next = current($flags);
                 if ($hasVal === false && $isBool === false) {
                     if (false === FlagHelper::isOptionValue($next)) {
                         throw new FlagException("must provide value for the option: $option", 404);
                     }
 
                     $value = $next;
-                    next($rawFlags);
+                    next($flags);
                 }
 
-                $this->setRealOptValue($option, $type, $value);
+                $this->setRealOptValue($option, $value, $define);
                 continue;
             }
 
@@ -402,22 +402,31 @@ class SFlags extends AbstractParser
         }
 
         $define = $this->optDefines[$option];
-        $this->setRealOptValue($option, $define['type'], $value);
+        $this->setRealOptValue($option, $value, $define);
     }
 
     /**
-     * @param string $option
-     * @param string $type
+     * @param string $name   The option name
      * @param mixed  $value
+     * @param array  $define {@see DEFINE_ITEM}
      */
-    protected function setRealOptValue(string $option, string $type, $value): void
+    protected function setRealOptValue(string $name, $value, array $define): void
     {
+        $type  = $define['type'];
         $value = FlagType::fmtBasicTypeValue($type, $value);
 
+        // has validator
+        if ($cb = $define['validator']) {
+            $ok = $cb($value, $name);
+            if ($ok === false) {
+                throw new FlagException("flag option '$name' value not pass validate");
+            }
+        }
+
         if (FlagType::isArray($type)) {
-            $this->opts[$option][] = $value;
+            $this->opts[$name][] = $value;
         } else {
-            $this->opts[$option] = $value;
+            $this->opts[$name] = $value;
         }
     }
 
@@ -461,6 +470,11 @@ class SFlags extends AbstractParser
             // parse rule
             $define = $this->parseRule($rule, is_string($name) ? $name : '', $index, false);
 
+            // has default value
+            if (isset($define['default'])) {
+                $this->args[$index] = $define['default'];
+            }
+
             // set argument name
             $hasName = $this->setArgName($index, $name = $define['name']);
             $isArray = FlagType::isArray($define['type']);
@@ -485,14 +499,25 @@ class SFlags extends AbstractParser
 
             // collect value
             if ($isArray) {
-                $this->args[] = array_slice($args, $index); // remain args
+                $this->args[$index] = array_slice($args, $index); // remain args
             } else {
-                $this->args[] = $args[$index];
+                $value = $args[$index];
+
+                // has validator
+                if ($cb = $define['validator']) {
+                    $ok = $cb($value, $name ?: "#$index");
+                    if ($ok === false) {
+                        throw new FlagException("flag argument '$name' value not pass validate");
+                    }
+                }
+
+                $this->args[$index] = $value;
             }
 
             $index++;
         }
     }
+
 
     /**
      * @param int          $index
@@ -520,7 +545,7 @@ class SFlags extends AbstractParser
     public function reset(bool $resetDefines = true): void
     {
         $this->parsed  = false;
-        $this->rawArgs = $this->rawFlags = [];
+        $this->rawArgs = $this->flags = [];
 
         $this->opts = $this->args = [];
 
@@ -550,9 +575,15 @@ class SFlags extends AbstractParser
             }
 
             $define = $this->parseRule($rule, $key);
+            $name   = $define['name'];
+
+            // has default value
+            if (isset($define['default'])) {
+                $this->opts[$name] = $define['default'];
+            }
 
             // save parse definition
-            $this->optDefines[$define['name']] = $define;
+            $this->optDefines[$name] = $define;
         }
     }
 
@@ -620,8 +651,11 @@ class SFlags extends AbstractParser
      */
     protected function parseRule($rule, string $name = '', int $index = 0, bool $isOption = true): array
     {
+        $aliasesFromArr = [];
         if (is_array($rule)) {
             $item = Arr::replace(self::DEFINE_ITEM, $rule);
+            // set alias by array item
+            $aliasesFromArr = $item['aliases'];
         } else { // parse string rule.
             $item = self::DEFINE_ITEM;
             $rule = trim((string)$rule, self::TRIM_CHARS);
@@ -652,7 +686,7 @@ class SFlags extends AbstractParser
             [$name, $aliases] = $this->parseRuleOptName($name);
 
             // save alias
-            $item['aliases'] = $aliases;
+            $item['aliases'] = $aliases ?: $aliasesFromArr;
             if ($item['required']) {
                 $this->requiredOpts[] = $name;
             }
@@ -664,6 +698,17 @@ class SFlags extends AbstractParser
         if (!FlagType::isValid($type = $item['type'])) {
             $nameMark = $name ? "(name: $name)" : "(#$index)";
             throw new FlagException("cannot define invalid flag type: $type$nameMark");
+        }
+
+        // validator must be callable
+        if (!empty($item['validator']) && !is_callable($item['validator'])) {
+            $nameMark = $name ? "(name: $name)" : "(#$index)";
+            throw new InvalidArgumentException("validator must be callable. flag: $nameMark");
+        }
+
+        // has default value
+        if (!empty($item['default'])) {
+            $item['default'] = FlagType::fmtBasicTypeValue($type, $item['default']);
         }
 
         $item['name'] = $name;
@@ -786,17 +831,7 @@ class SFlags extends AbstractParser
      * helper methods
      ***************************************************************/
 
-    /**
-     * Escapes a token through escape shell arg if it contains unsafe chars.
-     *
-     * @param string $token
-     *
-     * @return string
-     */
-    public static function escapeToken(string $token): string
-    {
-        return preg_match('{^[\w-]+$}', $token) ? $token : escapeshellarg($token);
-    }
+
 
     /**
      * @return array
@@ -808,6 +843,8 @@ class SFlags extends AbstractParser
 
     /**
      * @param array $argRules
+     *
+     * @see argRules
      */
     public function setArgRules(array $argRules): void
     {
@@ -832,6 +869,8 @@ class SFlags extends AbstractParser
 
     /**
      * @param array $optRules
+     *
+     * @see optRules
      */
     public function setOptRules(array $optRules): void
     {

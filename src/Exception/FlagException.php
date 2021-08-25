@@ -9,13 +9,13 @@
 
 namespace Toolkit\PFlag\Exception;
 
-use RuntimeException;
+use InvalidArgumentException;
 
 /**
  * Class FlagException
  *
  * @package Toolkit\PFlag\Exception
  */
-class FlagException extends RuntimeException
+class FlagException extends InvalidArgumentException
 {
 }

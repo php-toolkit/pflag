@@ -21,7 +21,7 @@ interface ParserInterface
     /**
      * @return array
      */
-    public function getRawFlags(): array;
+    public function getFlags(): array;
 
     /**
      * @return array
@@ -29,11 +29,11 @@ interface ParserInterface
     public function getRawArgs(): array;
 
     /**
-     * @param array $rawFlags
+     * @param array $flags
      *
      * @return AbstractParser|SFlags|Flags
      */
-    public function parse(array $rawFlags);
+    public function parse(array $flags);
 
     /**
      * Get an option value by name

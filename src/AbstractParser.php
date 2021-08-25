@@ -24,23 +24,23 @@ abstract class AbstractParser implements ParserInterface
     protected $parsed = false;
 
     /**
-     * The raw input flags
+     * The input flags
      *
-     * @var array
+     * @var string[]
      */
-    protected $rawFlags = [];
+    protected $flags = [];
 
     /**
      * The remaining raw args, after option parsed from {@see $rawFlags}
      *
-     * @var array
+     * @var string[]
      */
     protected $rawArgs = [];
 
     /**
      * The required option names.
      *
-     * @var array
+     * @var string[]
      */
     protected $requiredOpts = [];
 
@@ -123,17 +123,17 @@ abstract class AbstractParser implements ParserInterface
     /**
      * @return array
      */
-    public function getRawArgs(): array
+    public function getFlags(): array
     {
-        return $this->rawArgs;
+        return $this->flags;
     }
 
     /**
      * @return array
      */
-    public function getRawFlags(): array
+    public function getRawArgs(): array
     {
-        return $this->rawFlags;
+        return $this->rawArgs;
     }
 
     /**

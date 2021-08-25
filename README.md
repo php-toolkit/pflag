@@ -33,9 +33,9 @@ $flags = ['--name', 'inhere', '--age', '99', '--tag', 'php', '-t', 'go', '--tag'
 
 $optRules = [
     'name', // string
-    'age'    => 'int,required', // set required
+    'age'   => 'int,required', // set required
     'tag,t' => FlagType::ARRAY,
-    'f'      => FlagType::BOOL,
+    'f'     => FlagType::BOOL,
 ];
 $argRules = [
     // some argument rules
@@ -140,8 +140,58 @@ $tags = $fs->getOption('tags'); // array{"php", "go", "java"}
 $arg0 = $fs->getArg(0); // string(arg0)
 // get an array arg
 $arrArg = $fs->getArg(1); // array{"arr0", "arr1"}
-// use name
+// get value by name
 $arrArg = $fs->getArg('arrArg'); // array{"arr0", "arr1"}
+```
+
+### Flag Rule
+
+The options/arguments rules
+
+- string value is rule(`type,required,default,desc`).
+- array is define item `SFlags::DEFINE_ITEM`
+- supportted type see `FlagType::*`
+
+```php
+$rules = [
+     // v: only value, as name and use default type FlagType::STRING
+     // k-v: key is name, value can be string|array
+     'long,s',
+     // name => rule
+     'long,s' => 'int',
+     'f'      => 'bool',
+     'long'   => FlagType::STRING,
+     'tags'   => 'array', // can also: int[], string[]
+     'name'   => 'type,required,default,the description message', // with default, desc, required
+]
+```
+
+**For options**
+
+> TIP: name `long,s` - first is the option name. remaining is short names.
+
+**For arguments**
+
+- arguemnt no alias/shorts
+- array value only allow defined last
+
+**Definition item**
+
+The const `SFlags::DEFINE_ITEM`:
+
+```php
+    public const DEFINE_ITEM = [
+        'name'      => '',
+        'desc'      => '',
+        'type'      => FlagType::STRING,
+        // 'index'    => 0, // only for argument
+        'required'  => false,
+        'default'   => null,
+        'aliases'   => [], // only for option
+        // value validator
+        'validator' => null,
+        // 'category' => null
+    ];
 ```
 
 ## License

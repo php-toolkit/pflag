@@ -53,6 +53,9 @@ abstract class AbstractFlag implements FlagInterface
      */
     protected $value;
 
+    // TODO category
+    // protected $category = '';
+
     /**
      * @var bool
      */

@@ -100,7 +100,7 @@ class Flags extends AbstractParser
         }
 
         $this->parsed  = true;
-        $this->rawArgs = $this->rawFlags = $args;
+        $this->rawArgs = $this->flags = $args;
 
         $breakStatus = self::STATUS_OK;
         while (true) {
