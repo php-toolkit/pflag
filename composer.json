@@ -26,9 +26,6 @@
       "Toolkit\\PFlagTest\\": "test/"
     }
   },
-  "bin": [
-
-  ],
   "scripts": {
     "test": "php vender/bin/phpunit"
   }

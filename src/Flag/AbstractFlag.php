@@ -13,7 +13,6 @@ use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\PFlag\Contract\FlagInterface;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\FlagType;
-use function vdump;
 
 /**
  * Class Flag
@@ -68,16 +67,22 @@ abstract class AbstractFlag implements FlagInterface
     protected $validator;
 
     /**
-     * @param string     $name
-     * @param string     $desc
-     * @param bool       $required
-     * @param mixed|null $default
+     * @param string $name
+     * @param string $desc
+     * @param string $type
+     * @param bool   $required
+     * @param mixed  $default
      *
      * @return static|Argument|Option
      */
-    public static function new(string $name, string $desc = '', bool $required = false, $default = null): self
-    {
-        return new static($name, $desc, $required, $default);
+    public static function new(
+        string $name,
+        string $desc = '',
+        string $type = 'string',
+        bool $required = false,
+        $default = null
+    ): self {
+        return new static($name, $desc, $type, $required, $default);
     }
 
     /**
@@ -85,25 +90,33 @@ abstract class AbstractFlag implements FlagInterface
      *
      * @param string $name
      * @param string $desc
+     * @param string $type
      * @param bool   $required
      * @param mixed  $default   The default value
      *                          - for Flag::ARG_OPTIONAL mode only
      *                          - must be null for Flag::OPT_BOOLEAN
      */
-    public function __construct(string $name, string $desc = '', bool $required = false, $default = null)
-    {
-        $this->name = $name;
-
+    public function __construct(
+        string $name,
+        string $desc = '',
+        string $type = 'string',
+        bool $required = false,
+        $default = null
+    ) {
         $this->default  = $default;
         $this->required = $required;
 
+        $this->setName($name);
+        $this->setType($type);
         $this->setDesc($desc);
     }
 
     public function init(): void
     {
+        // init default value.
         if ($this->default !== null) {
             $this->default = FlagType::fmtBasicTypeValue($this->type, $this->default);
+            $this->value   = $this->default;
         }
     }
 
@@ -172,7 +185,6 @@ abstract class AbstractFlag implements FlagInterface
      *
      *****************************************************************/
 
-
     /**
      * @return string
      */
@@ -199,8 +211,8 @@ abstract class AbstractFlag implements FlagInterface
         }
 
         if (!FlagType::isValid($type)) {
-            $name = $this->name;
-            throw new FlagException("cannot define invalid flag type: $type(name: $name)");
+            $name = $this->getNameMark();
+            throw new FlagException("cannot define invalid flag type: $type $name");
         }
 
         $this->type = $type;
@@ -278,7 +290,6 @@ abstract class AbstractFlag implements FlagInterface
      */
     public function isArray(): bool
     {
-        // return $this->hasMode(Input::ARG_IS_ARRAY);
         return FlagType::isArray($this->type);
     }
 

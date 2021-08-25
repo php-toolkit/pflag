@@ -53,19 +53,16 @@ trait FlagArgumentsTrait
      * @param string     $type The argument data type. default is: string. {@see FlagType}
      * @param bool       $required
      * @param null|mixed $default
-     * @param string     $alias
      */
     public function addArg(
         string $name,
         string $desc,
         string $type = '',
         bool $required = false,
-        $default = null,
-        string $alias = ''
+        $default = null
     ): void {
         /** @var Argument $arg */
-        $arg = Argument::new($name, $desc, $required, $default);
-        $arg->setType($type);
+        $arg = Argument::new($name, $desc, $type, $required, $default);
 
         $this->addArgument($arg);
     }
@@ -116,6 +113,19 @@ trait FlagArgumentsTrait
         }
 
         return $default;
+    }
+
+    /**
+     * @return array
+     */
+    public function getArgs(): array
+    {
+        $args = [];
+        foreach ($this->arguments as $argument) {
+            $args[] = $argument->getValue();
+        }
+
+        return $args;
     }
 
     /**

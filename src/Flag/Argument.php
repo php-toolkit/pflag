@@ -9,8 +9,6 @@
 
 namespace Toolkit\PFlag\Flag;
 
-use Toolkit\PFlag\Exception\FlagException;
-use Toolkit\PFlag\FlagType;
 use function sprintf;
 
 /**
@@ -27,24 +25,6 @@ class Argument extends AbstractFlag
      * @var int
      */
     private $index = 0;
-
-    /**
-     * @param string $type
-     */
-    public function setType(string $type): void
-    {
-        if (!$type) {
-            return;
-        }
-
-        if (!FlagType::isValid($type)) {
-            $name = $this->getName();
-            $mark = $name ? "(name: $name)" : "(#$this->index)";
-            throw new FlagException("cannot define invalid flag type: $type$mark");
-        }
-
-        $this->type = $type;
-    }
 
     /**
      * @param string $name

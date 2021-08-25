@@ -9,12 +9,15 @@
 
 namespace Toolkit\PFlag\Flag;
 
+use Toolkit\PFlag\Traits\FlagOptionsTrait;
+
 /**
- * Class InputOptions
+ * Class Options
  * - input options builder
  *
  * @package Toolkit\PFlag\Flag
  */
 class Options
 {
+    use FlagOptionsTrait;
 }

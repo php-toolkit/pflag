@@ -16,6 +16,35 @@ namespace Toolkit\PFlag\Contract;
  */
 interface FlagInterface
 {
+    public function init(): void;
+
+    /**
+     * @return string
+     */
+    public function getType(): string;
+
+    /**
+     * @return string
+     */
+    public function getName(): string;
+
+    /**
+     * @return string
+     */
+    public function getDesc(): string;
+
+    /**
+     * Get the flag value
+     *
+     * @return mixed
+     */
+    public function getValue();
+
+    /**
+     * @param mixed $value
+     */
+    public function setValue($value): void;
+
     /**
      * @return bool
      */
@@ -30,11 +59,4 @@ interface FlagInterface
      * @return bool
      */
     public function isOptional(): bool;
-
-    /**
-     * Get the flag value
-     *
-     * @return mixed
-     */
-    public function getValue();
 }

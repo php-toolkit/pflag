@@ -23,12 +23,24 @@ trait FlagOptionsTrait
     /**
      * The defined options on init.
      *
+     * ```php
+     * [
+     *  name => Option,
+     * ]
+     * ```
+     *
      * @var Option[]
      */
     private $defined = [];
 
     /**
      * The matched options on runtime
+     *
+     * ```php
+     * [
+     *  name => Option,
+     * ]
+     * ```
      *
      * @var Option[]
      */
@@ -53,8 +65,7 @@ trait FlagOptionsTrait
         string $alias = ''
     ): void {
         /** @var Option $opt */
-        $opt = Option::new($name, $desc, $required, $default);
-        $opt->setType($type);
+        $opt = Option::new($name, $desc, $type, $required, $default);
         $opt->setAlias($alias);
         $opt->setShortcut($shorts);
 
@@ -99,6 +110,16 @@ trait FlagOptionsTrait
     }
 
     /**
+     * @param Option $option
+     */
+    public function addMatched(Option $option): void
+    {
+        $name = $option->getName();
+        // add to matched
+        $this->matched[$name] = $option;
+    }
+
+    /**
      * @param string     $name
      * @param null|mixed $default
      *
@@ -115,6 +136,19 @@ trait FlagOptionsTrait
         }
 
         return $default;
+    }
+
+    /**
+     * @return array
+     */
+    public function getOpts(): array
+    {
+        $opts = [];
+        foreach ($this->matched as $name => $option) {
+            $opts[$name] = $option->getValue();
+        }
+
+        return $opts;
     }
 
     /**
@@ -148,16 +182,6 @@ trait FlagOptionsTrait
     }
 
     /**
-     * @param Option $option
-     */
-    public function addMatched(Option $option): void
-    {
-        $name = $option->getName();
-        // add to matched
-        $this->matched[$name] = $option;
-    }
-
-    /**
      * @param string $name
      *
      * @return bool
@@ -173,6 +197,14 @@ trait FlagOptionsTrait
     public function getDefinedOptions(): array
     {
         return $this->defined;
+    }
+
+    /**
+     * @return Option[]
+     */
+    public function getOptions(): array
+    {
+        return $this->matched;
     }
 
     /**

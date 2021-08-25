@@ -7,5 +7,7 @@ namespace Toolkit\PFlag\Contract;
  */
 interface ValueInterface
 {
+    public function setValue();
 
+    public function getValue();
 }

@@ -9,50 +9,15 @@
 
 namespace Toolkit\PFlag\Flag;
 
+use Toolkit\PFlag\Traits\FlagArgumentsTrait;
+
 /**
- * Class InputArguments
+ * Class Arguments
  * - input arguments builder
  *
  * @package Toolkit\PFlag\Flag
  */
 class Arguments
 {
-    /**
-     * @var array
-     */
-    private $arguments = [];
-
-    /**
-     * @param string      $name
-     * @param int|null    $mode
-     * @param string|null $type The argument data type. (eg: 'string', 'array', 'mixed')
-     * @param string      $description
-     * @param null        $default
-     * @param null        $alias
-     */
-    public function add(
-        string $name,
-        int $mode = null,
-        string $type = null,
-        string $description = '',
-        $default = null,
-        $alias = null
-    ): void {
-    }
-
-    /**
-     * @return array
-     */
-    public function getArguments(): array
-    {
-        return $this->arguments;
-    }
-
-    /**
-     * @param array $arguments
-     */
-    public function setArguments(array $arguments): void
-    {
-        $this->arguments = $arguments;
-    }
+    use FlagArgumentsTrait;
 }

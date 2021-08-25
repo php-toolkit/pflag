@@ -27,24 +27,29 @@ class FlagsTest extends BaseTestCase
         $fs->addOption(Option::new('name'));
         $fs->addOpt('age', '', 'age desc', FlagType::INT);
         $fs->addOpt('int1', '', 'opt1 desc', FlagType::INT, false, '89');
-        // vdump($fs->getDefinedOption('int1'));
+
+        $int1 = $fs->getDefinedOption('int1');
+        $this->assertNotEmpty($int1);
+        $this->assertSame(89, $int1->getDefault());
+        $this->assertSame(89, $int1->getValue());
 
         self::assertTrue($fs->hasDefined('name'));
         self::assertFalse($fs->hasMatched('name'));
 
-        $args = ['--name', 'inhere', 'arg0', 'arg1'];
-        $fs->parse($args);
+        $flags = ['--name', 'inhere', 'arg0', 'arg1'];
+        $fs->parse($flags);
 
         self::assertTrue($fs->hasMatched('name'));
         $this->assertNotEmpty( $fs->getOption('name'));
         $this->assertSame('inhere', $fs->getOpt('name'));
         $this->assertSame(0, $fs->getOpt('age', 0));
         $this->assertSame(89, $fs->getOpt('int1'));
+        $this->assertSame(['arg0', 'arg1'], $fs->getRawArgs());
 
         $fs->reset();
-        $args = ['--name', 'inhere', '-s', 'sv', '-f'];
+        $flags = ['--name', 'inhere', '-s', 'sv', '-f'];
         $this->expectException(FlagException::class);
         $this->expectExceptionMessage('flag option provided but not defined: -s');
-        $fs->parse($args);
+        $fs->parse($flags);
     }
 }
