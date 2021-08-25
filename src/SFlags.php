@@ -350,7 +350,7 @@ class SFlags extends AbstractParser
                 }
             }
 
-            // collect arguments.
+            // collect remaining arguments.
             $this->rawArgs[] = $p;
         }
 

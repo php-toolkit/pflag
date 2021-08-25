@@ -13,7 +13,6 @@ use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\Flags;
 use Toolkit\PFlag\Flag\Option;
 use Toolkit\PFlag\FlagType;
-use function vdump;
 
 /**
  * Class FlagsTest

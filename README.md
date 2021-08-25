@@ -46,15 +46,12 @@ $fs->parse($rawFlags);
 // or use
 // $fs->parseDefined($flags, $optRules, $argRules);
 
-vdump($fs->getRawArgs(), $fs->getOpts());
+vdump($fs->getOpts(), $fs->getRawArgs());
 ```
 
 Output:
 
 ```text
-array(1) {
-  [0]=> string(4) "arg0"
-}
 array(3) {
   ["name"]=> string(6) "inhere"
   ["tag"]=> array(3) {
@@ -63,6 +60,9 @@ array(3) {
     [2]=> string(4) "java"
   }
   ["f"]=> bool(true)
+}
+array(1) {
+  [0]=> string(4) "arg0"
 }
 ```
 
@@ -80,14 +80,15 @@ $scriptFile = array_shift($rawFlags);
 $optRules = [
     // some option rules
     'name', // string
-    'age'    => 'int,required', // set required
+    'age'   => 'int,required', // set required
     'tag,t' => FlagType::ARRAY,
-    'f'      => FlagType::BOOL,
+    'f'     => FlagType::BOOL,
 ];
 $argRules = [
     // some argument rules
     'string',
-    'array',
+    // set name
+    'arrArg' => 'array',
 ];
 
 $fs = SFlags::new()->parseDefined($rawFlags, $optRules, $argRules);
@@ -102,15 +103,6 @@ php example/sflags-demo.php --name inhere --age 99 --tag go -t php -t java -f ar
 Output:
 
 ```text
-$ php example/sflags-demo.php --name inhere --age 99 --tag go -t php -t java -f arg0 arr0 arr1                                                                                                               21-08-24 - 19:38:01
-CALL ON /Users/inhere/.kite/vendor/toolkit/pflag/example/sflags-demo.php(44):
-array(2) {
-  [0]=> string(4) "arg0"
-  [1]=> array(2) {
-    [0]=> string(4) "arr0"
-    [1]=> string(4) "arr1"
-  }
-}
 array(4) {
   ["name"]=> string(6) "inhere"
   ["age"]=> int(99)
@@ -121,7 +113,13 @@ array(4) {
   }
   ["f"]=> bool(true)
 }
-
+array(2) {
+  [0]=> string(4) "arg0"
+  [1]=> array(2) {
+    [0]=> string(4) "arr0"
+    [1]=> string(4) "arr1"
+  }
+}
 ```
 
 ### Get Value
@@ -133,6 +131,16 @@ $force = $fs->getOption('f'); // bool(true)
 $age  = $fs->getOption('age'); // int(99)
 $name = $fs->getOption('name'); // string(inhere)
 $tags = $fs->getOption('tags'); // array{"php", "go", "java"}
+```
+
+**Arguments**
+
+```php
+$arg0 = $fs->getArg(0); // string(arg0)
+// get an array arg
+$arrArg = $fs->getArg(1); // array{"arr0", "arr1"}
+// use name
+$arrArg = $fs->getArg('arrArg'); // array{"arr0", "arr1"}
 ```
 
 ## License

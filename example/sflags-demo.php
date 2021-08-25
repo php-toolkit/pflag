@@ -28,7 +28,8 @@ $optRules = [
 $argRules = [
     // some argument rules
     'string',
-    'array',
+    // set name
+    'arrArg' => 'array',
 ];
 
 $fs = SFlags::new();
@@ -40,6 +41,8 @@ $fs->parse($rawFlags);
 
 vdump(
     // $fs->getRawArgs(),
-    $fs->getArgs(),
-    $fs->getOpts()
+    $fs->getOpts(),
+    $fs->getArgs()
 );
+
+// vdump($fs->getArg('arrArg'));
