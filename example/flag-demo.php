@@ -8,7 +8,8 @@
  * @license  MIT
  */
 
-use Toolkit\PFlag\SFlags;
+use Toolkit\PFlag\Flags;
+use Toolkit\PFlag\FlagType;
 
 require dirname(__DIR__) . '/test/bootstrap.php';
 
@@ -18,26 +19,22 @@ $flags = $_SERVER['argv'];
 // NOTICE: must shift first element.
 $scriptFile = array_shift($flags);
 
-$optRules = [
-    // some option rules
-    'name'  => 'string;;;this is an string option', // string
-    'age'   => 'int;required;;this is an int option', // set required
-    'tag,t' => 'strings;no;;array option, allow set multi times',
-    'f'     => 'bool;no;;this is an bool option',
-];
-$argRules = [
-    // some argument rules
-    'string',
-    // set name
-    'arrArg' => 'strings;[a,b];;this is an array arg, allow multi value',
-];
-
-$fs = SFlags::new();
+$fs = Flags::new();
 $fs->setScriptFile($scriptFile);
 
-$fs->setOptRules($optRules);
-$fs->setArgRules($argRules);
+// add options
+$fs->addOpt('age', 'a', 'this is a int option', FlagType::INT);
+$fs->addOptByRule('name,n', 'string;true;;this is a string option');
+$fs->addOptsByRules([
+    'tag,t' => 'strings;no;;array option, allow set multi times',
+    'f'     => 'bool;no;;this is an bool option',
+]);
 
+// add arguments
+$fs->addArg('strArg', 'the first arg, is string', 'string', true);
+$fs->addArg('arrArg', 'the second arg, is array', 'strings');
+
+// edump($fs);
 if (!$fs->parse($flags)) {
     return;
 }
@@ -47,5 +44,3 @@ vdump(
     $fs->getOpts(),
     $fs->getArgs()
 );
-
-// vdump($fs->getArg('arrArg'));

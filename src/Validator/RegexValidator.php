@@ -4,7 +4,6 @@ namespace Toolkit\PFlag\Validator;
 
 use Toolkit\PFlag\Contract\ValidatorInterface;
 use Toolkit\PFlag\Exception\FlagException;
-use function implode;
 use function is_string;
 use function preg_match;
 
@@ -43,7 +42,7 @@ class RegexValidator implements ValidatorInterface
     /**
      * Validate input value
      *
-     * @param mixed $value
+     * @param mixed  $value
      * @param string $name
      *
      * @return bool
@@ -55,7 +54,7 @@ class RegexValidator implements ValidatorInterface
             return true;
         }
 
-        throw new FlagException("flag '$name' value should match: $regex" );
+        throw new FlagException("flag '$name' value should match: $regex");
     }
 
     /**
@@ -63,7 +62,8 @@ class RegexValidator implements ValidatorInterface
      */
     public function __toString(): string
     {
-        return 'should match: ' . $this->regex;
+        // return 'should match: ' . $this->regex;
+        return '';
     }
 
     /**

@@ -33,7 +33,7 @@ $flags = ['--name', 'inhere', '--age', '99', '--tag', 'php', '-t', 'go', '--tag'
 
 $optRules = [
     'name', // string
-    'age'   => 'int,required', // set required
+    'age'   => 'int;required', // set required
     'tag,t' => FlagType::ARRAY,
     'f'     => FlagType::BOOL,
 ];
@@ -81,7 +81,7 @@ $scriptFile = array_shift($rawFlags);
 $optRules = [
     // some option rules
     'name', // string
-    'age'   => 'int,required', // set required
+    'age'   => 'int;required', // set required
     'tag,t' => FlagType::ARRAY,
     'f'     => FlagType::BOOL,
 ];
@@ -92,7 +92,8 @@ $argRules = [
     'arrArg' => 'array',
 ];
 
-$fs = SFlags::new()->parseDefined($rawFlags, $optRules, $argRules);
+$fs = SFlags::new();
+$fs->parseDefined($rawFlags, $optRules, $argRules);
 ```
 
 Run demo:
@@ -148,7 +149,7 @@ $arrArg = $fs->getArg('arrArg'); // array{"arr0", "arr1"}
 
 The options/arguments rules
 
-- string value is rule(`type,required,default,desc`).
+- string value is rule(`type;required;default;desc`).
 - array is define item `SFlags::DEFINE_ITEM`
 - supportted type see `FlagType::*`
 
@@ -161,8 +162,8 @@ $rules = [
      'long,s' => 'int',
      'f'      => 'bool',
      'long'   => FlagType::STRING,
-     'tags'   => 'array', // can also: int[], string[]
-     'name'   => 'type,required,default,the description message', // with default, desc, required
+     'tags'   => 'array', // can also: ints, strings
+     'name'   => 'type;required;default;the description message', // with default, desc, required
 ]
 ```
 

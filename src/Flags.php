@@ -9,13 +9,15 @@
 
 namespace Toolkit\PFlag;
 
-use Toolkit\Cli\Helper\FlagHelper;
+use Toolkit\Cli\Cli;
 use Toolkit\PFlag\Exception\FlagException;
-use Toolkit\PFlag\Traits\FlagArgumentsTrait;
-use Toolkit\PFlag\Traits\FlagOptionsTrait;
+use Toolkit\PFlag\Flag\Argument;
+use Toolkit\PFlag\Flag\Option;
+use Toolkit\Stdlib\Str;
 use function array_shift;
 use function array_slice;
 use function count;
+use function is_string;
 use function ltrim;
 use function strlen;
 use function substr;
@@ -27,14 +29,63 @@ use function substr;
  */
 class Flags extends AbstractParser
 {
-    use FlagArgumentsTrait;
-
-    use FlagOptionsTrait;
-
     /**
      * @var self
      */
     private static $std;
+
+    // ------------------- opts -------------------
+
+    /**
+     * The defined options on init.
+     *
+     * ```php
+     * [
+     *  name => Option,
+     * ]
+     * ```
+     *
+     * @var Option[]
+     */
+    private $options = [];
+
+    /**
+     * The matched options on runtime
+     *
+     * ```php
+     * [
+     *  name => Option,
+     * ]
+     * ```
+     *
+     * @var Option[]
+     */
+    private $matched = [];
+
+    // ------------------- args -------------------
+    /**
+     * @var array [name => index]
+     */
+    private $name2index = [];
+
+    /**
+     * @var Argument[]
+     */
+    private $arguments = [];
+
+    /**
+     * Has array argument
+     *
+     * @var bool
+     */
+    private $arrayArg = false;
+
+    /**
+     * Has optional argument
+     *
+     * @var bool
+     */
+    private $optionalArg = false;
 
     /**
      * @var bool
@@ -53,71 +104,51 @@ class Flags extends AbstractParser
         return self::$std;
     }
 
-    /**
-     * @param array|null $args
-     *
-     * @return self
-     */
-    public static function parseArgs(array $args = null): self
-    {
-        return (new self())->parse($args);
-    }
-
     /**************************************************************************
      * parse command option flags
      **************************************************************************/
 
     /**
-     * @var string
+     * @param array|null $flags
      */
-    private $curOptKey = '';
-
-    private $parseStatus = self::STATUS_OK;
-
-    public const STATUS_OK = 0;
-
-    public const STATUS_ERR = 1;
-
-    public const STATUS_END = 2;
-
-    public const STATUS_HELP = 3; // found `-h|--help` flag
-
-    /**
-     * @param array|null $args
-     *
-     * @return self
-     */
-    public function parse(array $args = null): self
+    public function parse(array $flags = null): bool
     {
-        if ($args === null) {
-            $args = $_SERVER['argv'];
-            array_shift($args);
+        if ($flags === null) {
+            $flags = $_SERVER['argv'];
+            array_shift($flags);
         }
 
         $this->parsed  = true;
-        $this->rawArgs = $this->flags = $args;
+        $this->rawArgs = $this->flags = $flags;
 
-        $breakStatus = self::STATUS_OK;
         while (true) {
             [$goon, $status] = $this->parseOne();
             if ($goon) {
                 continue;
             }
 
-            if (self::STATUS_HELP === $status) {
-                // TODO show help
+            // parse end.
+            if (self::STATUS_OK === $status) {
                 break;
             }
 
-            if (self::STATUS_OK === $status) {
+            // echo error and display help
+            if (self::STATUS_ERR === $status) {
+                Cli::colored('ERROR: TODO flag error', 'error');
+                $this->displayHelp();
+                break;
+            }
+
+            // display help
+            if (self::STATUS_HELP === $status) {
+                $this->displayHelp();
                 break;
             }
         }
 
-        if ($breakStatus === self::STATUS_HELP) {
-            // TODO show help
-
-            return $this;
+        $this->parseStatus = $status;
+        if ($status !== self::STATUS_OK) {
+            return false;
         }
 
         // check required opts
@@ -134,7 +165,7 @@ class Flags extends AbstractParser
             $this->bindingArguments();
         }
 
-        return $this;
+        return true;
     }
 
     /**
@@ -196,26 +227,23 @@ class Flags extends AbstractParser
         }
 
         $rName = $this->resolveAlias($name);
-        if (!isset($this->defined[$rName])) {
+        if (!isset($this->options[$rName])) {
             throw new FlagException("flag option provided but not defined: $arg", 404);
         }
 
-        $opt = $this->defined[$rName];
+        $opt = $this->options[$rName];
 
         // bool option default always set TRUE.
         if ($opt->isBoolean()) {
-            $boolVal = true;
-            if ($hasVal) {
-                // only allow set bool value by --opt=false
-                $boolVal = FlagHelper::str2bool($value);
-            }
+            // only allow set bool value by --opt=false
+            $boolVal = !$hasVal || Str::toBool($value);
 
             $opt->setValue($boolVal);
         } else {
             if (!$hasVal && count($this->rawArgs) > 0) {
-                // value is next arg
                 $hasVal = true;
-                $ntArg  = $this->rawArgs[0];
+                // value is next element
+                $ntArg = $this->rawArgs[0];
 
                 // is not an option value.
                 if ($ntArg[0] === '-') {
@@ -243,14 +271,14 @@ class Flags extends AbstractParser
     public function reset(bool $clearDefined = false): void
     {
         if ($clearDefined) {
-            $this->defined = [];
+            $this->options = [];
             $this->resetArguments();
         }
 
         // clear match results
         $this->parsed  = false;
         $this->matched = [];
-        $this->rawArgs = $this->rawArgs = [];
+        $this->rawArgs = $this->flags = [];
     }
 
     /**************************************************************************
@@ -287,6 +315,414 @@ class Flags extends AbstractParser
         }
 
         return $this;
+    }
+
+    /**
+     * @param bool $withColor
+     *
+     * @return string
+     */
+    public function buildHelp(bool $withColor = true): string
+    {
+        return $this->doBuildHelp($this->arguments, $this->options, $withColor);
+    }
+
+    /**************************************************************************
+     * arguments
+     **************************************************************************/
+
+    /**
+     * @param string     $name
+     * @param string     $desc
+     * @param string     $type The argument data type. default is: string. {@see FlagType}
+     * @param bool       $required
+     * @param null|mixed $default
+     */
+    public function addArg(
+        string $name,
+        string $desc,
+        string $type = '',
+        bool $required = false,
+        $default = null
+    ): void {
+        /** @var Argument $arg */
+        $arg = Argument::new($name, $desc, $type, $required, $default);
+
+        $this->addArgument($arg);
+    }
+
+    /**
+     * @param array $rules
+     *
+     * @see addArgByRule()
+     */
+    public function addArgsByRules(array $rules): void
+    {
+        foreach ($rules as $name => $rule) {
+            $this->addArgByRule($name, $rule);
+        }
+    }
+
+    /**
+     * Add and argument by rule
+     *
+     * rule:
+     *   - string is rule string. (format: 'type;required;default;desc')
+     *   - array is define item {@see Flags::DEFINE_ITEM}
+     *
+     * @param string       $name
+     * @param string|array $rule
+     *
+     * @return self
+     */
+    public function addArgByRule(string $name, $rule): self
+    {
+        $index  = count($this->arguments);
+        $define = $this->parseRule($rule, $name, $index, false);
+
+        return $this->addArgument(Argument::newByArray($name, $define));
+    }
+
+    /**
+     * @param Argument[] $arguments
+     */
+    public function setArguments(array $arguments): void
+    {
+        foreach ($arguments as $argument) {
+            $this->addArgument($argument);
+        }
+    }
+
+    /**
+     * @param Argument $argument
+     *
+     * @return self
+     */
+    public function addArgument(Argument $argument): self
+    {
+        $isArray  = $argument->isArray();
+        $required = $argument->isRequired();
+
+        $index = count($this->arguments);
+        $argument->setIndex($index);
+        $argument->init();
+
+        $name = $argument->getName();
+        $mark = $argument->getNameMark();
+
+        if ($required && $argument->hasDefault()) {
+            throw new FlagException("cannot set a default value, if argument $mark is required. ");
+        }
+
+        // NOTICE: only allow one array argument and must be at last.
+        if ($this->arrayArg && $isArray) {
+            throw new FlagException("cannot add argument $mark after an array argument");
+        }
+
+        if ($this->optionalArg && $required) {
+            throw new FlagException("cannot add a required argument $mark after an optional one");
+        }
+
+        $this->arrayArg    = $this->arrayArg || $isArray;
+        $this->optionalArg = $this->optionalArg || !$required;
+
+        // append
+        $this->arguments[] = $argument;
+        // record index
+        $this->name2index[$name] = $index;
+        return $this;
+    }
+
+    /**
+     * @param string|int $nameOrIndex
+     * @param null|mixed $default
+     *
+     * @return mixed|null
+     */
+    public function getArg($nameOrIndex, $default = null)
+    {
+        if ($arg = $this->getArgument($nameOrIndex)) {
+            return $arg->getValue();
+        }
+
+        return $default;
+    }
+
+    /**
+     * @return array
+     */
+    public function getArgs(): array
+    {
+        $args = [];
+        foreach ($this->arguments as $argument) {
+            $args[] = $argument->getValue();
+        }
+
+        return $args;
+    }
+
+    /**
+     * @param string|int $nameOrIndex
+     *
+     * @return Argument|null
+     */
+    public function getArgument($nameOrIndex): ?Argument
+    {
+        if (is_string($nameOrIndex)) {
+            if (!isset($this->name2index[$nameOrIndex])) {
+                throw new FlagException("flag argument '$nameOrIndex' is undefined");
+            }
+
+            $index = $this->name2index[$nameOrIndex];
+        } else {
+            $index = (int)$nameOrIndex;
+        }
+
+        return $this->arguments[$index] ?? null;
+    }
+
+    /**
+     * @return array
+     */
+    public function getArguments(): array
+    {
+        return $this->arguments;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasOptionalArg(): bool
+    {
+        return $this->optionalArg;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasArrayArg(): bool
+    {
+        return $this->arrayArg;
+    }
+
+    protected function resetArguments(): void
+    {
+        $this->name2index = [];
+        $this->arguments  = [];
+    }
+
+    /**************************************************************************
+     * options
+     **************************************************************************/
+
+    /**
+     * @param string $name
+     * @param string $shorts
+     * @param string $desc
+     * @param string $type The argument data type. default is: string. {@see FlagType}
+     * @param bool   $required
+     * @param mixed  $default
+     * @param string $alias
+     */
+    public function addOpt(
+        string $name,
+        string $shorts,
+        string $desc,
+        string $type = '',
+        bool $required = false,
+        $default = null,
+        string $alias = ''
+    ): void {
+        /** @var Option $opt */
+        $opt = Option::new($name, $desc, $type, $required, $default);
+        $opt->setAlias($alias);
+        $opt->setShortcut($shorts);
+
+        $this->addOption($opt);
+    }
+
+    /**
+     * @param array $rules
+     */
+    public function addOptsByRules(array $rules): void
+    {
+        foreach ($rules as $name => $rule) {
+            $this->addOptByRule($name, $rule);
+        }
+    }
+
+    /**
+     * Add and option by rule
+     *
+     * rule:
+     *   - string is rule string. (format: 'type;required;default;desc').
+     *   - array is define item {@see Flags::DEFINE_ITEM}
+     *
+     * @param string       $name
+     * @param string|array $rule
+     *
+     * @return self
+     */
+    public function addOptByRule(string $name, $rule): self
+    {
+        $define = $this->parseRule($rule, $name);
+        $option = Option::newByArray($define['name'], $define);
+
+        return $this->addOption($option);
+    }
+
+    /**
+     * @param Option[] $options
+     */
+    public function addOptions(array $options): void
+    {
+        foreach ($options as $option) {
+            $this->addOption($option);
+        }
+    }
+
+    /**
+     * @param Option $option
+     *
+     * @return self
+     */
+    public function addOption(Option $option): self
+    {
+        $name = $option->getName();
+
+        if (isset($this->options[$name])) {
+            throw new FlagException('cannot repeat add option: ' . $name);
+        }
+
+        if ($alias = $option->getAlias()) {
+            $this->setAlias($name, $alias, true);
+        }
+
+        if ($ss = $option->getShorts()) {
+            foreach ($ss as $s) {
+                $this->setAlias($name, $s, true);
+            }
+        }
+
+        $option->init();
+
+        if ($required = $option->isRequired()) {
+            $this->requiredOpts[] = $name;
+        }
+
+        // add to defined
+        $this->options[$name] = $option;
+        if ($option->hasDefault()) {
+            if ($required) {
+                throw new FlagException("cannot set a default value, if flag is required. flag: $name");
+            }
+
+            $this->matched[$name] = $option;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param Option $option
+     */
+    protected function addMatched(Option $option): void
+    {
+        $name = $option->getName();
+        // add to matched
+        $this->matched[$name] = $option;
+    }
+
+    /**
+     * @param string     $name
+     * @param null|mixed $default
+     *
+     * @return mixed|null
+     */
+    public function getOpt(string $name, $default = null)
+    {
+        if ($opt = $this->getOption($name)) {
+            return $opt->getValue();
+        }
+
+        return $default;
+    }
+
+    /**
+     * @return array
+     */
+    public function getOpts(): array
+    {
+        $opts = [];
+        foreach ($this->matched as $name => $option) {
+            $opts[$name] = $option->getValue();
+        }
+
+        return $opts;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return Option|null
+     */
+    public function getOption(string $name): ?Option
+    {
+        return $this->matched[$name] ?? null;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return Option|null
+     */
+    public function getDefinedOption(string $name): ?Option
+    {
+        return $this->options[$name] ?? null;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function hasDefined(string $name): bool
+    {
+        return isset($this->options[$name]);
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function hasMatched(string $name): bool
+    {
+        return isset($this->matched[$name]);
+    }
+
+    /**
+     * @return Option[]
+     */
+    public function getDefinedOptions(): array
+    {
+        return $this->options;
+    }
+
+    /**
+     * @return Option[]
+     */
+    public function getOptions(): array
+    {
+        return $this->options;
+    }
+
+    /**
+     * @return Option[]
+     */
+    public function getMatchedOptions(): array
+    {
+        return $this->matched;
     }
 
     /**

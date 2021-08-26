@@ -9,13 +9,13 @@
 
 namespace Toolkit\PFlag\Flag;
 
+use ArrayAccess;
 use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\PFlag\Contract\FlagInterface;
 use Toolkit\PFlag\Contract\ValidatorInterface;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\FlagType;
 use Toolkit\Stdlib\Obj;
-use Toolkit\Stdlib\Str;
 use function is_array;
 use function is_bool;
 
@@ -25,8 +25,10 @@ use function is_bool;
  *
  * @package Toolkit\PFlag\Flag
  */
-abstract class AbstractFlag implements FlagInterface
+abstract class AbstractFlag implements ArrayAccess, FlagInterface
 {
+    use Obj\Traits\ArrayAccessByGetterSetterTrait;
+
     /**
      * Flag name
      *
@@ -47,6 +49,11 @@ abstract class AbstractFlag implements FlagInterface
      * @var string
      */
     protected $type = FlagType::STRING;
+
+    /**
+     * @var string
+     */
+    protected $showType = '';
 
     /**
      * The default value
@@ -99,15 +106,18 @@ abstract class AbstractFlag implements FlagInterface
 
     /**
      * @param string $name
-     * @param array  $config
+     * @param array  $define
      *
      * @return static|Argument|Option
      */
-    public static function newByArray(string $name, array $config): self
+    public static function newByArray(string $name, array $define): self
     {
         $flag = new static($name);
-        Obj::init($flag,$config);
+        if (isset($define['name'])) {
+            unset($define['name']);
+        }
 
+        Obj::init($flag, $define);
         return $flag;
     }
 
@@ -183,14 +193,6 @@ abstract class AbstractFlag implements FlagInterface
         } else {
             $this->value = $value;
         }
-    }
-
-    /**
-     * @param callable $validator
-     */
-    public function setValidator(callable $validator): void
-    {
-        $this->validator = $validator;
     }
 
     /**
@@ -302,6 +304,7 @@ abstract class AbstractFlag implements FlagInterface
             'default'  => $this->default,
             'required' => $this->required,
             'isArray'  => $this->isArray(),
+            'showType' => $this->getShowType(),
         ];
     }
 
@@ -335,5 +338,29 @@ abstract class AbstractFlag implements FlagInterface
     public function setRequired(bool $required): void
     {
         $this->required = $required;
+    }
+
+    /**
+     * @return string
+     */
+    public function getShowType(): string
+    {
+        return $this->showType ?: $this->type;
+    }
+
+    /**
+     * @param string $showType
+     */
+    public function setShowType(string $showType): void
+    {
+        $this->showType = $showType;
+    }
+
+    /**
+     * @param callable|null $validator
+     */
+    public function setValidator(?callable $validator): void
+    {
+        $this->validator = $validator;
     }
 }

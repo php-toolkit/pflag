@@ -9,10 +9,6 @@
 
 namespace Toolkit\PFlag\Contract;
 
-use Toolkit\FsUtil\Parser\AbstractParser;
-use Toolkit\PFlag\Flags;
-use Toolkit\PFlag\SFlags;
-
 /**
  * interface ParserInterface
  */
@@ -31,15 +27,15 @@ interface ParserInterface
     /**
      * @param array $flags
      *
-     * @return AbstractParser|SFlags|Flags
+     * @return bool
      */
-    public function parse(array $flags);
+    public function parse(array $flags): bool;
 
     /**
      * Get an option value by name
      *
-     * @param string $name
-     * @param null|mixed   $default
+     * @param string     $name
+     * @param null|mixed $default
      *
      * @return mixed
      */
@@ -49,7 +45,7 @@ interface ParserInterface
      * Get an argument value by name
      *
      * @param string|int $nameOrIndex
-     * @param null|mixed  $default
+     * @param null|mixed $default
      *
      * @return mixed
      */

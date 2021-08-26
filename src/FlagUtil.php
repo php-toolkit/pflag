@@ -3,6 +3,8 @@
 namespace Toolkit\PFlag;
 
 use function array_map;
+use function array_shift;
+use function basename;
 use function implode;
 use function strlen;
 
@@ -34,5 +36,18 @@ class FlagUtil
     public static function getMaxInt(int $val1, int $val2): int
     {
         return $val1 > $val2 ? $val1 : $val2;
+    }
+
+    /**
+     * @return string
+     */
+    public static function getBinName(): string
+    {
+        $script = '';
+        if (isset($_SERVER['argv']) && ($argv = $_SERVER['argv'])) {
+            $script = array_shift($argv);
+        }
+
+        return basename($script);
     }
 }

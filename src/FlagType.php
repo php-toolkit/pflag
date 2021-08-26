@@ -12,6 +12,7 @@ namespace Toolkit\PFlag;
 use Toolkit\Cli\Helper\FlagHelper;
 use function is_scalar;
 use function is_string;
+use function strtoupper;
 
 /**
  * Class FlagConst
@@ -38,9 +39,9 @@ class FlagType
 
     // ------ extend types ------
 
-    public const INTS = 'int[]';
+    public const INTS = 'ints';
 
-    public const STRINGS = 'string[]';
+    public const STRINGS = 'strings';
 
     public const MIXED = 'mixed';
 
@@ -73,6 +74,13 @@ class FlagType
         self::UNKNOWN  => 3,
     ];
 
+    public const TYPE_HELP_NAME = [
+        // self::INTS    => 'int...',
+        // self::STRINGS => 'string...',
+        self::ARRAY   => '',
+        self::BOOL    => '',
+    ];
+
     /**
      * @param string $type
      *
@@ -91,6 +99,19 @@ class FlagType
     public static function isArray(string $type): bool
     {
         return isset(self::ARRAY_TYPES[$type]);
+    }
+
+    /**
+     * @param string $type
+     * @param bool   $toUpper
+     *
+     * @return string
+     */
+    public static function getHelpName(string $type, bool $toUpper = true): string
+    {
+        $name = self::TYPE_HELP_NAME[$type] ?? $type;
+
+        return $toUpper ? strtoupper($name) : $name;
     }
 
     /**
