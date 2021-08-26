@@ -20,6 +20,10 @@ class OptionTest extends BaseTestCase
 
         $opt->setAlias('n1');
         $this->assertSame('n1', $opt->getAlias());
+        $this->assertSame('--n1, --name', $opt->getHelpName());
+
+        $opt->setShortcut('n');
+        $this->assertSame('-n, --n1, --name', $opt->getHelpName());
 
         $opt->setDefault(89);
         $this->assertTrue($opt->hasDefault());
@@ -48,5 +52,7 @@ class OptionTest extends BaseTestCase
             $this->assertSame(['a', 'b'], $opt->getShorts());
             $this->assertSame('-a, -b', $opt->getShortcut());
         }
+
+        $this->assertSame('-a, -b, --name', $opt->getHelpName());
     }
 }

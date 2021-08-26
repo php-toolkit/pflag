@@ -9,11 +9,14 @@
 
 namespace Toolkit\PFlag\Flag;
 
+use Toolkit\Cli\Helper\FlagHelper;
+use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\FlagType;
 use function array_filter;
+use function array_map;
+use function array_unshift;
 use function implode;
-use function rtrim;
-use function trim;
+use function strlen;
 
 /**
  * Class Option
@@ -65,8 +68,16 @@ class Option extends AbstractFlag
      */
     public function setAlias(string $alias): void
     {
-        if ($alias = trim($alias)) {
+        if (!$alias) {
+            return;
+        }
 
+        if (!FlagHelper::isValidName($alias)) {
+            throw new FlagException('invalid option alias: ' . $alias);
+        }
+
+        if (strlen($alias) < 2) {
+            throw new FlagException('flag option alias length cannot be < 2 ');
         }
 
         $this->alias = $alias;
@@ -103,8 +114,10 @@ class Option extends AbstractFlag
      */
     public function setShorts(array $shorts): void
     {
-        $this->shorts   = $shorts;
-        $this->shortcut = '-' . rtrim(implode(', -', $shorts));
+        if ($shorts) {
+            $this->shorts   = $shorts;
+            $this->shortcut = '-' . implode(', -', $shorts);
+        }
     }
 
     /**
@@ -112,8 +125,6 @@ class Option extends AbstractFlag
      */
     public function getHelpName(): string
     {
-        $shorts = $this->shortcut;
-
         $names = [];
         if ($this->alias) {
             $names[] = $this->alias;
@@ -121,7 +132,16 @@ class Option extends AbstractFlag
 
         $names[] = $this->name;
 
-        return '-' . rtrim(implode(', -', $shorts));
+        // prepend '--'
+        $nodes = array_map(static function (string $name) {
+            return (strlen($name) > 1 ? '--' : '-') . $name;
+        }, $names);
+
+        if ($this->shortcut) {
+            array_unshift($nodes, $this->shortcut);
+        }
+
+        return implode(', ', $nodes);
     }
 
     /**

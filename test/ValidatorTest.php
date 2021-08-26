@@ -27,7 +27,7 @@ class ValidatorTest extends BaseTestCase
         $this->assertTrue($v('inhere', 'test'));
 
         $this->expectException(FlagException::class);
-        $this->expectExceptionMessage("flag 'test' value should match: ^\w+$");
+        $this->expectExceptionMessage("flag 'test' value should match: " . NameValidator::DEFAULT_REGEX);
         $v(' inhere ', 'test');
     }
 }
