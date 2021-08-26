@@ -9,6 +9,7 @@
 
 namespace Toolkit\PFlag\Flag;
 
+use Toolkit\Stdlib\Str;
 use function sprintf;
 
 /**
@@ -48,11 +49,26 @@ class Argument extends AbstractFlag
     }
 
     /**
+     * @param bool $forHelp
+     *
+     * @return string
+     */
+    public function getDesc(bool $forHelp = false): string
+    {
+        $desc = $this->desc;
+        if ($forHelp) {
+            $desc = $desc ? Str::ucfirst($desc) : 'Argument ' . $this->index;
+        }
+
+        return $desc;
+    }
+
+    /**
      * @return string
      */
     public function getHelpName(): string
     {
-        return $this->name ?: 'ARG' . $this->index;
+        return $this->name ?: 'arg' . $this->index;
     }
 
     /**

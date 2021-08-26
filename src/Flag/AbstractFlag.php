@@ -14,6 +14,8 @@ use Toolkit\PFlag\Contract\FlagInterface;
 use Toolkit\PFlag\Contract\ValidatorInterface;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\FlagType;
+use Toolkit\Stdlib\Obj;
+use Toolkit\Stdlib\Str;
 use function is_array;
 use function is_bool;
 
@@ -26,11 +28,15 @@ use function is_bool;
 abstract class AbstractFlag implements FlagInterface
 {
     /**
+     * Flag name
+     *
      * @var string
      */
-    protected $name;
+    protected $name = '';
 
     /**
+     * Flag description
+     *
      * @var string
      */
     protected $desc = '';
@@ -89,6 +95,20 @@ abstract class AbstractFlag implements FlagInterface
         $default = null
     ): self {
         return new static($name, $desc, $type, $required, $default);
+    }
+
+    /**
+     * @param string $name
+     * @param array  $config
+     *
+     * @return static|Argument|Option
+     */
+    public static function newByArray(string $name, array $config): self
+    {
+        $flag = new static($name);
+        Obj::init($flag,$config);
+
+        return $flag;
     }
 
     /**
@@ -260,14 +280,6 @@ abstract class AbstractFlag implements FlagInterface
     public function setDefault($default): void
     {
         $this->default = $default;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDesc(): string
-    {
-        return $this->desc;
     }
 
     /**

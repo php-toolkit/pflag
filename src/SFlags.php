@@ -10,6 +10,8 @@
 namespace Toolkit\PFlag;
 
 use InvalidArgumentException;
+use Toolkit\Cli\Cli;
+use Toolkit\Cli\Color\ColorTag;
 use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\Stdlib\Arr;
@@ -21,6 +23,7 @@ use function is_array;
 use function is_callable;
 use function is_int;
 use function is_string;
+use function ksort;
 use function next;
 use function str_split;
 use function strlen;
@@ -184,6 +187,100 @@ class SFlags extends AbstractParser
         return self::$std;
     }
 
+    /**
+     * display help
+     */
+    public function displayHelp(): void
+    {
+        Cli::println($this->buildHelp());
+    }
+
+    /**
+     * @param bool $withColor
+     *
+     * @return string
+     */
+    public function buildHelp(bool $withColor = true): string
+    {
+        $buf = Str\StrBuffer::new();
+
+        // ------- desc -------
+        if ($desc = $this->desc) {
+            $buf->writeln(Str::ucfirst($desc));
+            $buf->writeln('');
+        }
+
+        // ------- usage -------
+        // Usage:
+
+        // ------- args -------
+        $maxLen  = 16;
+        $nameTag = 'info';
+        $fmtArgs = [];
+
+        /** @var array $arg {@see DEFINE_ITEM} */
+        foreach ($this->argDefines as $arg) {
+            $name   = $arg['name'] ?: 'arg' . $arg['index'];
+            $maxLen = FlagUtil::getMaxInt($maxLen, strlen($name));
+
+            $fmtArgs[$name] = $arg;
+        }
+
+        foreach ($fmtArgs as $hName => $arg) {
+            $desc  = $arg['desc'] ? Str::ucfirst($arg['desc']) : 'Argument ' . $hName;
+            $hName = Str::padLeft($hName, $maxLen);
+
+            if ($arg['required']) {
+                $desc = '<red1>*</red1>' . $desc;
+            }
+
+            // $type = strtoupper($opt['type']);
+            $buf->writef("<%s>%s</%s>   %s\n", $nameTag, $hName, $nameTag, $desc);
+        }
+        $buf->writeln('');
+
+        // ------- opts -------
+        $optDefines = $this->optDefines;
+        ksort($optDefines);
+
+        $maxLen  = 16;
+        $fmtOpts = [];
+
+        /** @var array $opt {@see DEFINE_ITEM} */
+        foreach ($optDefines as $name => $opt) {
+            $names   = $opt['shorts'];
+            $names[] = $name;
+
+            $helpName = FlagUtil::buildOptHelpName($names);
+            $maxLen   = FlagUtil::getMaxInt($maxLen, strlen($helpName));
+
+            $fmtOpts[$helpName] = $opt;
+        }
+
+        $nameTag = 'info';
+        foreach ($fmtOpts as $hName => $opt) {
+            $desc  = $opt['desc'] ? Str::ucfirst($opt['desc']) : 'Option ' . $opt['name'];
+            $hName = Str::padLeft($hName, $maxLen);
+
+            if ($opt['required']) {
+                $desc = '<red1>*</red1>' . $desc;
+            }
+
+            // $type = strtoupper($opt['type']);
+            $buf->writef("<%s>%s</%s>   %s\n", $nameTag, $hName, $nameTag, $desc);
+        }
+
+        return $withColor ? $buf->clear() : ColorTag::clear($buf->clear());
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return $this->buildHelp();
+    }
+
     /****************************************************************
      * parse options and arguments
      ***************************************************************/
@@ -253,6 +350,13 @@ class SFlags extends AbstractParser
      * --long-opt=<value>
      * ```
      *
+     * Supports args style:
+     *
+     * ```bash
+     * <value>
+     * arg=<value>
+     * ```
+     *
      * @link http://php.net/manual/zh/function.getopt.php#83414
      *
      * @param array $flags
@@ -267,7 +371,10 @@ class SFlags extends AbstractParser
 
         $this->parsed = true;
         $this->flags  = $flags;
+
+        // parse rules
         $this->parseOptRules($this->optRules);
+        $this->parseArgRules($this->argRules);
 
         $optParseEnd = false;
         while (false !== ($p = current($flags))) {
@@ -364,8 +471,8 @@ class SFlags extends AbstractParser
         }
 
         // parse defined arguments
-        if ($this->argRules) {
-            $this->parseDefinedArgs($this->argRules);
+        if ($this->argDefines) {
+            $this->parseDefinedArgs();
         }
 
         return $this;
@@ -439,63 +546,23 @@ class SFlags extends AbstractParser
      * <value>
      * arg=<value>
      * ```
-     *
-     * ```php
-     * $defines = [
-     *  // type see FlagType::*. eg {@see FlagType::INT, FlagType::STRING}
-     *  'type', // not set name, use index for get value.
-     *   // allow set argument name by string key.
-     *  'name' => 'type',
-     *  'name' => 'type,required', // allow add limit settings: required
-     * ];
-     * ```
-     *
-     * @param array $argRules
      */
-    public function parseDefinedArgs(array $argRules): void
+    public function parseDefinedArgs(): void
     {
         // parse arguments
-        $args = $this->parseRawArgs();
+        $args = $this->parseRawArgs($this->rawArgs);
 
-        // init with default value.
-        $hasArrayArg = $hasOptional = false;
-
-        // check and collect arguments
-        $index = 0;
-        foreach ($argRules as $name => $rule) {
-            if (!$rule) {
-                throw new FlagException('flag argument rule cannot be empty');
-            }
-
-            // parse rule
-            $define = $this->parseRule($rule, is_string($name) ? $name : '', $index, false);
-
-            // has default value
-            if (isset($define['default'])) {
-                $this->args[$index] = $define['default'];
-            }
-
-            // set argument name
-            $hasName = $this->setArgName($index, $name = $define['name']);
-            $isArray = FlagType::isArray($define['type']);
-            $nameMsg = $hasName ? "($name)" : '';
-
-            // NOTICE: only allow one array argument and must be at last.
-            if ($hasArrayArg && $isArray) {
-                throw new FlagException("cannot add argument #$index$nameMsg after an array argument");
-            }
+        // check and collect argument values
+        foreach ($this->argDefines as $index => $define) {
+            $name = $define['name'];
+            $mark = $name ? "#$index($name)" : "#$index";
 
             $required = $define['required'];
-            if ($hasOptional && $required) {
-                throw new FlagException("cannot add a required argument #$index$nameMsg after an optional one");
-            }
+            $isArray  = FlagType::isArray($define['type']);
 
             if ($required && !isset($args[$index])) {
-                throw new FlagException("flag argument #$index$nameMsg is required");
+                throw new FlagException("flag argument $mark is required");
             }
-
-            $hasArrayArg = $hasArrayArg || $isArray;
-            $hasOptional = $hasOptional || !$required;
 
             // collect value
             if ($isArray) {
@@ -507,8 +574,6 @@ class SFlags extends AbstractParser
                 $value = $args[$index];
                 $this->collectArgValue($value, $index, false, $define);
             }
-
-            $index++;
         }
     }
 
@@ -578,9 +643,9 @@ class SFlags extends AbstractParser
      ***************************************************************/
 
     /**
-     * Load option defines rules
+     * Parse option rules
      *
-     * @param array $rules rule please {@see $optRules}
+     * @param array $rules rule please {@see optRules}
      */
     protected function parseOptRules(array $rules): void
     {
@@ -602,6 +667,57 @@ class SFlags extends AbstractParser
 
             // save parse definition
             $this->optDefines[$name] = $define;
+        }
+    }
+
+    /**
+     * Parse argument rules
+     *
+     * @param array $rules rule please {@see argRules}
+     */
+    protected function parseArgRules(array $rules): void
+    {
+        // init with default value.
+        $hasArrayArg = $hasOptional = false;
+
+        // check and collect arguments
+        $index = 0;
+        foreach ($rules as $name => $rule) {
+            if (!$rule) {
+                throw new FlagException('flag argument rule cannot be empty');
+            }
+
+            // parse rule
+            $define = $this->parseRule($rule, is_string($name) ? $name : '', $index, false);
+
+            // set argument name
+            $this->setArgName($index, $name = $define['name']);
+
+            $type = $define['type'];
+            $mark = $name ? "#$index($name)" : "#$index";
+
+            // has default value
+            if (isset($define['default'])) {
+                $this->args[$index] = FlagType::fmtBasicTypeValue($type, $define['default']);
+            }
+
+            // NOTICE: only allow one array argument and must be at last.
+            $isArray = FlagType::isArray($type);
+            if ($hasArrayArg && $isArray) {
+                throw new FlagException("cannot add argument $mark after an array argument");
+            }
+
+            $required = $define['required'];
+            if ($hasOptional && $required) {
+                throw new FlagException("cannot add a required argument $mark after an optional one");
+            }
+
+            $hasArrayArg = $hasArrayArg || $isArray;
+            $hasOptional = $hasOptional || !$required;
+
+            // save define
+            $this->argDefines[] = $define;
+            $index++;
         }
     }
 
@@ -712,21 +828,25 @@ class SFlags extends AbstractParser
             $item['index'] = $index;
         }
 
+        $nameMark = $name ? "(name: $name)" : "(#$index)";
+
         // check type
         if (!FlagType::isValid($type = $item['type'])) {
-            $nameMark = $name ? "(name: $name)" : "(#$index)";
             throw new FlagException("cannot define invalid flag type: $type$nameMark");
         }
 
         // validator must be callable
         if (!empty($item['validator']) && !is_callable($item['validator'])) {
-            $nameMark = $name ? "(name: $name)" : "(#$index)";
             throw new InvalidArgumentException("validator must be callable. flag: $nameMark");
         }
 
         // has default value
-        if (!empty($item['default'])) {
+        if (isset($item['default'])) {
             $item['default'] = FlagType::fmtBasicTypeValue($type, $item['default']);
+
+            if ($item['required']) {
+                throw new FlagException("cannot set a default value, if flag is required. flag: $nameMark");
+            }
         }
 
         $item['name'] = $name;

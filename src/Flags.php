@@ -37,11 +37,6 @@ class Flags extends AbstractParser
     private static $std;
 
     /**
-     * @var callable
-     */
-    private $helpRenderer;
-
-    /**
      * @var bool
      */
     private $autoBindArgs = false;
@@ -270,7 +265,7 @@ class Flags extends AbstractParser
     public function bindingArguments(): self
     {
         // parse arguments
-        $args = $this->parseRawArgs();
+        $args = $this->parseRawArgs($this->rawArgs);
 
         // collect argument values
         foreach ($this->arguments as $index => $arg) {
@@ -292,22 +287,6 @@ class Flags extends AbstractParser
         }
 
         return $this;
-    }
-
-    /**
-     * @return callable
-     */
-    public function getHelpRenderer(): callable
-    {
-        return $this->helpRenderer;
-    }
-
-    /**
-     * @param callable $helpRenderer
-     */
-    public function setHelpRenderer(callable $helpRenderer): void
-    {
-        $this->helpRenderer = $helpRenderer;
     }
 
     /**

@@ -34,9 +34,11 @@ interface FlagInterface
     public function getHelpName(): string;
 
     /**
+     * @param bool $forHelp
+     *
      * @return string
      */
-    public function getDesc(): string;
+    public function getDesc(bool $forHelp = false): string;
 
     /**
      * Get the flag value

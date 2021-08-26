@@ -24,6 +24,13 @@ abstract class AbstractParser implements ParserInterface
     protected $parsed = false;
 
     /**
+     * The usage description
+     *
+     * @var string
+     */
+    protected $desc = '';
+
+    /**
      * The input flags
      *
      * @var string[]
@@ -76,6 +83,11 @@ abstract class AbstractParser implements ParserInterface
     protected $ignoreUnknown = false;
 
     /**
+     * @var callable
+     */
+    protected $helpRenderer;
+
+    /**
      * Class constructor.
      *
      * @param array $config
@@ -86,14 +98,16 @@ abstract class AbstractParser implements ParserInterface
     }
 
     /**
+     * @param array $rawArgs
+     *
      * @return array
      */
-    protected function parseRawArgs(): array
+    protected function parseRawArgs(array $rawArgs): array
     {
         $args = [];
 
         // parse arguments
-        foreach ($this->rawArgs as $arg) {
+        foreach ($rawArgs as $arg) {
             // value specified inline (<arg>=<value>)
             if (strpos($arg, '=') > 0) {
                 [$name, $value] = explode('=', $arg, 2);
@@ -113,11 +127,43 @@ abstract class AbstractParser implements ParserInterface
     }
 
     /**
+     * @return callable
+     */
+    public function getHelpRenderer(): callable
+    {
+        return $this->helpRenderer;
+    }
+
+    /**
+     * @param callable $helpRenderer
+     */
+    public function setHelpRenderer(callable $helpRenderer): void
+    {
+        $this->helpRenderer = $helpRenderer;
+    }
+
+    /**
      * @return array
      */
     public function getRequiredOpts(): array
     {
         return $this->requiredOpts;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDesc(): string
+    {
+        return $this->desc;
+    }
+
+    /**
+     * @param string $desc
+     */
+    public function setDesc(string $desc): void
+    {
+        $this->desc = $desc;
     }
 
     /**

@@ -39,7 +39,9 @@ class OptionTest extends BaseTestCase
 
     public function testShortcut(): void
     {
-        $opt = Option::new('name');
+        $opt = Option::newByArray('name', [
+            'desc' => 'option name',
+        ]);
 
         $tests = [
             'a,b',

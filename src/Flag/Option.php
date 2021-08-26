@@ -12,6 +12,7 @@ namespace Toolkit\PFlag\Flag;
 use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\FlagType;
+use Toolkit\Stdlib\Str;
 use function array_filter;
 use function array_map;
 use function array_unshift;
@@ -121,21 +122,36 @@ class Option extends AbstractFlag
     }
 
     /**
+     * @param bool $forHelp
+     *
+     * @return string
+     */
+    public function getDesc(bool $forHelp = false): string
+    {
+        $desc = $this->desc;
+        if ($forHelp) {
+            $desc = $desc ? Str::ucfirst($desc) : 'Option ' . $this->name;
+        }
+
+        return $desc;
+    }
+
+    /**
      * @return string
      */
     public function getHelpName(): string
     {
-        $names = [];
+        $longs = [];
         if ($this->alias) {
-            $names[] = $this->alias;
+            $longs[] = $this->alias;
         }
 
-        $names[] = $this->name;
+        $longs[] = $this->name;
 
         // prepend '--'
         $nodes = array_map(static function (string $name) {
             return (strlen($name) > 1 ? '--' : '-') . $name;
-        }, $names);
+        }, $longs);
 
         if ($this->shortcut) {
             array_unshift($nodes, $this->shortcut);
