@@ -40,7 +40,6 @@ if (!$fs->parse($flags)) {
 }
 
 vdump(
-// $fs->getRawArgs(),
     $fs->getOpts(),
     $fs->getArgs()
 );

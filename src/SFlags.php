@@ -777,6 +777,23 @@ class SFlags extends AbstractParser
     }
 
     /**
+     * @param string       $name
+     * @param string|array $rule
+     *
+     * @return $this
+     */
+    public function addArgRule(string $name, $rule): self
+    {
+        if ($name) {
+            $this->argRules[$name] = $rule;
+        } else {
+            $this->argRules[] = $rule;
+        }
+
+        return $this;
+    }
+
+    /**
      * @return array
      */
     public function getArgDefines(): array
@@ -800,6 +817,19 @@ class SFlags extends AbstractParser
     public function setOptRules(array $optRules): void
     {
         $this->optRules = $optRules;
+    }
+
+    /**
+     * @param string       $name
+     * @param string|array $rule
+     *
+     * @return $this
+     */
+    public function addOptRule(string $name, $rule): self
+    {
+        $this->optRules[$name] = $rule;
+
+        return $this;
     }
 
     /**

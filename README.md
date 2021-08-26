@@ -6,7 +6,7 @@
 [![Php Version Support](https://img.shields.io/packagist/php-v/toolkit/pflag)](https://packagist.org/packages/toolkit/pflag)
 [![Latest Stable Version](http://img.shields.io/packagist/v/toolkit/pflag.svg)](https://packagist.org/packages/toolkit/pflag)
 
-Command line flag parse library
+Generic PHP command line flags parse library
 
 ## Install
 
@@ -16,13 +16,101 @@ Command line flag parse library
 composer require toolkit/pflag
 ```
 
-## Use Flags
+## Flags
 
-> TODO
+Flags - is an cli flags(options&argument) parser and manager.
 
-## Use SFlags
+### Parse CLI Input
 
-SFlags - is an simple flags(options&argument) parser
+write the codes to an php file(see [example/flags-demo.php](example/flags-demo.php))
+
+```php
+use Toolkit\PFlag\Flags;
+use Toolkit\PFlag\FlagType;
+
+// run demo:
+// php example/sflags-demo.php --name inhere --age 99 --tag go -t php -t java -f arg0 arr0 arr1
+$flags = $_SERVER['argv'];
+// NOTICE: must shift first element.
+$scriptFile = array_shift($flags);
+
+$fs = Flags::new();
+$fs->setScriptFile($scriptFile);
+
+// add options
+$fs->addOpt('age', 'a', 'this is a int option', FlagType::INT);
+$fs->addOptByRule('name,n', 'string;true;;this is a string option');
+$fs->addOptsByRules([
+    'tag,t' => 'strings;no;;array option, allow set multi times',
+    'f'     => 'bool;no;;this is an bool option',
+]);
+
+// add arguments
+$fs->addArg('strArg', 'the first arg, is string', 'string', true);
+$fs->addArg('arrArg', 'the second arg, is array', 'strings');
+
+// call parse
+if (!$fs->parse($flags)) {
+    return;
+}
+
+vdump(
+    $fs->getOpts(),
+    $fs->getArgs()
+);
+```
+
+**Run demo:**
+
+```bash
+php example/sflags-demo.php --name inhere --age 99 --tag go -t php -t java -f arg0 arr0 arr1
+```
+
+Output:
+
+```text
+array(4) {
+  ["name"]=> string(6) "inhere"
+  ["age"]=> int(99)
+  ["tag"]=> array(3) {
+    [0]=> string(2) "go"
+    [1]=> string(3) "php"
+    [2]=> string(4) "java"
+  }
+  ["f"]=> bool(true)
+}
+array(2) {
+  [0]=> string(4) "arg0"
+  [1]=> array(2) {
+    [0]=> string(4) "arr0"
+    [1]=> string(4) "arr1"
+  }
+}
+```
+
+**Show help**
+
+```bash
+$ php example/flags-demo.php --help
+```
+
+## SFlags
+
+SFlags - is an simple flags(options&argument) parser and manager.
+
+> `SFlags` only support add option/argument by rule string or define array.
+
+### Methods
+
+Options:
+
+- `setOptRules(array $rules)`
+- `addOptRule(string $name, string|array $rule)`
+
+Arguments:
+
+- `setArgRules(array $rules)`
+- `addArgRule(string $name, string|array $rule)`
 
 ### Examples
 
@@ -96,7 +184,7 @@ $fs = SFlags::new();
 $fs->parseDefined($rawFlags, $optRules, $argRules);
 ```
 
-Run demo:
+**Run demo:**
 
 ```bash
 php example/sflags-demo.php --name inhere --age 99 --tag go -t php -t java -f arg0 arr0 arr1
@@ -124,15 +212,21 @@ array(2) {
 }
 ```
 
-### Get Value
+**Show help**
+
+```bash
+$ php example/sflags-demo.php --help
+```
+
+## Get Value
 
 **Options**
 
 ```php
-$force = $fs->getOption('f'); // bool(true)
-$age  = $fs->getOption('age'); // int(99)
-$name = $fs->getOption('name'); // string(inhere)
-$tags = $fs->getOption('tags'); // array{"php", "go", "java"}
+$force = $fs->getOpt('f'); // bool(true)
+$age  = $fs->getOpt('age'); // int(99)
+$name = $fs->getOpt('name'); // string(inhere)
+$tags = $fs->getOpt('tags'); // array{"php", "go", "java"}
 ```
 
 **Arguments**
@@ -145,7 +239,7 @@ $arrArg = $fs->getArg(1); // array{"arr0", "arr1"}
 $arrArg = $fs->getArg('arrArg'); // array{"arr0", "arr1"}
 ```
 
-### Flag Rule
+## Flag Rule
 
 The options/arguments rules
 
