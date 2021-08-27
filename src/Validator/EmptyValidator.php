@@ -44,6 +44,6 @@ class EmptyValidator implements ValidatorInterface
      */
     public function __toString(): string
     {
-        return '';
+        return 'Not empty';
     }
 }

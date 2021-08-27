@@ -400,7 +400,7 @@ class SFlags extends AbstractParser
      * @param string $option
      * @param mixed  $value
      */
-    public function setOptValue(string $option, $value): void
+    protected function setOptValue(string $option, $value): void
     {
         $option = $this->resolveAlias($option);
         if (!isset($this->optDefines[$option])) {

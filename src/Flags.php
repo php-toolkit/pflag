@@ -19,8 +19,10 @@ use function array_slice;
 use function count;
 use function is_string;
 use function ltrim;
+use function str_split;
 use function strlen;
 use function substr;
+use function vdump;
 
 /**
  * Class Flags
@@ -90,7 +92,7 @@ class Flags extends AbstractParser
     /**
      * @var bool
      */
-    private $autoBindArgs = false;
+    private $autoBindArgs = true;
 
     /**
      * @return $this
@@ -115,7 +117,8 @@ class Flags extends AbstractParser
     {
         if ($flags === null) {
             $flags = $_SERVER['argv'];
-            array_shift($flags);
+            $sFile = array_shift($flags);
+            $this->setScriptFile($sFile);
         }
 
         $this->parsed  = true;
@@ -154,7 +157,7 @@ class Flags extends AbstractParser
         // check required opts
         if ($this->requiredOpts) {
             foreach ($this->requiredOpts as $name) {
-                if (!isset($this->opts[$name])) {
+                if (!isset($this->matched[$name])) {
                     throw new FlagException("flag option '$name' is required");
                 }
             }
@@ -190,10 +193,14 @@ class Flags extends AbstractParser
             return [false, self::STATUS_OK];
         }
 
-        // empty.
+        // show help
+        if ($arg === '-h' || $arg === '--help') {
+            return [false, self::STATUS_HELP];
+        }
+
         // is not an option.
         if ('' === $arg || $arg[0] !== '-') {
-            $this->rawArgs = $args; // revert args on exit
+            $this->rawArgs = $args; // revert args on return
             return [false, self::STATUS_OK];
         }
 
@@ -201,26 +208,29 @@ class Flags extends AbstractParser
 
         // invalid option name as argument. eg: '- '
         if ('' === $name) {
-            $this->rawArgs = $args; // revert args on exit
+            $this->rawArgs = $args; // revert args on return
             return [false, self::STATUS_OK];
         }
 
-        // show help
-        if ($name === 'h' || $name === 'help') {
-            return [false, self::STATUS_HELP];
+        // short or long
+        $isShort = $arg[1] !== '-';
+        $optLen  = strlen($name);
+
+        // If is merged short opts. eg: -abc
+        if ($isShort && $optLen > 1) {
+            $this->parseMergedShorts($name);
+            return [true, self::STATUS_OK];
         }
 
         $value  = '';
         $hasVal = false;
-
-        $len = strlen($name);
-        for ($i = 0; $i < $len; $i++) {
+        for ($i = 0; $i < $optLen; $i++) {
             if ($name[$i] === '=') {
                 $hasVal = true;
                 $name   = substr($name, 0, $i);
 
                 // fix: `--name=` no value string.
-                if ($i + 1 < $len) {
+                if ($i + 1 < $optLen) {
                     $value = substr($name, $i + 1);
                 }
             }
@@ -254,6 +264,7 @@ class Flags extends AbstractParser
             }
 
             if (!$hasVal) {
+                vdump($opt);
                 throw new FlagException("flag option '$arg' needs an value", 400);
             }
 
@@ -263,6 +274,43 @@ class Flags extends AbstractParser
 
         $this->addMatched($opt);
         return [true, self::STATUS_OK];
+    }
+
+    /**
+     * @param string $shorts eg: 'abc' from '-abc'
+     */
+    protected function parseMergedShorts(string $shorts): bool
+    {
+        // posix: '-abc' will expand to '-a=bc'
+        if ($this->shortStyle === self::SHORT_STYLE_POSIX) {
+            $option = $this->resolveAlias($shorts[0]);
+            $this->setOptValue($option, substr($shorts, 1));
+            return true;
+        }
+
+        // gnu: '-abc' will expand to '-a -b -c'
+        foreach (str_split($shorts) as $short) {
+            $option = $this->resolveAlias($short);
+            $this->setOptValue($option, true);
+        }
+        return true;
+    }
+
+    /**
+     * @param string $name
+     * @param mixed  $value
+     *
+     * @return bool
+     */
+    protected function setOptValue(string $name, $value): bool
+    {
+        $name = $this->resolveAlias($name);
+        if (!isset($this->options[$name])) {
+            throw new FlagException("flag option provided but not defined: $name", 404);
+        }
+
+        $this->options[$name]->setValue($value);
+        return true;
     }
 
     /**
@@ -594,12 +642,22 @@ class Flags extends AbstractParser
             throw new FlagException('cannot repeat add option: ' . $name);
         }
 
+        // has alias
         if ($alias = $option->getAlias()) {
+            if (isset($this->options[$alias])) {
+                throw new FlagException("cannot assign alias '$alias' to option '$name', '$alias' is exists option");
+            }
+
             $this->setAlias($name, $alias, true);
         }
 
+        // has shorts
         if ($ss = $option->getShorts()) {
             foreach ($ss as $s) {
+                if (isset($this->options[$s])) {
+                    throw new FlagException("cannot assign short '$s' to option '$name', '$s' is exists option");
+                }
+
                 $this->setAlias($name, $s, true);
             }
         }

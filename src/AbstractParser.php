@@ -7,23 +7,29 @@ use Toolkit\Cli\Cli;
 use Toolkit\Cli\Color\ColorTag;
 use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\PFlag\Contract\ParserInterface;
+use Toolkit\PFlag\Contract\ValidatorInterface;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\Stdlib\Arr;
+use Toolkit\Stdlib\Helper\DataHelper;
+use Toolkit\Stdlib\Helper\IntHelper;
 use Toolkit\Stdlib\Obj;
 use Toolkit\Stdlib\Obj\Traits\NameAliasTrait;
 use Toolkit\Stdlib\Obj\Traits\QuickInitTrait;
 use Toolkit\Stdlib\Str;
 use function array_merge;
+use function array_shift;
 use function basename;
 use function count;
 use function explode;
 use function is_array;
 use function is_callable;
+use function is_object;
 use function ksort;
+use function method_exists;
+use function sprintf;
 use function strlen;
 use function strpos;
 use function trim;
-use function vdump;
 
 /**
  * class AbstractParser
@@ -34,6 +40,7 @@ abstract class AbstractParser implements ParserInterface
     use NameAliasTrait;
 
     protected const TRIM_CHARS = "; \t\n\r\0\x0B";
+    protected const OPT_MAX_WIDTH = 16;
 
     public const RULE_SEP = ';';
 
@@ -121,9 +128,10 @@ abstract class AbstractParser implements ParserInterface
      * @var array
      */
     protected $settings = [
-        'hasShorts'  => false,
-        'argNameLen' => 12,
-        'optNameLen' => 12,
+        'hasShorts'      => false,
+        'argNameLen'     => 12,
+        'optNameLen'     => 12,
+        'descNlOnOptLen' => self::OPT_MAX_WIDTH,
     ];
 
     // -------------------- settings for parse --------------------
@@ -258,8 +266,7 @@ abstract class AbstractParser implements ParserInterface
 
         // ------- desc -------
         if ($title = $this->desc) {
-            $buf->writeln(Str::ucfirst($title));
-            $buf->writeln('');
+            $buf->writeln(Str::ucfirst($title) . "\n");
         }
 
         $hasArgs = count($argDefines) > 0;
@@ -279,18 +286,39 @@ abstract class AbstractParser implements ParserInterface
             $buf->writeln('<ylw>Arguments:</ylw>');
         }
 
-        $maxLen = $this->settings['argNameLen'];
+        $nameLen = $this->settings['argNameLen'];
         foreach ($fmtArgs as $hName => $arg) {
-            $desc  = $arg['desc'] ? Str::ucfirst($arg['desc']) : 'Argument arg' . $arg['index'];
-            $hName = Str::padRight($hName, $maxLen);
-
+            $desc = $arg['desc'];
             if ($arg['required']) {
                 $desc = '<red1>*</red1>' . $desc;
             }
 
+            // default value.
+            if (isset($arg['default']) && $arg['default'] !== null) {
+                $desc .= sprintf('(default <mga>%s</mga>)', DataHelper::toString($arg['default']));
+            }
+
+            // desc has multi line
+            $lines = [];
+            if (strpos($desc, "\n") > 0) {
+                $lines = explode("\n", $desc);
+                $desc  = array_shift($lines);
+            }
+
+            // write to buffer.
+            $hName = Str::padRight($hName, $nameLen);
             $buf->writef("  <%s>%s</%s>    %s\n", $nameTag, $hName, $nameTag, $desc);
+
+            // remaining desc lines
+            if ($lines) {
+                $indent = Str::repeat(' ', $nameLen);
+                foreach ($lines as $line) {
+                    $buf->writef("     %s%s\n", $indent, $line);
+                }
+            }
         }
-        $buf->writeln('');
+
+        $hasArgs && $buf->writeln('');
 
         // ------- opts -------
         if ($hasOpts) {
@@ -300,16 +328,54 @@ abstract class AbstractParser implements ParserInterface
         $nameTag = 'info';
         $fmtOpts = $this->buildOptsForHelp($optDefines);
 
-        $maxLen = $this->settings['optNameLen'];
+        $nameLen  = $this->settings['optNameLen'];
+        $maxWidth = $this->settings['descNlOnOptLen'];
         foreach ($fmtOpts as $hName => $opt) {
-            $desc  = $opt['desc'] ? Str::ucfirst($opt['desc']) : 'Option ' . $opt['name'];
-            $hName = Str::padRight($hName, $maxLen);
+            $desc = $opt['desc'];
 
             if ($opt['required']) {
                 $desc = '<red1>*</red1>' . $desc;
             }
 
-            $buf->writef("  <%s>%s</%s>   %s\n", $nameTag, $hName, $nameTag, $desc);
+            // validator limit
+            if (!empty($opt['validator'])) {
+                $v = $opt['validator'];
+
+                /** @see ValidatorInterface */
+                if (is_object($v) && method_exists($v, '__toString')) {
+                    $limit = (string)$v;
+                    $desc  .= $limit ? ' ' . $limit : '';
+                }
+            }
+
+            // default value.
+            if (isset($opt['default']) && $opt['default'] !== null) {
+                $desc .= sprintf('(default <mga>%s</mga>)', DataHelper::toString($opt['default']));
+            }
+
+            // desc has multi line
+            $lines = [];
+            if (strpos($desc, "\n") > 0) {
+                $lines = explode("\n", $desc);
+                $desc  = array_shift($lines);
+            }
+
+            // need echo desc at newline.
+            $hName = Str::padRight($hName, $nameLen);
+            if (strlen($hName) > $maxWidth) {
+                $buf->writef("  <%s>%s</%s>\n", $nameTag, $hName, $nameTag);
+                $buf->writef("     %s%s\n", Str::repeat(' ', $nameLen), $desc);
+            } else {
+                $buf->writef("  <%s>%s</%s>   %s\n", $nameTag, $hName, $nameTag, $desc);
+            }
+
+            // remaining desc lines
+            if ($lines) {
+                $indent = Str::repeat(' ', $nameLen);
+                foreach ($lines as $line) {
+                    $buf->writef("     %s%s\n", $indent, $line);
+                }
+            }
         }
 
         return $withColor ? $buf->clear() : ColorTag::clear($buf->clear());
@@ -329,6 +395,13 @@ abstract class AbstractParser implements ParserInterface
         foreach ($argDefines as $arg) {
             $helpName = $arg['name'] ?: 'arg' . $arg['index'];
 
+            if ($desc = $arg['desc']) {
+                $desc = trim($desc);
+            }
+
+            // ensure desc is not empty
+            $arg['desc'] = $desc ? Str::ucfirst($desc): "Argument $helpName";
+
             $type = $arg['type'];
             if (FlagType::isArray($type)) {
                 $helpName .= '...';
@@ -340,7 +413,6 @@ abstract class AbstractParser implements ParserInterface
             }
 
             $maxLen = FlagUtil::getMaxInt($maxLen, strlen($helpName));
-            // unset($arg['validator']);
 
             // append
             $fmtArgs[$helpName] = $arg;
@@ -362,7 +434,7 @@ abstract class AbstractParser implements ParserInterface
         }
 
         $fmtOpts = [];
-        $maxLen  = $this->settings['optNameLen'];
+        $nameLen = $this->settings['optNameLen'];
         ksort($optDefines);
 
         /** @var array $opt {@see DEFINE_ITEM} */
@@ -370,18 +442,30 @@ abstract class AbstractParser implements ParserInterface
             $names   = $opt['shorts'];
             $names[] = $name;
 
+            if ($desc = $opt['desc']) {
+                $desc = trim($desc);
+            }
+
+            // ensure desc is not empty
+            $opt['desc'] = $desc ? Str::ucfirst($desc): "Option $name";
+
             $helpName = FlagUtil::buildOptHelpName($names);
             if ($this->showTypeOnHelp) {
                 $typeName = FlagType::getHelpName($opt['type']);
                 $helpName .= $typeName ? " $typeName" : '';
             }
 
-            $maxLen = FlagUtil::getMaxInt($maxLen, strlen($helpName));
+            $nameLen = FlagUtil::getMaxInt($nameLen, strlen($helpName));
             // append
             $fmtOpts[$helpName] = $opt;
         }
 
-        $this->settings['optNameLen'] = $maxLen;
+        // limit option name width
+        $maxLen = IntHelper::getMax($this->settings['descNlOnOptLen'], self::OPT_MAX_WIDTH);
+
+        $this->settings['descNlOnOptLen'] = $maxLen;
+        // set opt name len
+        $this->settings['optNameLen'] = IntHelper::getMin($nameLen, $maxLen);
         return $fmtOpts;
     }
 

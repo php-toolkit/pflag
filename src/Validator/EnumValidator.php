@@ -69,6 +69,6 @@ class EnumValidator implements ValidatorInterface
      */
     public function __toString(): string
     {
-        return 'allow: ' . implode(',', $this->enums);
+        return 'Allow: ' . implode(',', $this->enums);
     }
 }
