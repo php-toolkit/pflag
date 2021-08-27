@@ -8,6 +8,27 @@
 
 Generic PHP command line flags parse library
 
+## Features
+
+- Generic parse CLI options and arguments.
+- Support set value data type(`int,string,bool,array`), will auto format input value.
+- Support set default value for option/argument.
+- Support set option/argument is required.
+- Support set validator for check input value.
+- Support auto generate help message.
+
+**Arguments**:
+
+- Support binding named arguemnt
+- Support define array argument
+
+**Options**:
+
+- Support long option `--long`
+- Support short option `-s -a value`, allow set multi short names.
+- Support define array option
+  - eg: `--tag php --tag go` will get `tag: [php, go]`
+
 ## Install
 
 **composer**
@@ -29,8 +50,12 @@ use Toolkit\PFlag\Flags;
 
 require dirname(__DIR__) . '/test/bootstrap.php';
 
+$flags = $_SERVER['argv'];
+// NOTICE: must shift first element.
+$scriptFile = array_shift($flags);
+
 $fs = Flags::new();
-// with some config
+// can with some config
 $fs->setScriptFile($scriptFile);
 /** @see Flags::$settings */
 $fs->setSettings([
@@ -96,6 +121,8 @@ $fs->addArgument($arg);
 ```php
 use Toolkit\PFlag\Flags;
 use Toolkit\PFlag\FlagType;
+
+// ...
 
 if (!$fs->parse($flags)) {
     // on render help

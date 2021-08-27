@@ -8,6 +8,8 @@
  * @license  MIT
  */
 
+use Toolkit\Cli\Cli;
+use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\SFlags;
 
 require dirname(__DIR__) . '/test/bootstrap.php';
@@ -38,7 +40,23 @@ $fs->setScriptFile($scriptFile);
 $fs->setOptRules($optRules);
 $fs->setArgRules($argRules);
 
-if (!$fs->parse($flags)) {
+// do parsing
+try {
+    if (!$fs->parse($flags)) {
+        // on render help
+        return;
+    }
+} catch (\Throwable $e) {
+    if ($e instanceof FlagException) {
+        Cli::colored('ERROR: ' . $e->getMessage(), 'error');
+    } else {
+        $code = $e->getCode() !== 0 ? $e->getCode() : -1;
+        $eTpl = "Exception(%d): %s\nFile: %s(Line %d)\nTrace:\n%s\n";
+
+        // print exception message
+        printf($eTpl, $code, $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTraceAsString());
+    }
+
     return;
 }
 
