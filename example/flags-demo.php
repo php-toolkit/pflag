@@ -47,6 +47,7 @@ $fs->addOptByRule('name-is-very-lang', [
     'type'   => FlagType::STRING,
     'desc'   => 'option name is to lang, desc will print on newline',
     'shorts' => ['d','e'],
+    'alias'  => 'nv',
     // TIP: add validator limit input value.
     'validator' => EnumValidator::new(['one', 'two', 'three']),
 ]);

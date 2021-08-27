@@ -9,6 +9,8 @@ use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\PFlag\Contract\ParserInterface;
 use Toolkit\PFlag\Contract\ValidatorInterface;
 use Toolkit\PFlag\Exception\FlagException;
+use Toolkit\PFlag\Flag\Argument;
+use Toolkit\PFlag\Flag\Option;
 use Toolkit\Stdlib\Arr;
 use Toolkit\Stdlib\Helper\DataHelper;
 use Toolkit\Stdlib\Helper\IntHelper;
@@ -225,6 +227,10 @@ abstract class AbstractParser implements ParserInterface
         return $args;
     }
 
+    /****************************************************************
+     * build and render help
+     ***************************************************************/
+
     /**
      * display help messages
      */
@@ -288,22 +294,7 @@ abstract class AbstractParser implements ParserInterface
 
         $nameLen = $this->settings['argNameLen'];
         foreach ($fmtArgs as $hName => $arg) {
-            $desc = $arg['desc'];
-            if ($arg['required']) {
-                $desc = '<red1>*</red1>' . $desc;
-            }
-
-            // default value.
-            if (isset($arg['default']) && $arg['default'] !== null) {
-                $desc .= sprintf('(default <mga>%s</mga>)', DataHelper::toString($arg['default']));
-            }
-
-            // desc has multi line
-            $lines = [];
-            if (strpos($desc, "\n") > 0) {
-                $lines = explode("\n", $desc);
-                $desc  = array_shift($lines);
-            }
+            [$desc, $lines] = $this->formatDesc($arg);
 
             // write to buffer.
             $hName = Str::padRight($hName, $nameLen);
@@ -331,34 +322,7 @@ abstract class AbstractParser implements ParserInterface
         $nameLen  = $this->settings['optNameLen'];
         $maxWidth = $this->settings['descNlOnOptLen'];
         foreach ($fmtOpts as $hName => $opt) {
-            $desc = $opt['desc'];
-
-            if ($opt['required']) {
-                $desc = '<red1>*</red1>' . $desc;
-            }
-
-            // validator limit
-            if (!empty($opt['validator'])) {
-                $v = $opt['validator'];
-
-                /** @see ValidatorInterface */
-                if (is_object($v) && method_exists($v, '__toString')) {
-                    $limit = (string)$v;
-                    $desc  .= $limit ? ' ' . $limit : '';
-                }
-            }
-
-            // default value.
-            if (isset($opt['default']) && $opt['default'] !== null) {
-                $desc .= sprintf('(default <mga>%s</mga>)', DataHelper::toString($opt['default']));
-            }
-
-            // desc has multi line
-            $lines = [];
-            if (strpos($desc, "\n") > 0) {
-                $lines = explode("\n", $desc);
-                $desc  = array_shift($lines);
-            }
+            [$desc, $lines] = $this->formatDesc($opt);
 
             // need echo desc at newline.
             $hName = Str::padRight($hName, $nameLen);
@@ -382,6 +346,46 @@ abstract class AbstractParser implements ParserInterface
     }
 
     /**
+     * @see DEFINE_ITEM for array $define
+     * @param array|Option|Argument $define
+     *
+     * @return array
+     */
+    protected function formatDesc($define): array
+    {
+        $desc = $define['desc'];
+
+        if ($define['required']) {
+            $desc = '<red1>*</red1>' . $desc;
+        }
+
+        // validator limit
+        if (!empty($define['validator'])) {
+            $v = $define['validator'];
+
+            /** @see ValidatorInterface */
+            if (is_object($v) && method_exists($v, '__toString')) {
+                $limit = (string)$v;
+                $desc  .= $limit ? ' ' . $limit : '';
+            }
+        }
+
+        // default value.
+        if (isset($define['default']) && $define['default'] !== null) {
+            $desc .= sprintf('(default <mga>%s</mga>)', DataHelper::toString($define['default']));
+        }
+
+        // desc has multi line
+        $lines = [];
+        if (strpos($desc, "\n") > 0) {
+            $lines = explode("\n", $desc);
+            $desc  = array_shift($lines);
+        }
+
+        return [$desc, $lines];
+    }
+
+    /**
      * @param array $argDefines
      *
      * @return array
@@ -391,10 +395,9 @@ abstract class AbstractParser implements ParserInterface
         $fmtArgs = [];
         $maxLen  = $this->settings['argNameLen'];
 
-        /** @var array $arg {@see DEFINE_ITEM} */
+        /** @var array|Argument $arg {@see DEFINE_ITEM} */
         foreach ($argDefines as $arg) {
             $helpName = $arg['name'] ?: 'arg' . $arg['index'];
-
             if ($desc = $arg['desc']) {
                 $desc = trim($desc);
             }
@@ -412,7 +415,7 @@ abstract class AbstractParser implements ParserInterface
                 $helpName .= $typeName ? " $typeName" : '';
             }
 
-            $maxLen = FlagUtil::getMaxInt($maxLen, strlen($helpName));
+            $maxLen = IntHelper::getMax($maxLen, strlen($helpName));
 
             // append
             $fmtArgs[$helpName] = $arg;
@@ -437,9 +440,14 @@ abstract class AbstractParser implements ParserInterface
         $nameLen = $this->settings['optNameLen'];
         ksort($optDefines);
 
-        /** @var array $opt {@see DEFINE_ITEM} */
+        /** @var array|Option $opt {@see DEFINE_ITEM} */
         foreach ($optDefines as $name => $opt) {
-            $names   = $opt['shorts'];
+            $names = $opt['shorts'];
+            /** @see Option support alias name. */
+            if (isset($opt['alias']) && $opt['alias']) {
+                $names[] = $opt['alias'];
+            }
+            // real name.
             $names[] = $name;
 
             if ($desc = $opt['desc']) {
@@ -455,7 +463,7 @@ abstract class AbstractParser implements ParserInterface
                 $helpName .= $typeName ? " $typeName" : '';
             }
 
-            $nameLen = FlagUtil::getMaxInt($nameLen, strlen($helpName));
+            $nameLen = IntHelper::getMax($nameLen, strlen($helpName));
             // append
             $fmtOpts[$helpName] = $opt;
         }

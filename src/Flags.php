@@ -17,6 +17,7 @@ use Toolkit\Stdlib\Str;
 use function array_shift;
 use function array_slice;
 use function count;
+use function is_array;
 use function is_string;
 use function ltrim;
 use function str_split;
@@ -615,6 +616,10 @@ class Flags extends AbstractParser
     {
         $define = $this->parseRule($rule, $name);
         $option = Option::newByArray($define['name'], $define);
+
+        if (is_array($rule) && isset($rule['alias'])) {
+            $option->setAlias($rule['alias']);
+        }
 
         return $this->addOption($option);
     }
