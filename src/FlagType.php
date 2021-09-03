@@ -115,6 +115,42 @@ class FlagType
     }
 
     /**
+     * Get type default value.
+     *
+     * @param string $type
+     *
+     * @return array|false|float|int|string|null
+     */
+    public static function getDefault(string $type)
+    {
+        $value = null;
+        switch ($type) {
+            case self::INT:
+                $value = 0;
+                break;
+            case self::BOOL:
+                $value = false;
+                break;
+            case self::FLOAT:
+                $value = (float)0;
+                break;
+            case self::STRING:
+                $value = '';
+                break;
+            case self::INTS:
+            case self::ARRAY:
+            case self::STRINGS:
+                $value = [];
+                break;
+            default:
+                // nothing
+                break;
+        }
+
+        return $value;
+    }
+
+    /**
      * @param string $type
      * @param mixed  $value
      *

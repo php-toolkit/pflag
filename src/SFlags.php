@@ -122,11 +122,11 @@ class SFlags extends AbstractFlags
      *
      * ```php
      * [
-     *  'name' => self::DEFINE_ITEM,
+     *  self::DEFINE_ITEM,
      * ]
      * ```
      *
-     * @var array
+     * @var array[]
      */
     private $argDefines = [];
 
@@ -704,7 +704,16 @@ class SFlags extends AbstractFlags
      */
     public function getOpt(string $name, $default = null)
     {
-        return $this->opts[$name] ?? $default;
+        if (isset($this->opts[$name])) {
+            return $this->opts[$name];
+        }
+
+        $define = $this->optDefines[$name] ?? [];
+        if (!$define) { // not exist option
+            throw new FlagException("flag option '$name' is undefined");
+        }
+
+        return $default ?? FlagType::getDefault($define['type']);
     }
 
     /**
@@ -722,17 +731,9 @@ class SFlags extends AbstractFlags
      */
     public function hasArg($nameOrIndex): bool
     {
-        if (is_string($nameOrIndex)) {
-            if (!isset($this->name2index[$nameOrIndex])) {
-                return false;
-            }
+        $index = $this->getArgIndex($nameOrIndex);
 
-            $index = $this->name2index[$nameOrIndex];
-        } else {
-            $index = (int)$nameOrIndex;
-        }
-
-        return isset($this->args[$index]);
+        return $index > -1 && isset($this->args[$index]);
     }
 
     /**
@@ -754,17 +755,18 @@ class SFlags extends AbstractFlags
      */
     public function getArg($nameOrIndex, $default = null)
     {
-        if (is_string($nameOrIndex)) {
-            if (!isset($this->name2index[$nameOrIndex])) {
-                throw new FlagException("flag argument name '$nameOrIndex' is undefined");
-            }
-
-            $index = $this->name2index[$nameOrIndex];
-        } else {
-            $index = (int)$nameOrIndex;
+        $index = $this->getArgIndex($nameOrIndex);
+        if ($index < 0) {
+            throw new FlagException("flag argument '$nameOrIndex' is undefined");
         }
 
-        return $this->args[$index] ?? $default;
+        if (isset($this->args[$index])) {
+            return $this->args[$index];
+        }
+
+        // get default with type format
+        $define = $this->argDefines[$index];
+        return $default ?? FlagType::getDefault($define['type']);
     }
 
     /**
@@ -780,19 +782,16 @@ class SFlags extends AbstractFlags
     /**
      * @param string|int $nameOrIndex
      *
-     * @return int
+     * @return int Will return -1 if arg not exists
      */
-    public function getArgIndex($nameOrIndex): int
+    protected function getArgIndex($nameOrIndex): int
     {
         if (!is_string($nameOrIndex)) {
-            return (int)$nameOrIndex;
+            $index = (int)$nameOrIndex;
+            return isset($this->argDefines[$index]) ? $index : -1;
         }
 
-        if (!isset($this->name2index[$nameOrIndex])) {
-            throw new FlagException("flag argument name '$nameOrIndex' is undefined");
-        }
-
-        return $this->name2index[$nameOrIndex];
+        return $this->name2index[$nameOrIndex] ?? -1;
     }
 
     /**
@@ -843,6 +842,18 @@ class SFlags extends AbstractFlags
     }
 
     /**
+     * @param string|int $nameOrIndex
+     *
+     * @return bool
+     */
+    public function hasDefineArg($nameOrIndex): bool
+    {
+        $index = $this->getArgIndex($nameOrIndex);
+
+        return isset($this->argDefines[$index]);
+    }
+
+    /**
      * @return array
      */
     public function getArgDefines(): array
@@ -879,6 +890,16 @@ class SFlags extends AbstractFlags
         $this->optRules[$name] = $rule;
 
         return $this;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function hasDefineOpt(string $name): bool
+    {
+        return isset($this->optDefines[$name]);
     }
 
     /**
