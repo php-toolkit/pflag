@@ -81,7 +81,8 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
      * The flag value validator
      * - if validate fail, please return for OR throw FlagException
      *
-     * @var callable|ValidatorInterface
+     * @var callable|ValidatorInterface|null
+     * @psalm-var callable(mixed, string): bool
      */
     protected $validator;
 

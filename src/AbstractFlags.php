@@ -20,6 +20,7 @@ use Toolkit\Stdlib\Obj\Traits\QuickInitTrait;
 use Toolkit\Stdlib\Str;
 use function array_merge;
 use function array_shift;
+use function array_values;
 use function basename;
 use function count;
 use function explode;
@@ -34,14 +35,15 @@ use function strpos;
 use function trim;
 
 /**
- * class AbstractParser
+ * class AbstractFlags
+ * abstract parser
  */
-abstract class AbstractParser implements ParserInterface
+abstract class AbstractFlags implements ParserInterface
 {
     use QuickInitTrait;
     use NameAliasTrait;
 
-    protected const TRIM_CHARS = "; \t\n\r\0\x0B";
+    protected const TRIM_CHARS    = "; \t\n\r\0\x0B";
     protected const OPT_MAX_WIDTH = 16;
 
     public const RULE_SEP = ';';
@@ -50,7 +52,9 @@ abstract class AbstractParser implements ParserInterface
 
     public const STATUS_ERR = 1;
 
-    public const STATUS_HELP = 2; // found `-h|--help` flag
+    public const STATUS_ARG = 2;
+
+    public const STATUS_HELP = 3; // found `-h|--help` flag
 
     public const SHORT_STYLE_GUN = 'gnu';
 
@@ -148,7 +152,8 @@ abstract class AbstractParser implements ParserInterface
     protected $shortStyle = 'posix';
 
     /**
-     * Whether stop parse option on first argument
+     * Stop parse option on found first argument.
+     * - useful for support multi commands. eg: `top --opt ... sub --opt ...`
      *
      * @var bool
      */
@@ -199,6 +204,39 @@ abstract class AbstractParser implements ParserInterface
     }
 
     /**
+     * @param array|null $flags
+     *
+     * @return bool
+     */
+    public function parse(?array $flags = null): bool
+    {
+        if ($this->parsed) {
+            return true;
+        }
+
+        $this->parsed  = true;
+        $this->rawArgs = [];
+
+        if ($flags === null) {
+            $flags = $_SERVER['argv'];
+            $sFile = array_shift($flags);
+            $this->setScriptFile($sFile);
+        } else {
+            $flags = array_values($flags);
+        }
+
+        $this->flags = $flags;
+        return $this->doParse($flags);
+    }
+
+    /**
+     * @param array $flags
+     *
+     * @return bool
+     */
+    abstract protected function doParse(array $flags): bool;
+
+    /**
      * @param array $rawArgs
      *
      * @return array
@@ -225,6 +263,13 @@ abstract class AbstractParser implements ParserInterface
         }
 
         return $args;
+    }
+
+    public function resetResults(): void
+    {
+        // clear match results
+        $this->parsed  = false;
+        $this->rawArgs = $this->flags = [];
     }
 
     /****************************************************************
@@ -346,10 +391,10 @@ abstract class AbstractParser implements ParserInterface
     }
 
     /**
-     * @see DEFINE_ITEM for array $define
      * @param array|Option|Argument $define
      *
      * @return array
+     * @see DEFINE_ITEM for array $define
      */
     protected function formatDesc($define): array
     {
@@ -403,7 +448,7 @@ abstract class AbstractParser implements ParserInterface
             }
 
             // ensure desc is not empty
-            $arg['desc'] = $desc ? Str::ucfirst($desc): "Argument $helpName";
+            $arg['desc'] = $desc ? Str::ucfirst($desc) : "Argument $helpName";
 
             $type = $arg['type'];
             if (FlagType::isArray($type)) {
@@ -455,7 +500,7 @@ abstract class AbstractParser implements ParserInterface
             }
 
             // ensure desc is not empty
-            $opt['desc'] = $desc ? Str::ucfirst($desc): "Option $name";
+            $opt['desc'] = $desc ? Str::ucfirst($desc) : "Option $name";
 
             $helpName = FlagUtil::buildOptHelpName($names);
             if ($this->showTypeOnHelp) {

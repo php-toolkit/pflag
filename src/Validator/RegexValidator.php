@@ -2,7 +2,6 @@
 
 namespace Toolkit\PFlag\Validator;
 
-use Toolkit\PFlag\Contract\ValidatorInterface;
 use Toolkit\PFlag\Exception\FlagException;
 use function is_string;
 use function preg_match;
@@ -10,7 +9,7 @@ use function preg_match;
 /**
  * class RegexValidator
  */
-class RegexValidator implements ValidatorInterface
+class RegexValidator extends AbstractValidator
 {
     /**
      * Regex string. eg: '^\w+$'
@@ -47,7 +46,7 @@ class RegexValidator implements ValidatorInterface
      *
      * @return bool
      */
-    public function __invoke($value, string $name): bool
+    public function checkInput($value, string $name): bool
     {
         $regex = $this->regex;
         if (is_string($value) && preg_match("/$regex/", $value)) {

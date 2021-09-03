@@ -9,6 +9,7 @@
 
 namespace Toolkit\PFlag;
 
+use Closure;
 use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\PFlag\Exception\FlagException;
 use function array_slice;
@@ -28,12 +29,18 @@ use function trim;
  *
  * @package Toolkit\PFlag
  */
-class SFlags extends AbstractParser
+class SFlags extends AbstractFlags
 {
     /**
      * @var self
      */
     private static $std;
+
+    /**
+     * @var callable
+     * @psalm-var callable(mixed $value, string $type): mixed
+     */
+    protected $valueFilter;
 
     // ------------------------ opts ------------------------
 
@@ -147,7 +154,7 @@ class SFlags extends AbstractParser
     private $args = [];
 
     /**
-     * @return $this
+     * @return self
      */
     public static function std(): self
     {
@@ -199,7 +206,7 @@ class SFlags extends AbstractParser
      */
     public function parseDefined(array $rawFlags, array $optRules, array $argRules = []): bool
     {
-        if ($this->parsed) {
+        if ($this->isParsed()) {
             return true;
         }
 
@@ -250,15 +257,8 @@ class SFlags extends AbstractParser
      *
      * @return bool
      */
-    public function parse(array $flags): bool
+    public function doParse(array $flags): bool
     {
-        if ($this->parsed) {
-            return true;
-        }
-
-        $this->parsed = true;
-        $this->flags  = $flags;
-
         // parse rules
         $this->parseOptRules($this->optRules);
         $this->parseArgRules($this->argRules);
@@ -334,7 +334,7 @@ class SFlags extends AbstractParser
                     }
 
                     $value = $next;
-                    next($flags);
+                    next($flags); // move key pointer
                 }
 
                 $this->setRealOptValue($option, $value, $define);
@@ -526,15 +526,25 @@ class SFlags extends AbstractParser
      */
     public function reset(bool $resetDefines = true): void
     {
-        $this->parsed  = false;
-        $this->rawArgs = $this->flags = [];
+        if ($resetDefines) {
+            $this->resetDefine();
+        }
+
+        // clear match results
+        $this->resetResults();
+    }
+
+    public function resetDefine(): void
+    {
+        $this->optRules = $this->optDefines = [];
+        $this->argRules = $this->argDefines = [];
+    }
+
+    public function resetResults(): void
+    {
+        parent::resetResults();
 
         $this->opts = $this->args = [];
-
-        if ($resetDefines) {
-            $this->optRules = $this->optDefines = [];
-            $this->argRules = $this->argDefines = [];
-        }
     }
 
     /****************************************************************
@@ -548,6 +558,9 @@ class SFlags extends AbstractParser
      */
     protected function parseOptRules(array $rules): void
     {
+        /**
+         * @var string|int $key
+         */
         foreach ($rules as $key => $rule) {
             if (is_int($key)) { // only name.
                 $key  = (string)$rule;
@@ -651,9 +664,19 @@ class SFlags extends AbstractParser
      *
      * @return bool
      */
-    public function hasOption(string $name): bool
+    public function hasOpt(string $name): bool
     {
         return isset($this->opts[$name]);
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function hasOption(string $name): bool
+    {
+        return $this->hasOpt($name);
     }
 
     /**
@@ -687,12 +710,32 @@ class SFlags extends AbstractParser
     }
 
     /**
-     * @param string     $nameOrIndex
+     * @param int|string $nameOrIndex
+     *
+     * @return bool
+     */
+    public function hasArg($nameOrIndex): bool
+    {
+        if (is_string($nameOrIndex)) {
+            if (!isset($this->name2index[$nameOrIndex])) {
+                return false;
+            }
+
+            $index = $this->name2index[$nameOrIndex];
+        } else {
+            $index = (int)$nameOrIndex;
+        }
+
+        return isset($this->args[$index]);
+    }
+
+    /**
+     * @param int|string $nameOrIndex
      * @param null|mixed $default
      *
      * @return mixed
      */
-    public function getArgument(string $nameOrIndex, $default = null)
+    public function getArgument($nameOrIndex, $default = null)
     {
         return $this->getArg($nameOrIndex, $default);
     }
@@ -729,11 +772,11 @@ class SFlags extends AbstractParser
     }
 
     /**
-     * @param string $nameOrIndex
+     * @param string|int $nameOrIndex
      *
      * @return int
      */
-    public function getArgIndex(string $nameOrIndex): int
+    public function getArgIndex($nameOrIndex): int
     {
         if (!is_string($nameOrIndex)) {
             return (int)$nameOrIndex;
@@ -838,5 +881,13 @@ class SFlags extends AbstractParser
     public function getOptDefines(): array
     {
         return $this->optDefines;
+    }
+
+    /**
+     * @param callable $valueFilter
+     */
+    public function setValueFilter(callable $valueFilter): void
+    {
+        $this->valueFilter = $valueFilter;
     }
 }

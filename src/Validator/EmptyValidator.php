@@ -2,7 +2,6 @@
 
 namespace Toolkit\PFlag\Validator;
 
-use Toolkit\PFlag\Contract\ValidatorInterface;
 use Toolkit\PFlag\Exception\FlagException;
 use function is_string;
 use function trim;
@@ -10,7 +9,7 @@ use function trim;
 /**
  * class EmptyValidator
  */
-class EmptyValidator implements ValidatorInterface
+class EmptyValidator extends AbstractValidator
 {
     /**
      * @return static
@@ -26,7 +25,7 @@ class EmptyValidator implements ValidatorInterface
      *
      * @return bool
      */
-    public function __invoke($value, string $name): bool
+    public function checkInput($value, string $name): bool
     {
         if (is_string($value)) {
             $value = trim($value);

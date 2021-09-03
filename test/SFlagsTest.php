@@ -114,7 +114,7 @@ class SFlagsTest extends BaseTestCase
         $fs->parseDefined($flags, []);
     }
 
-    public function testOptRequired(): void
+    public function testOptRule_required(): void
     {
         $fs = SFlags::new();
         $this->assertFalse($fs->isParsed());

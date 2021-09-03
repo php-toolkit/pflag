@@ -25,11 +25,18 @@ interface ParserInterface
     public function getRawArgs(): array;
 
     /**
-     * @param array $flags
+     * @param array|null $flags
      *
      * @return bool
      */
-    public function parse(array $flags): bool;
+    public function parse(?array $flags = null): bool;
+
+    /**
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function hasOpt(string $name): bool;
 
     /**
      * Get an option value by name
@@ -40,6 +47,13 @@ interface ParserInterface
      * @return mixed
      */
     public function getOpt(string $name, $default = null);
+
+    /**
+     * @param string|int $nameOrIndex
+     *
+     * @return bool
+     */
+    public function hasArg($nameOrIndex): bool;
 
     /**
      * Get an argument value by name

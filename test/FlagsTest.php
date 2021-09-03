@@ -13,6 +13,8 @@ use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\Flags;
 use Toolkit\PFlag\Flag\Option;
 use Toolkit\PFlag\FlagType;
+use function edump;
+use function vdump;
 
 /**
  * Class FlagsTest
@@ -51,5 +53,48 @@ class FlagsTest extends BaseTestCase
         $this->expectException(FlagException::class);
         $this->expectExceptionMessage('flag option provided but not defined: -s');
         $fs->parse($flags);
+    }
+
+    public function testStopOnFirstArg_false(): void
+    {
+        $fs = Flags::new();
+        $this->assertTrue($fs->isStopOnFistArg());
+
+        $fs->addOptsByRules([
+            'name' => 'string',
+            'age'  => 'int',
+        ]);
+        $flags = ['--name', 'inhere', '--age', '90', 'arg0', 'arg1'];
+        // move an arg in middle
+        $flags1 = ['--name', 'inhere', 'arg0', '--age', '90', 'arg1'];
+
+        // $fs->parse($flags);
+        // $this->assertCount(2, $fs->getRawArgs());
+        // $this->assertSame(['arg0', 'arg1'], $fs->getRawArgs());
+        // $fs->resetResults();
+        //
+        // // will stop parse on found 'arg0'
+        // $fs->parse($flags1);
+        // $this->assertCount(4, $fs->getRawArgs());
+        // $this->assertSame(['arg0', '--age', '90', 'arg1'], $fs->getRawArgs());
+        // $fs->resetResults();
+
+        // set stopOnFirstArg=false
+        $fs->setStopOnFistArg(false);
+        $this->assertFalse($fs->isStopOnFistArg());
+
+        vdump($flags);
+        $fs->parse($flags);
+        edump($fs);
+
+        $this->assertCount(2, $fs->getRawArgs());
+        $this->assertSame(['arg0', 'arg1'], $fs->getRawArgs());
+        $fs->resetResults();
+
+        // will skip 'arg0' and continue parse '--age', '90'
+        $fs->parse($flags1);
+        vdump($fs);
+        $this->assertCount(2, $fs->getRawArgs());
+        $fs->reset();
     }
 }

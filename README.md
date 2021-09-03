@@ -173,7 +173,7 @@ array(3) {
 }
 ```
 
-## SFlags
+## SFlags Usage
 
 SFlags - is an simple flags(options&argument) parser and manager.
 

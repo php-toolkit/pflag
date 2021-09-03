@@ -30,7 +30,7 @@ use function vdump;
  *
  * @package Toolkit\PFlag
  */
-class Flags extends AbstractParser
+class Flags extends AbstractFlags
 {
     /**
      * @var self
@@ -96,7 +96,7 @@ class Flags extends AbstractParser
     private $autoBindArgs = true;
 
     /**
-     * @return $this
+     * @return self
      */
     public static function std(): self
     {
@@ -112,27 +112,29 @@ class Flags extends AbstractParser
      **************************************************************************/
 
     /**
-     * @param array|null $flags
+     * @param array $flags
+     *
+     * @return bool
      */
-    public function parse(array $flags = null): bool
+    public function doParse(array $flags): bool
     {
-        if ($flags === null) {
-            $flags = $_SERVER['argv'];
-            $sFile = array_shift($flags);
-            $this->setScriptFile($sFile);
-        }
+        // $parsing = true;
 
-        $this->parsed  = true;
-        $this->rawArgs = $this->flags = $flags;
-
+        // $status = self::STATUS_OK;
         while (true) {
-            [$goon, $status] = $this->parseOne();
-            if ($goon) {
+            // if (!$parsing) {
+            //     $this->rawArgs[] = $this->flags;
+            //     continue;
+            // }
+
+            [$parsing, $status] = $this->parseOneOption();
+            if ($parsing) {
                 continue;
             }
 
             // parse end.
             if (self::STATUS_OK === $status) {
+                $this->rawArgs = $this->flags;
                 break;
             }
 
@@ -148,7 +150,13 @@ class Flags extends AbstractParser
                 $this->displayHelp();
                 break;
             }
+
+            // $status = self::STATUS_ARG is arg, collect value.
+            $this->rawArgs[] = array_shift($this->flags);
         }
+
+        // revert flags.
+        $this->flags = $flags;
 
         $this->parseStatus = $status;
         if ($status !== self::STATUS_OK) {
@@ -175,46 +183,56 @@ class Flags extends AbstractParser
     /**
      * parse one flag.
      *
-     * will stop on:
-     * - found `-h|--help` flag
-     * - found first arg(not an option)
+     * default, will stop on:
+     * - `autoRenderHelp=true` AND found `-h|--help` flag
+     * - `stopOnFistArg=true` AND found first arg(not an option)
      *
      * @return array [goon: bool, status: int]
      */
-    protected function parseOne(): array
+    protected function parseOneOption(): array
     {
-        if (!$args = $this->rawArgs) {
+        if (!$this->flags) {
             return [false, self::STATUS_OK];
         }
 
-        $arg = array_shift($this->rawArgs);
-
+        $val = $this->flags[0];
+vdump($val);
         // NOTICE: will stop parse option on found '--'
-        if ($arg === '--') {
+        if ($val === '--') {
+            array_shift($this->flags);
             return [false, self::STATUS_OK];
         }
 
-        // show help
-        if ($arg === '-h' || $arg === '--help') {
+        // check is not an option.
+        // - empty string
+        // - no prefix '-'
+        // - invalid option name, as argument. eg: '- '
+        $name = $this->filterOptionName($val);
+        if ('' === $name) {
+            $goon   = true;
+            $status = self::STATUS_ARG;
+
+            // stop on found first arg.
+            if ($this->stopOnFistArg) {
+                $goon   = false;
+                $status = self::STATUS_OK;
+            // } else {
+            //     $this->rawArgs[] = array_shift($this->flags);
+            }
+
+            return [$goon, $status];
+        }
+
+        // remove first: $val
+        array_shift($this->flags);
+
+        // enable auto render help
+        if ($this->autoRenderHelp && ($val === '-h' || $val === '--help')) {
             return [false, self::STATUS_HELP];
         }
 
-        // is not an option.
-        if ('' === $arg || $arg[0] !== '-') {
-            $this->rawArgs = $args; // revert args on return
-            return [false, self::STATUS_OK];
-        }
-
-        $name = ltrim($arg, '-');
-
-        // invalid option name as argument. eg: '- '
-        if ('' === $name) {
-            $this->rawArgs = $args; // revert args on return
-            return [false, self::STATUS_OK];
-        }
-
         // short or long
-        $isShort = $arg[1] !== '-';
+        $isShort = $val[1] !== '-';
         $optLen  = strlen($name);
 
         // If is merged short opts. eg: -abc
@@ -239,7 +257,7 @@ class Flags extends AbstractParser
 
         $rName = $this->resolveAlias($name);
         if (!isset($this->options[$rName])) {
-            throw new FlagException("flag option provided but not defined: $arg", 404);
+            throw new FlagException("flag option provided but not defined: $val", 404);
         }
 
         $opt = $this->options[$rName];
@@ -248,25 +266,25 @@ class Flags extends AbstractParser
         if ($opt->isBoolean()) {
             // only allow set bool value by --opt=false
             $boolVal = !$hasVal || Str::toBool($value);
-
             $opt->setValue($boolVal);
         } else {
-            if (!$hasVal && count($this->rawArgs) > 0) {
+            // need value - check next is an value.
+            if (!$hasVal && isset($this->flags[0])) {
                 $hasVal = true;
                 // value is next element
-                $ntArg = $this->rawArgs[0];
+                $ntArg = $this->flags[0];
 
                 // is not an option value.
                 if ($ntArg[0] === '-') {
                     $hasVal = false;
                 } else {
-                    $value = array_shift($this->rawArgs);
+                    $value = $ntArg;
+                    array_shift($this->flags);
                 }
             }
 
             if (!$hasVal) {
-                vdump($opt);
-                throw new FlagException("flag option '$arg' needs an value", 400);
+                throw new FlagException("flag option '$val' needs an value", 400);
             }
 
             // set value
@@ -275,6 +293,28 @@ class Flags extends AbstractParser
 
         $this->addMatched($opt);
         return [true, self::STATUS_OK];
+    }
+
+    /**
+     * check and get option Name
+     *
+     * invalid:
+     * - empty string
+     * - no prefix '-' (is argument)
+     * - invalid option name as argument. eg: '- '
+     *
+     * @param string $val
+     *
+     * @return string
+     */
+    private function filterOptionName(string $val): string
+    {
+        // is not an option.
+        if ('' === $val || $val[0] !== '-') {
+            return '';
+        }
+
+        return ltrim($val, '-');
     }
 
     /**
@@ -325,9 +365,20 @@ class Flags extends AbstractParser
         }
 
         // clear match results
-        $this->parsed  = false;
+        $this->resetResults();
+    }
+
+    public function resetDefine(): void
+    {
+        $this->options = [];
+        $this->resetArguments();
+    }
+
+    public function resetResults(): void
+    {
+        parent::resetResults();
+
         $this->matched = [];
-        $this->rawArgs = $this->flags = [];
     }
 
     /**************************************************************************
@@ -428,8 +479,10 @@ class Flags extends AbstractParser
     {
         $index  = count($this->arguments);
         $define = $this->parseRule($rule, $name, $index, false);
+        /** @var Argument $arg */
+        $arg = Argument::newByArray($name, $define);
 
-        return $this->addArgument(Argument::newByArray($name, $define));
+        return $this->addArgument($arg);
     }
 
     /**
@@ -483,6 +536,26 @@ class Flags extends AbstractParser
     }
 
     /**
+     * @param int|string $nameOrIndex
+     *
+     * @return bool
+     */
+    public function hasArg($nameOrIndex): bool
+    {
+        if (is_string($nameOrIndex)) {
+            if (!isset($this->name2index[$nameOrIndex])) {
+                return false;
+            }
+
+            $index = $this->name2index[$nameOrIndex];
+        } else {
+            $index = (int)$nameOrIndex;
+        }
+
+        return isset($this->arguments[$index]);
+    }
+
+    /**
      * @param string|int $nameOrIndex
      * @param null|mixed $default
      *
@@ -495,19 +568,6 @@ class Flags extends AbstractParser
         }
 
         return $default;
-    }
-
-    /**
-     * @return array
-     */
-    public function getArgs(): array
-    {
-        $args = [];
-        foreach ($this->arguments as $argument) {
-            $args[] = $argument->getValue();
-        }
-
-        return $args;
     }
 
     /**
@@ -528,6 +588,19 @@ class Flags extends AbstractParser
         }
 
         return $this->arguments[$index] ?? null;
+    }
+
+    /**
+     * @return array
+     */
+    public function getArgs(): array
+    {
+        $args = [];
+        foreach ($this->arguments as $argument) {
+            $args[] = $argument->getValue();
+        }
+
+        return $args;
     }
 
     /**
@@ -615,6 +688,7 @@ class Flags extends AbstractParser
     public function addOptByRule(string $name, $rule): self
     {
         $define = $this->parseRule($rule, $name);
+        /** @var Option $option */
         $option = Option::newByArray($define['name'], $define);
 
         if (is_array($rule) && isset($rule['alias'])) {
@@ -697,6 +771,28 @@ class Flags extends AbstractParser
     }
 
     /**
+     * Has matched option
+     *
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function hasOpt(string $name): bool
+    {
+        return isset($this->matched[$name]);
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function hasMatched(string $name): bool
+    {
+        return isset($this->matched[$name]);
+    }
+
+    /**
      * @param string     $name
      * @param null|mixed $default
      *
@@ -709,6 +805,16 @@ class Flags extends AbstractParser
         }
 
         return $default;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return Option|null
+     */
+    public function getOption(string $name): ?Option
+    {
+        return $this->matched[$name] ?? null;
     }
 
     /**
@@ -729,16 +835,6 @@ class Flags extends AbstractParser
      *
      * @return Option|null
      */
-    public function getOption(string $name): ?Option
-    {
-        return $this->matched[$name] ?? null;
-    }
-
-    /**
-     * @param string $name
-     *
-     * @return Option|null
-     */
     public function getDefinedOption(string $name): ?Option
     {
         return $this->options[$name] ?? null;
@@ -752,16 +848,6 @@ class Flags extends AbstractParser
     public function hasDefined(string $name): bool
     {
         return isset($this->options[$name]);
-    }
-
-    /**
-     * @param string $name
-     *
-     * @return bool
-     */
-    public function hasMatched(string $name): bool
-    {
-        return isset($this->matched[$name]);
     }
 
     /**

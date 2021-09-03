@@ -2,7 +2,6 @@
 
 namespace Toolkit\PFlag\Validator;
 
-use Toolkit\PFlag\Contract\ValidatorInterface;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\Stdlib\Str;
 use function implode;
@@ -11,7 +10,7 @@ use function in_array;
 /**
  * class EnumValidator
  */
-class EnumValidator implements ValidatorInterface
+class EnumValidator extends AbstractValidator
 {
     /**
      * @var array
@@ -55,7 +54,7 @@ class EnumValidator implements ValidatorInterface
      *
      * @return bool
      */
-    public function __invoke($value, string $name): bool
+    public function checkInput($value, string $name): bool
     {
         if (in_array($value, $this->enums, true)) {
             return true;
