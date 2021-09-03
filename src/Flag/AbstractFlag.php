@@ -16,8 +16,10 @@ use Toolkit\PFlag\Contract\ValidatorInterface;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\FlagType;
 use Toolkit\Stdlib\Obj;
+use Toolkit\Stdlib\OS;
 use function is_array;
 use function is_bool;
+use function trim;
 
 /**
  * Class Flag
@@ -54,6 +56,13 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
      * @var string
      */
     protected $showType = '';
+
+    /**
+     * ENV var name. support read value from ENV var
+     *
+     * @var string
+     */
+    protected $envVar = '';
 
     /**
      * The default value
@@ -154,6 +163,11 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
         if ($this->default !== null) {
             $this->default = FlagType::fmtBasicTypeValue($this->type, $this->default);
             $this->value   = $this->default;
+        }
+
+        // support set value from ENV.
+        if ($this->envVar && ($envVal = OS::getEnvVal($this->envVar))) {
+            $this->value = FlagType::fmtBasicTypeValue($this->type, $envVal);
         }
     }
 
@@ -303,6 +317,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
             'desc'     => $this->desc,
             'type'     => $this->type,
             'default'  => $this->default,
+            'envVar'   => $this->envVar,
             'required' => $this->required,
             'isArray'  => $this->isArray(),
             'showType' => $this->getShowType(),
@@ -363,5 +378,21 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
     public function setValidator(?callable $validator): void
     {
         $this->validator = $validator;
+    }
+
+    /**
+     * @return string
+     */
+    public function getEnvVar(): string
+    {
+        return $this->envVar;
+    }
+
+    /**
+     * @param string $envVar
+     */
+    public function setEnvVar(string $envVar): void
+    {
+        $this->envVar = trim($envVar);
     }
 }

@@ -10,9 +10,10 @@ Generic PHP command line flags parse library
 
 ## Features
 
-- Generic parse CLI options and arguments.
+- Generic CLI options and arguments parser.
 - Support set value data type(`int,string,bool,array`), will auto format input value.
 - Support set default value for option/argument.
+- Support read flag value from ENV var.
 - Support set option/argument is required.
 - Support set validator for check input value.
 - Support auto generate help message.
@@ -24,7 +25,7 @@ Generic PHP command line flags parse library
 
 **Options**:
 
-- Support long option `--long`
+- Support long option. eg: `--long` `--long value`
 - Support short option `-s -a value`, allow set multi short names.
 - Support define array option
   - eg: `--tag php --tag go` will get `tag: [php, go]`

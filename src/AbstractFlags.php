@@ -67,6 +67,7 @@ abstract class AbstractFlags implements ParserInterface
         'showType'  => '', // use for show help
         // 'index'    => 0, // only for argument
         'required'  => false,
+        'envVar'    => '', // support read value from ENV var
         'default'   => null,
         'shorts'    => [], // only for option. ['a', 'b']
         // value validator

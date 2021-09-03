@@ -9,9 +9,9 @@
 
 namespace Toolkit\PFlag;
 
-use Closure;
 use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\PFlag\Exception\FlagException;
+use Toolkit\Stdlib\OS;
 use function array_slice;
 use function current;
 use function explode;
@@ -577,16 +577,22 @@ class SFlags extends AbstractFlags
 
             // has default value
             if (isset($define['default'])) {
+                if ($define['required']) {
+                    throw new FlagException("cannot set a default value, if flag is required. flag: $name");
+                }
+
                 $default = FlagType::fmtBasicTypeValue($type, $define['default']);
 
                 // save as value.
                 $this->opts[$name] = $define['default'] = $default;
-
-                if ($define['required']) {
-                    throw new FlagException("cannot set a default value, if flag is required. flag: $name");
-                }
             }
 
+            // support read value from ENV var
+            if ($define['envVar'] && ($envVal = OS::getEnvVal($define['envVar']))) {
+                $this->opts[$name] = FlagType::fmtBasicTypeValue($type, $envVal);
+            }
+
+            // has shorts
             if ($define['shorts']) {
                 foreach ($define['shorts'] as $short) {
                     $this->setAlias($name, $short, true);
