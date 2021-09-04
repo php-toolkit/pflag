@@ -45,31 +45,6 @@ class SFlags extends AbstractFlags
     // ------------------------ opts ------------------------
 
     /**
-     * The options rules
-     * - type see FlagType::*
-     *
-     * ```php
-     * [
-     *  // v: only value, as name and use default type FlagType::STRING
-     *  // k-v: key is name, value can be string|array
-     *  //  - string value is rule(format: 'type;required;default;desc').
-     *  //  - array is define item self::DEFINE_ITEM
-     *  'long,s',
-     *  // name => rule
-     *  // TIP: name 'long,s' - first is the option name. remaining is shorts.
-     *  'long,s' => int,
-     *  'f'      => bool,
-     *  'long'   => string,
-     *  'tags'   => array, // can also: ints, strings
-     *  'name'   => 'type;required;default;the description message', // with default, desc, required
-     * ]
-     * ```
-     *
-     * @var array
-     */
-    private $optRules = [];
-
-    /**
      * The options definitions
      * - item please {@see DEFINE_ITEM}
      *
@@ -95,25 +70,6 @@ class SFlags extends AbstractFlags
     private $opts = [];
 
     // ------------------------ args ------------------------
-
-    /**
-     * The arguments rules
-     *
-     * ```php
-     * [
-     *  // v: only value, as rule - use default type FlagType::STRING
-     *  // k-v: key is name, value is rule(format: 'type;required;default;desc').
-     *  // - type see FlagType::*
-     *  'type',
-     *  'name' => 'type',
-     *  'name' => 'type;required', // arg option
-     *  'name' => 'type;required;default;the description message', // with default, desc, required
-     * ]
-     * ```
-     *
-     * @var array
-     */
-    private $argRules = [];
 
     /**
      * The arguments definitions
@@ -314,6 +270,11 @@ class SFlags extends AbstractFlags
                 // resolve alias
                 $option = $this->resolveAlias($option);
                 if (!isset($this->optDefines[$option])) {
+                    if ($this->skipOnUndefined) {
+                        $this->rawArgs[] = $p;
+                        continue;
+                    }
+
                     throw new FlagException("flag option provided but not defined: $p", 404);
                 }
 
@@ -807,41 +768,6 @@ class SFlags extends AbstractFlags
      ***************************************************************/
 
     /**
-     * @return array
-     */
-    public function getArgRules(): array
-    {
-        return $this->argRules;
-    }
-
-    /**
-     * @param array $argRules
-     *
-     * @see argRules
-     */
-    public function setArgRules(array $argRules): void
-    {
-        $this->argRules = $argRules;
-    }
-
-    /**
-     * @param string       $name
-     * @param string|array $rule
-     *
-     * @return $this
-     */
-    public function addArgRule(string $name, $rule): self
-    {
-        if ($name) {
-            $this->argRules[$name] = $rule;
-        } else {
-            $this->argRules[] = $rule;
-        }
-
-        return $this;
-    }
-
-    /**
      * @param string|int $nameOrIndex
      *
      * @return bool
@@ -859,37 +785,6 @@ class SFlags extends AbstractFlags
     public function getArgDefines(): array
     {
         return $this->argDefines;
-    }
-
-    /**
-     * @return array
-     */
-    public function getOptRules(): array
-    {
-        return $this->optRules;
-    }
-
-    /**
-     * @param array $optRules
-     *
-     * @see optRules
-     */
-    public function setOptRules(array $optRules): void
-    {
-        $this->optRules = $optRules;
-    }
-
-    /**
-     * @param string       $name
-     * @param string|array $rule
-     *
-     * @return $this
-     */
-    public function addOptRule(string $name, $rule): self
-    {
-        $this->optRules[$name] = $rule;
-
-        return $this;
     }
 
     /**

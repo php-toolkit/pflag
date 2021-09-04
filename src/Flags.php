@@ -23,7 +23,6 @@ use function ltrim;
 use function str_split;
 use function strlen;
 use function substr;
-use function vdump;
 
 /**
  * Class Flags
@@ -134,7 +133,6 @@ class Flags extends AbstractFlags
 
             // parse end.
             if (self::STATUS_OK === $status) {
-                $this->rawArgs = $this->flags;
                 break;
             }
 
@@ -152,7 +150,7 @@ class Flags extends AbstractFlags
             }
 
             // $status = self::STATUS_ARG is arg, collect value.
-            $this->rawArgs[] = array_shift($this->flags);
+            // $this->rawArgs[] = array_shift($this->flags);
         }
 
         // revert flags.
@@ -196,17 +194,15 @@ class Flags extends AbstractFlags
         }
 
         $val = $this->flags[0];
-vdump($val);
+
         // NOTICE: will stop parse option on found '--'
         if ($val === '--') {
             array_shift($this->flags);
+            $this->appendRawArgs($this->flags);
             return [false, self::STATUS_OK];
         }
 
-        // check is not an option.
-        // - empty string
-        // - no prefix '-'
-        // - invalid option name, as argument. eg: '- '
+        // check is an option name.
         $name = $this->filterOptionName($val);
         if ('' === $name) {
             $goon   = true;
@@ -216,8 +212,10 @@ vdump($val);
             if ($this->stopOnFistArg) {
                 $goon   = false;
                 $status = self::STATUS_OK;
-            // } else {
-            //     $this->rawArgs[] = array_shift($this->flags);
+
+                $this->appendRawArgs($this->flags);
+            } else { // collect arg
+                $this->rawArgs[] = array_shift($this->flags);
             }
 
             return [$goon, $status];
@@ -257,6 +255,11 @@ vdump($val);
 
         $rName = $this->resolveAlias($name);
         if (!isset($this->options[$rName])) {
+            if ($this->skipOnUndefined) {
+                $this->rawArgs[] = $val;
+                return [true, self::STATUS_OK];
+            }
+
             throw new FlagException("flag option provided but not defined: $val", 404);
         }
 
@@ -293,6 +296,16 @@ vdump($val);
 
         $this->addMatched($opt);
         return [true, self::STATUS_OK];
+    }
+
+    /**
+     * @param array $args
+     */
+    private function appendRawArgs(array $args): void
+    {
+        foreach ($args as $arg) {
+            $this->rawArgs[] = $arg;
+        }
     }
 
     /**
@@ -427,6 +440,19 @@ vdump($val);
         return $this->doBuildHelp($this->arguments, $this->options, $withColor);
     }
 
+    /**
+     * @return array
+     */
+    public function toArray(): array
+    {
+        return [
+            'flags'   => $this->flags,
+            'rawArgs' => $this->rawArgs,
+            'opts'    => $this->getOpts(),
+            'args'    => $this->getArgs(),
+        ];
+    }
+
     /**************************************************************************
      * arguments
      **************************************************************************/
@@ -452,15 +478,11 @@ vdump($val);
     }
 
     /**
-     * @param array $rules
-     *
-     * @see addArgByRule()
+     * @param array $argRules
      */
-    public function addArgsByRules(array $rules): void
+    public function setArgRules(array $argRules): void
     {
-        foreach ($rules as $name => $rule) {
-            $this->addArgByRule($name, $rule);
-        }
+        $this->addArgsByRules($argRules);
     }
 
     /**
@@ -475,8 +497,10 @@ vdump($val);
      *
      * @return self
      */
-    public function addArgByRule(string $name, $rule): self
+    public function addArgByRule(string $name, $rule): AbstractFlags
     {
+        parent::addArgByRule($name, $rule);
+
         $index  = count($this->arguments);
         $define = $this->parseRule($rule, $name, $index, false);
         /** @var Argument $arg */
@@ -664,13 +688,11 @@ vdump($val);
     }
 
     /**
-     * @param array $rules
+     * @param array $optRules
      */
-    public function addOptsByRules(array $rules): void
+    public function setOptRules(array $optRules): void
     {
-        foreach ($rules as $name => $rule) {
-            $this->addOptByRule($name, $rule);
-        }
+        $this->addOptsByRules($optRules);
     }
 
     /**
@@ -685,8 +707,10 @@ vdump($val);
      *
      * @return self
      */
-    public function addOptByRule(string $name, $rule): self
+    public function addOptByRule(string $name, $rule): AbstractFlags
     {
+        parent::addOptByRule($name, $rule);
+
         $define = $this->parseRule($rule, $name);
         /** @var Option $option */
         $option = Option::newByArray($define['name'], $define);
@@ -716,7 +740,6 @@ vdump($val);
     public function addOption(Option $option): self
     {
         $name = $option->getName();
-
         if (isset($this->options[$name])) {
             throw new FlagException('cannot repeat add option: ' . $name);
         }
@@ -888,21 +911,5 @@ vdump($val);
     public function setAutoBindArgs(bool $autoBindArgs): void
     {
         $this->autoBindArgs = $autoBindArgs;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isStopOnUndefined(): bool
-    {
-        return $this->stopOnUndefined;
-    }
-
-    /**
-     * @param bool $stopOnUndefined
-     */
-    public function setStopOnUndefined(bool $stopOnUndefined): void
-    {
-        $this->stopOnUndefined = $stopOnUndefined;
     }
 }

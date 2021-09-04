@@ -56,8 +56,13 @@ abstract class AbstractFlags implements ParserInterface
 
     public const STATUS_HELP = 3; // found `-h|--help` flag
 
-    public const SHORT_STYLE_GUN = 'gnu';
-
+    /**
+     * Special short option style
+     *
+     *  - gnu: `-abc` will expand: `-a -b -c`
+     *  - posix: `-abc`  will expand: `-a=bc`
+     */
+    public const SHORT_STYLE_GUN   = 'gnu';
     public const SHORT_STYLE_POSIX = 'posix';
 
     public const DEFINE_ITEM = [
@@ -141,37 +146,38 @@ abstract class AbstractFlags implements ParserInterface
         'descNlOnOptLen' => self::OPT_MAX_WIDTH,
     ];
 
-    // -------------------- settings for parse --------------------
+    // -------------------- settings for parse option --------------------
 
     /**
-     * Special short style
-     *  gnu: `-abc` will expand: `-a -b -c`
-     *  posix: `-abc`  will expand: `-a=bc`
+     * Special short option style
+     *
+     *  - gnu: `-abc` will expand: `-a -b -c`
+     *  - posix: `-abc`  will expand: `-a=bc`
      *
      * @var string
      */
-    protected $shortStyle = 'posix';
+    protected $shortStyle = self::SHORT_STYLE_GUN;
 
     /**
      * Stop parse option on found first argument.
-     * - useful for support multi commands. eg: `top --opt ... sub --opt ...`
+     *
+     * - Useful for support multi commands. eg: `top --opt ... sub --opt ...`
      *
      * @var bool
      */
     protected $stopOnFistArg = true;
 
-    protected $errOnUndefined = false;
-
     /**
-     * Whether stop parse option on found undefined option
+     * Skip on found undefined option.
+     *
+     * - FALSE will throw FlagException error.
+     * - TRUE  will skip it and collect as raw arg, then continue parse next.
      *
      * @var bool
      */
-    protected $stopOnUndefined = true;
+    protected $skipOnUndefined = false;
 
-    protected $skipUndefined = false;
-
-    protected $ignoreUnknown = false;
+    // -------------------- settings for render help --------------------
 
     /**
      * Auto render help on provide '-h', '--help'
@@ -193,6 +199,52 @@ abstract class AbstractFlags implements ParserInterface
      * @var callable
      */
     protected $helpRenderer;
+
+    // -------------------- rules --------------------
+
+    /**
+     * The options rules
+     * - type see FlagType::*
+     *
+     * ```php
+     * [
+     *  // v: only value, as name and use default type FlagType::STRING
+     *  // k-v: key is name, value can be string|array
+     *  //  - string value is rule(format: 'type;required;default;desc').
+     *  //  - array is define item self::DEFINE_ITEM
+     *  'long,s',
+     *  // name => rule
+     *  // TIP: name 'long,s' - first is the option name. remaining is shorts.
+     *  'long,s' => int,
+     *  'f'      => bool,
+     *  'long'   => string,
+     *  'tags'   => array, // can also: ints, strings
+     *  'name'   => 'type;required;default;the description message', // with default, desc, required
+     * ]
+     * ```
+     *
+     * @var array
+     */
+    protected $optRules = [];
+
+    /**
+     * The arguments rules
+     *
+     * ```php
+     * [
+     *  // v: only value, as rule - use default type FlagType::STRING
+     *  // k-v: key is name, value is rule(format: 'type;required;default;desc').
+     *  // - type see FlagType::*
+     *  'type',
+     *  'name' => 'type',
+     *  'name' => 'type;required', // arg option
+     *  'name' => 'type;required;default;the description message', // with default, desc, required
+     * ]
+     * ```
+     *
+     * @var array
+     */
+    protected $argRules = [];
 
     /**
      * Class constructor.
@@ -653,6 +705,110 @@ abstract class AbstractFlags implements ParserInterface
     }
 
     /****************************************************************
+     * add rule methods
+     ***************************************************************/
+
+    /**
+     * @param array $rules
+     */
+    public function addOptsByRules(array $rules): void
+    {
+        foreach ($rules as $name => $rule) {
+            $this->addOptByRule($name, $rule);
+        }
+    }
+
+    /**
+     * Add and option by rule
+     *
+     * rule:
+     *   - string is rule string. (format: 'type;required;default;desc').
+     *   - array is define item {@see Flags::DEFINE_ITEM}
+     *
+     * @param string       $name
+     * @param string|array $rule
+     *
+     * @return $this
+     */
+    public function addOptByRule(string $name, $rule): self
+    {
+        $this->optRules[$name] = $rule;
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getOptRules(): array
+    {
+        return $this->optRules;
+    }
+
+    /**
+     * @param array $optRules
+     *
+     * @see optRules
+     */
+    public function setOptRules(array $optRules): void
+    {
+        $this->optRules = $optRules;
+    }
+
+    /**
+     * @return array
+     */
+    public function getArgRules(): array
+    {
+        return $this->argRules;
+    }
+
+    /**
+     * @param array $argRules
+     *
+     * @see argRules
+     */
+    public function setArgRules(array $argRules): void
+    {
+        $this->argRules = $argRules;
+    }
+
+    /**
+     * @param array $rules
+     *
+     * @see addArgByRule()
+     */
+    public function addArgsByRules(array $rules): void
+    {
+        foreach ($rules as $name => $rule) {
+            $this->addArgByRule($name, $rule);
+        }
+    }
+
+    /**
+     * Add and argument by rule
+     *
+     * rule:
+     *   - string is rule string. (format: 'type;required;default;desc')
+     *   - array is define item {@see Flags::DEFINE_ITEM}
+     *
+     * @param string       $name
+     * @param string|array $rule
+     *
+     * @return $this
+     */
+    public function addArgByRule(string $name, $rule): self
+    {
+        if ($name) {
+            $this->argRules[$name] = $rule;
+        } else {
+            $this->argRules[] = $rule;
+        }
+
+        return $this;
+    }
+
+    /****************************************************************
      * getter/setter methods
      ***************************************************************/
 
@@ -742,6 +898,22 @@ abstract class AbstractFlags implements ParserInterface
     public function setStopOnFistArg(bool $stopOnFistArg): void
     {
         $this->stopOnFistArg = $stopOnFistArg;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isSkipOnUndefined(): bool
+    {
+        return $this->skipOnUndefined;
+    }
+
+    /**
+     * @param bool $skipOnUndefined
+     */
+    public function setSkipOnUndefined(bool $skipOnUndefined): void
+    {
+        $this->skipOnUndefined = $skipOnUndefined;
     }
 
     /**
