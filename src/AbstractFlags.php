@@ -141,10 +141,18 @@ abstract class AbstractFlags implements ParserInterface
      */
     protected $settings = [
         'hasShorts'      => false,
+        // some setting for render help
         'argNameLen'     => 12,
         'optNameLen'     => 12,
         'descNlOnOptLen' => self::OPT_MAX_WIDTH,
     ];
+
+    /**
+     * Delay call validators after parsed. TODO
+     *
+     * @var bool
+     */
+    protected $delayValidate = false;
 
     // -------------------- settings for parse option --------------------
 

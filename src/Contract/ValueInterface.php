@@ -7,7 +7,12 @@ namespace Toolkit\PFlag\Contract;
  */
 interface ValueInterface
 {
-    public function setValue();
+    /**
+     * @param mixed $value
+     *
+     * @return mixed
+     */
+    public function setValue($value);
 
     public function getValue();
 }

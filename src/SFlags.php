@@ -36,12 +36,6 @@ class SFlags extends AbstractFlags
      */
     private static $std;
 
-    /**
-     * @var callable
-     * @psalm-var callable(mixed $value, string $type): mixed
-     */
-    protected $valueFilter;
-
     // ------------------------ opts ------------------------
 
     /**
@@ -803,13 +797,5 @@ class SFlags extends AbstractFlags
     public function getOptDefines(): array
     {
         return $this->optDefines;
-    }
-
-    /**
-     * @param callable $valueFilter
-     */
-    public function setValueFilter(callable $valueFilter): void
-    {
-        $this->valueFilter = $valueFilter;
     }
 }
