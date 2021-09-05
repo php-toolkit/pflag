@@ -702,6 +702,9 @@ abstract class AbstractFlags implements ParserInterface
         // TIP: first is the option name. remaining is shorts.
         $shorts = [];
         foreach ($keys as $i => $k) {
+            // support like '--name, -n'
+            $k = ltrim($k, '-');
+
             if ($i === 0) {
                 $name = $k;
             } else {
