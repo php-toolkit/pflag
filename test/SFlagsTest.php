@@ -47,13 +47,16 @@ class SFlagsTest extends BaseTestCase
         // int
         $flags = ['-n', 'inhere', '--age', '99'];
         $fs->parseDefined($flags, [
-            'name, n' => FlagType::STRING, // add an alias
-            'age'     => FlagType::INT,
+            // 'name,n' => FlagType::STRING, // add an alias
+            'n,name' => FlagType::STRING, // add an alias
+            'age'    => FlagType::INT,
         ]);
         // vdump($fs);
         $this->assertSame('inhere', $fs->getOption('name'));
         $this->assertSame(99, $fs->getOption('age'));
         $this->assertCount(0, $fs->getRawArgs());
+        $this->assertTrue($fs->hasAlias('n'));
+        $this->assertSame('name', $fs->resolveAlias('n'));
 
         $fs->reset();
         $this->assertFalse($fs->isParsed());

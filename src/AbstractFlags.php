@@ -705,11 +705,18 @@ abstract class AbstractFlags implements ParserInterface
             // support like '--name, -n'
             $k = ltrim($k, '-');
 
-            if ($i === 0) {
+            // long string as option name.
+            if (!$name && strlen($k) > 1) {
                 $name = $k;
-            } else {
-                $shorts[] = $k;
+                continue;
             }
+
+            $shorts[] = $k;
+        }
+
+        // no long name, first short name as option name.
+        if (!$name) {
+            $name = array_shift($shorts);
         }
 
         return [$name, $shorts];
