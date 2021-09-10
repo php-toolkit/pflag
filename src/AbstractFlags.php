@@ -28,11 +28,13 @@ use function is_array;
 use function is_callable;
 use function is_object;
 use function ksort;
+use function ltrim;
 use function method_exists;
 use function sprintf;
 use function strlen;
 use function strpos;
 use function trim;
+use function vdump;
 
 /**
  * class AbstractFlags
@@ -693,7 +695,8 @@ abstract class AbstractFlags implements ParserInterface
 
         // only name.
         if (strpos($key, ',') === false) {
-            return [$key, []];
+            $name = ltrim($key, '-');
+            return [$name, []];
         }
 
         $name = '';
@@ -701,7 +704,7 @@ abstract class AbstractFlags implements ParserInterface
 
         // TIP: first is the option name. remaining is shorts.
         $shorts = [];
-        foreach ($keys as $i => $k) {
+        foreach ($keys as $k) {
             // support like '--name, -n'
             $k = ltrim($k, '-');
 

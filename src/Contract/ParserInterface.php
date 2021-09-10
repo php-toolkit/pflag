@@ -74,4 +74,10 @@ interface ParserInterface
      * @return array
      */
     public function getArgs(): array;
+
+    /**
+     * @return array
+     * @psalm-return array<string, string>
+     */
+    public function getOptSimpleDefines(): array;
 }

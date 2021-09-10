@@ -23,6 +23,7 @@ use function strlen;
 use function strpos;
 use function substr;
 use function trim;
+use function vdump;
 
 /**
  * Class SFlags
@@ -760,6 +761,24 @@ class SFlags extends AbstractFlags
     /****************************************************************
      * helper methods
      ***************************************************************/
+
+    /**
+     * @return array
+     */
+    public function getOptSimpleDefines(): array
+    {
+        $map = [];
+        foreach ($this->optDefines as $name => $define) {
+            $names   = $define['shorts'];
+            $names[] = $name;
+
+            $helpName = FlagUtil::buildOptHelpName($names);
+
+            $map[$helpName] = $define['desc'];
+        }
+
+        return $map;
+    }
 
     /**
      * @param string|int $nameOrIndex

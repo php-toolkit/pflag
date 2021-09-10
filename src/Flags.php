@@ -854,6 +854,24 @@ class Flags extends AbstractFlags
     }
 
     /**
+     * @return array
+     */
+    public function getOptSimpleDefines(): array
+    {
+        $map = [];
+        foreach ($this->options as $name => $define) {
+            $names   = $define['shorts'];
+            $names[] = $name;
+
+            $helpName = FlagUtil::buildOptHelpName($names);
+
+            $map[$helpName] = $define['desc'];
+        }
+
+        return $map;
+    }
+
+    /**
      * @param string $name
      *
      * @return Option|null
