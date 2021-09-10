@@ -143,6 +143,11 @@ class CommonTest extends BaseTestCase
         $define = $p->parseOpt('ints;this is an array, allow multi value;no;[23,45];', 'ids');
         $this->assertFalse($define['required']);
         $this->assertEmpty($define['shorts']);
-        $this->assertSame([23,45], $define['default']);
+        $this->assertSame([23, 45], $define['default']);
+
+        $define = $p->parseOpt('array;this is an array, allow multi value;no;[23,45];', 'ids');
+        $this->assertFalse($define['required']);
+        $this->assertEmpty($define['shorts']);
+        $this->assertSame(['23', '45'], $define['default']);
     }
 }
