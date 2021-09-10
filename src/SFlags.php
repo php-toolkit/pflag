@@ -327,8 +327,8 @@ class SFlags extends AbstractFlags
         }
 
         // parse defined arguments
-        if ($this->argDefines) {
-            $this->parseDefinedArgs();
+        if ($this->isAutoBindArgs()) {
+            $this->bindingArguments();
         }
         return true;
     }
@@ -402,7 +402,7 @@ class SFlags extends AbstractFlags
      * arg=<value>
      * ```
      */
-    public function parseDefinedArgs(): void
+    public function bindingArguments(): void
     {
         // parse arguments
         $args = $this->parseRawArgs($this->rawArgs);

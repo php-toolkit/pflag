@@ -22,16 +22,16 @@ $scriptFile = array_shift($flags);
 
 $optRules = [
     // some option rules
-    'name'  => 'string;;;this is an string option', // string
-    'age'   => 'int;required;;this is an int option', // set required
-    'tag,t' => 'strings;no;;array option, allow set multi times',
-    'f'     => 'bool;no;;this is an bool option',
+    'name'  => 'string;this is an string option', // string
+    'age'   => 'int;this is an int option;required', // set required
+    'tag,t' => 'strings;array option, allow set multi times',
+    'f'     => 'bool;this is an bool option',
 ];
 $argRules = [
     // some argument rules
     'string',
     // set name
-    'arrArg' => 'strings;[a,b];;this is an array arg, allow multi value',
+    'arrArg' => 'strings;this is an array arg, allow multi value;;[a,b]',
 ];
 
 $fs = SFlags::new();

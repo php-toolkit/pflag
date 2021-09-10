@@ -76,11 +76,11 @@ use Toolkit\PFlag\Validator\EnumValidator;
 $fs->addOpt('age', 'a', 'this is a int option', FlagType::INT);
 
 // - use string rule
-$fs->addOptByRule('name,n', 'string;true;;this is a string option');
+$fs->addOptByRule('name,n', 'string;this is a string option;true');
 // -- add multi option at once.
 $fs->addOptsByRules([
-    'tag,t' => 'strings;no;;array option, allow set multi times',
-    'f'     => 'bool;no;;this is an bool option',
+    'tag,t' => 'strings;array option, allow set multi times',
+    'f'     => 'bool;this is an bool option',
 ]);
 // - use array rule
 /** @see Flags::DEFINE_ITEM for array rule */
@@ -108,7 +108,7 @@ use Toolkit\PFlag\FlagType;
 // - quick add
 $fs->addArg('strArg1', 'the is string arg and is required', 'string', true);
 // - use string rule
-$fs->addArgByRule('intArg2', 'int;no;89;this is a int arg and with default value');
+$fs->addArgByRule('intArg2', 'int;this is a int arg and with default value;no;89');
 // - use Argument object
 $arg = Argument::new('arrArg');
 // OR $arg->setType(FlagType::ARRAY);
@@ -201,7 +201,7 @@ $flags = ['--name', 'inhere', '--age', '99', '--tag', 'php', '-t', 'go', '--tag'
 
 $optRules = [
     'name', // string
-    'age'   => 'int;required', // set required
+    'age'   => 'int;;required', // set required
     'tag,t' => FlagType::ARRAY,
     'f'     => FlagType::BOOL,
 ];
@@ -249,7 +249,7 @@ $scriptFile = array_shift($rawFlags);
 $optRules = [
     // some option rules
     'name', // string
-    'age'   => 'int;required', // set required
+    'age'   => 'int;;required', // set required
     'tag,t' => FlagType::ARRAY,
     'f'     => FlagType::BOOL,
 ];
@@ -323,7 +323,7 @@ $arrArg = $fs->getArg('arrArg'); // array{"arr0", "arr1"}
 
 The options/arguments rules
 
-- string value is rule(`type;required;default;desc`).
+- string value is rule(`type;desc;required;default;shorts`).
 - array is define item `SFlags::DEFINE_ITEM`
 - supportted type see `FlagType::*`
 
@@ -337,7 +337,7 @@ $rules = [
      'f'      => 'bool',
      'long'   => FlagType::STRING,
      'tags'   => 'array', // can also: ints, strings
-     'name'   => 'type;required;default;the description message', // with default, desc, required
+     'name'   => 'type;the description message;required;default', // with desc, default, required
 ]
 ```
 

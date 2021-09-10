@@ -2,16 +2,14 @@
 
 namespace Toolkit\PFlag;
 
-use InvalidArgumentException;
 use Toolkit\Cli\Cli;
 use Toolkit\Cli\Color\ColorTag;
 use Toolkit\Cli\Helper\FlagHelper;
+use Toolkit\PFlag\Concern\RuleParserTrait;
 use Toolkit\PFlag\Contract\ParserInterface;
 use Toolkit\PFlag\Contract\ValidatorInterface;
-use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\Flag\Argument;
 use Toolkit\PFlag\Flag\Option;
-use Toolkit\Stdlib\Arr;
 use Toolkit\Stdlib\Helper\DataHelper;
 use Toolkit\Stdlib\Helper\IntHelper;
 use Toolkit\Stdlib\Obj;
@@ -24,17 +22,13 @@ use function array_values;
 use function basename;
 use function count;
 use function explode;
-use function is_array;
-use function is_callable;
 use function is_object;
 use function ksort;
-use function ltrim;
 use function method_exists;
 use function sprintf;
 use function strlen;
 use function strpos;
 use function trim;
-use function vdump;
 
 /**
  * class AbstractFlags
@@ -44,9 +38,10 @@ abstract class AbstractFlags implements ParserInterface
 {
     use QuickInitTrait;
     use NameAliasTrait;
+    use RuleParserTrait;
 
-    protected const TRIM_CHARS    = "; \t\n\r\0\x0B";
-    protected const OPT_MAX_WIDTH = 16;
+    public const TRIM_CHARS    = "; \t\n\r\0\x0B";
+    public const OPT_MAX_WIDTH = 16;
 
     public const RULE_SEP = ';';
 
@@ -83,7 +78,7 @@ abstract class AbstractFlags implements ParserInterface
     ];
 
     /**
-     * @var bool
+     * @var bool Mark option is parsed
      */
     protected $parsed = false;
 
@@ -187,6 +182,13 @@ abstract class AbstractFlags implements ParserInterface
      */
     protected $skipOnUndefined = false;
 
+    // -------------------- settings for parse argument --------------------
+
+    /**
+     * @var bool
+     */
+    private $autoBindArgs = true;
+
     // -------------------- settings for render help --------------------
 
     /**
@@ -209,52 +211,6 @@ abstract class AbstractFlags implements ParserInterface
      * @var callable
      */
     protected $helpRenderer;
-
-    // -------------------- rules --------------------
-
-    /**
-     * The options rules
-     * - type see FlagType::*
-     *
-     * ```php
-     * [
-     *  // v: only value, as name and use default type FlagType::STRING
-     *  // k-v: key is name, value can be string|array
-     *  //  - string value is rule(format: 'type;required;default;desc').
-     *  //  - array is define item self::DEFINE_ITEM
-     *  'long,s',
-     *  // name => rule
-     *  // TIP: name 'long,s' - first is the option name. remaining is shorts.
-     *  'long,s' => int,
-     *  'f'      => bool,
-     *  'long'   => string,
-     *  'tags'   => array, // can also: ints, strings
-     *  'name'   => 'type;required;default;the description message', // with default, desc, required
-     * ]
-     * ```
-     *
-     * @var array
-     */
-    protected $optRules = [];
-
-    /**
-     * The arguments rules
-     *
-     * ```php
-     * [
-     *  // v: only value, as rule - use default type FlagType::STRING
-     *  // k-v: key is name, value is rule(format: 'type;required;default;desc').
-     *  // - type see FlagType::*
-     *  'type',
-     *  'name' => 'type',
-     *  'name' => 'type;required', // arg option
-     *  'name' => 'type;required;default;the description message', // with default, desc, required
-     * ]
-     * ```
-     *
-     * @var array
-     */
-    protected $argRules = [];
 
     /**
      * Class constructor.
@@ -586,250 +542,6 @@ abstract class AbstractFlags implements ParserInterface
     }
 
     /****************************************************************
-     * parse rule to definition
-     ***************************************************************/
-
-    /**
-     * Parse rule
-     *
-     * **array rule**
-     *
-     * - will merge an {@see DEFINE_ITEM}
-     *
-     * **string rule**
-     *
-     * - full rule. (format: 'type;required;default;desc')
-     * - rule item position is fixed.
-     * - if ignore `type`, will use default type: string.
-     *
-     * can ignore item use empty:
-     * - 'type' - only set type.
-     * - 'type;;;desc' - not set required,default
-     *
-     * @param string|array $rule
-     * @param string       $name
-     * @param int          $index
-     * @param bool         $isOption
-     *
-     * @return array {@see DEFINE_ITEM}
-     * @see $argRules
-     * @see $optRules
-     */
-    protected function parseRule($rule, string $name = '', int $index = 0, bool $isOption = true): array
-    {
-        $shortsFromArr = [];
-        if (is_array($rule)) {
-            $item = Arr::replace(self::DEFINE_ITEM, $rule);
-            // set alias by array item
-            $shortsFromArr = $item['shorts'];
-        } else { // parse string rule.
-            $item = self::DEFINE_ITEM;
-            $rule = trim((string)$rule, self::TRIM_CHARS);
-
-            if (strpos($rule, self::RULE_SEP) === false) {
-                $item['type'] = $rule;
-            } else { // eg: 'type;required;default;desc'
-                $nodes = Str::splitTrimmed($rule, self::RULE_SEP, 4);
-
-                // first is type.
-                $item['type'] = $nodes[0];
-                // second is required
-                $item['required'] = false;
-                if ($nodes[1] && ($nodes[1] === 'required' || Str::toBool($nodes[1]))) {
-                    $item['required'] = true;
-                }
-
-                // more: default, desc
-                if (isset($nodes[2]) && $nodes[2] !== '') {
-                    $item['default'] = $nodes[2];
-                }
-                if (!empty($nodes[3])) {
-                    $item['desc'] = $nodes[3];
-                }
-            }
-        }
-
-        $name = $name ?: $item['name'];
-        if ($isOption) {
-            // parse option name.
-            [$name, $shorts] = $this->parseRuleOptName($name);
-
-            // save alias
-            $item['shorts'] = $shorts ?: $shortsFromArr;
-            if ($item['required']) {
-                $this->requiredOpts[] = $name;
-            }
-        } else {
-            $item['index'] = $index;
-        }
-
-        $nameMark = $name ? "(name: $name)" : "(#$index)";
-
-        // check type
-        if (!FlagType::isValid($type = $item['type'])) {
-            throw new FlagException("cannot define invalid flag type: $type$nameMark");
-        }
-
-        // validator must be callable
-        if (!empty($item['validator']) && !is_callable($item['validator'])) {
-            throw new InvalidArgumentException("validator must be callable. flag: $nameMark");
-        }
-
-        $item['name'] = $name;
-        return $item;
-    }
-
-    /**
-     * Parse option name and shorts
-     *
-     * @param string $key 'lang,s' => option name is 'lang', alias 's'
-     *
-     * @return array [name, shorts]
-     */
-    protected function parseRuleOptName(string $key): array
-    {
-        $key = trim($key, self::TRIM_CHARS);
-        if (!$key) {
-            throw new FlagException('flag option name cannot be empty');
-        }
-
-        // only name.
-        if (strpos($key, ',') === false) {
-            $name = ltrim($key, '-');
-            return [$name, []];
-        }
-
-        $name = '';
-        $keys = Str::explode($key, ',');
-
-        // TIP: first is the option name. remaining is shorts.
-        $shorts = [];
-        foreach ($keys as $k) {
-            // support like '--name, -n'
-            $k = ltrim($k, '-');
-
-            // long string as option name.
-            if (!$name && strlen($k) > 1) {
-                $name = $k;
-                continue;
-            }
-
-            $shorts[] = $k;
-        }
-
-        // no long name, first short name as option name.
-        if (!$name) {
-            $name = array_shift($shorts);
-        }
-
-        return [$name, $shorts];
-    }
-
-    /****************************************************************
-     * add rule methods
-     ***************************************************************/
-
-    /**
-     * @param array $rules
-     */
-    public function addOptsByRules(array $rules): void
-    {
-        foreach ($rules as $name => $rule) {
-            $this->addOptByRule($name, $rule);
-        }
-    }
-
-    /**
-     * Add and option by rule
-     *
-     * rule:
-     *   - string is rule string. (format: 'type;required;default;desc').
-     *   - array is define item {@see Flags::DEFINE_ITEM}
-     *
-     * @param string       $name
-     * @param string|array $rule
-     *
-     * @return $this
-     */
-    public function addOptByRule(string $name, $rule): self
-    {
-        $this->optRules[$name] = $rule;
-
-        return $this;
-    }
-
-    /**
-     * @return array
-     */
-    public function getOptRules(): array
-    {
-        return $this->optRules;
-    }
-
-    /**
-     * @param array $optRules
-     *
-     * @see optRules
-     */
-    public function setOptRules(array $optRules): void
-    {
-        $this->optRules = $optRules;
-    }
-
-    /**
-     * @return array
-     */
-    public function getArgRules(): array
-    {
-        return $this->argRules;
-    }
-
-    /**
-     * @param array $argRules
-     *
-     * @see argRules
-     */
-    public function setArgRules(array $argRules): void
-    {
-        $this->argRules = $argRules;
-    }
-
-    /**
-     * @param array $rules
-     *
-     * @see addArgByRule()
-     */
-    public function addArgsByRules(array $rules): void
-    {
-        foreach ($rules as $name => $rule) {
-            $this->addArgByRule($name, $rule);
-        }
-    }
-
-    /**
-     * Add and argument by rule
-     *
-     * rule:
-     *   - string is rule string. (format: 'type;required;default;desc')
-     *   - array is define item {@see Flags::DEFINE_ITEM}
-     *
-     * @param string       $name
-     * @param string|array $rule
-     *
-     * @return $this
-     */
-    public function addArgByRule(string $name, $rule): self
-    {
-        if ($name) {
-            $this->argRules[$name] = $rule;
-        } else {
-            $this->argRules[] = $rule;
-        }
-
-        return $this;
-    }
-
-    /****************************************************************
      * getter/setter methods
      ***************************************************************/
 
@@ -935,6 +647,22 @@ abstract class AbstractFlags implements ParserInterface
     public function setSkipOnUndefined(bool $skipOnUndefined): void
     {
         $this->skipOnUndefined = $skipOnUndefined;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAutoBindArgs(): bool
+    {
+        return $this->autoBindArgs;
+    }
+
+    /**
+     * @param bool $autoBindArgs
+     */
+    public function setAutoBindArgs(bool $autoBindArgs): void
+    {
+        $this->autoBindArgs = $autoBindArgs;
     }
 
     /**

@@ -115,6 +115,8 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
     }
 
     /**
+     * Create by array define
+     *
      * @param string $name
      * @param array  $define
      *

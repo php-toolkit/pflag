@@ -9,6 +9,7 @@
 
 namespace Toolkit\PFlag;
 
+use RuntimeException;
 use Toolkit\Cli\Cli;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\Flag\Argument;
@@ -90,11 +91,6 @@ class Flags extends AbstractFlags
     private $optionalArg = false;
 
     /**
-     * @var bool
-     */
-    private $autoBindArgs = true;
-
-    /**
      * @return self
      */
     public static function std(): self
@@ -171,7 +167,7 @@ class Flags extends AbstractFlags
         }
 
         // binding remaining args.
-        if ($this->autoBindArgs) {
+        if ($this->isAutoBindArgs()) {
             $this->bindingArguments();
         }
 
@@ -405,6 +401,10 @@ class Flags extends AbstractFlags
      */
     public function bindingArguments(): self
     {
+        if (!$this->parsed) {
+            throw new RuntimeException('must be call "bindingArguments()" after option parsed');
+        }
+
         // parse arguments
         $args = $this->parseRawArgs($this->rawArgs);
 
@@ -488,12 +488,9 @@ class Flags extends AbstractFlags
     /**
      * Add and argument by rule
      *
-     * rule:
-     *   - string is rule string. (format: 'type;required;default;desc')
-     *   - array is define item {@see Flags::DEFINE_ITEM}
-     *
      * @param string       $name
      * @param string|array $rule
+     * @see argRules for an rule
      *
      * @return self
      */
@@ -698,12 +695,9 @@ class Flags extends AbstractFlags
     /**
      * Add and option by rule
      *
-     * rule:
-     *   - string is rule string. (format: 'type;required;default;desc').
-     *   - array is define item {@see Flags::DEFINE_ITEM}
-     *
      * @param string       $name
      * @param string|array $rule
+     * @see optRules for rule
      *
      * @return self
      */
@@ -913,21 +907,5 @@ class Flags extends AbstractFlags
     public function getMatchedOptions(): array
     {
         return $this->matched;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isAutoBindArgs(): bool
-    {
-        return $this->autoBindArgs;
-    }
-
-    /**
-     * @param bool $autoBindArgs
-     */
-    public function setAutoBindArgs(bool $autoBindArgs): void
-    {
-        $this->autoBindArgs = $autoBindArgs;
     }
 }

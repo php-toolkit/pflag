@@ -125,7 +125,7 @@ class SFlagsTest extends BaseTestCase
 
         $flags = ['--name', 'inhere'];
         $fs->parseDefined($flags, [
-            'name' => 'string;required',
+            'name' => 'string;;required',
         ]);
         $this->assertNotEmpty($req = $fs->getRequiredOpts());
         $this->assertCount(1, $req);
@@ -135,7 +135,7 @@ class SFlagsTest extends BaseTestCase
         $this->expectException(FlagException::class);
         $this->expectExceptionMessage("flag option 'name' is required");
         $fs->setOptRules([
-            'name' => 'string;required',
+            'name' => 'string;;required',
         ]);
         $fs->parse([]);
     }

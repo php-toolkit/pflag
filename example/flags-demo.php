@@ -37,11 +37,11 @@ $fs->setSettings([
 $fs->addOpt('age', 'a', 'this is a int option', FlagType::INT);
 
 // - use string rule
-$fs->addOptByRule('name,n', 'string;true;;this is a string option');
+$fs->addOptByRule('name,n', 'string;this is a string option;true;');
 // -- add multi option at once.
 $fs->addOptsByRules([
-    'tag,t' => 'strings;no;;array option, allow set multi times',
-    'f'     => 'bool;no;;this is an bool option',
+    'tag,t' => 'strings;array option, allow set multi times',
+    'f'     => 'bool;this is an bool option',
 ]);
 // - use array rule
 /** @see Flags::DEFINE_ITEM for array rule */
@@ -63,7 +63,7 @@ $fs->addOption($opt);
 // - quick add
 $fs->addArg('strArg1', 'the is string arg and is required', 'string', true);
 // - use string rule
-$fs->addArgByRule('intArg2', 'int;no;89;this is a int arg and with default value');
+$fs->addArgByRule('intArg2', 'int;this is a int arg and with default value;no;89');
 // - use Argument object
 $arg = Argument::new('arrArg');
 // OR $arg->setType(FlagType::ARRAY);

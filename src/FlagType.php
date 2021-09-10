@@ -10,9 +10,11 @@
 namespace Toolkit\PFlag;
 
 use Toolkit\Cli\Helper\FlagHelper;
+use Toolkit\Stdlib\Str;
 use function is_scalar;
 use function is_string;
 use function strtoupper;
+use function trim;
 
 /**
  * Class FlagConst
@@ -184,6 +186,36 @@ class FlagType
                 break;
             default:
                 // nothing
+                break;
+        }
+
+        return $value;
+    }
+
+    /**
+     * Convert string to array
+     *
+     * - eg: '23, 45' => [23, 45]
+     * - eg: 'a, b' => ['a', 'b']
+     * - eg: '[a, b]' => ['a', 'b']
+     *
+     * @param string $type
+     * @param string $str
+     *
+     * @return array|string
+     */
+    public static function str2ArrValue(string $type, string $str)
+    {
+        switch ($type) {
+            case self::INTS:
+                $value = Str::toInts(trim($str, '[] '));
+                break;
+            case self::ARRAY:
+            case self::STRINGS:
+                $value = Str::toArray(trim($str, '[] '));
+                break;
+            default:
+                $value = $str;
                 break;
         }
 
