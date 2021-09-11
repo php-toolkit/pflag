@@ -602,6 +602,14 @@ abstract class AbstractFlags implements ParserInterface
     }
 
     /**
+     * @return string
+     */
+    public function popFirstRawArg(): string
+    {
+        return array_shift($this->rawArgs);
+    }
+
+    /**
      * @return bool
      */
     public function isParsed(): bool

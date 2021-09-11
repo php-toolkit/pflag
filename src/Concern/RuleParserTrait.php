@@ -123,13 +123,20 @@ trait RuleParserTrait
             // set alias by array item
             $shortsFromRule = $item['shorts'];
         } else { // parse string rule.
+            $sep  = AbstractFlags::RULE_SEP;
             $item = AbstractFlags::DEFINE_ITEM;
             $rule = trim((string)$rule, AbstractFlags::TRIM_CHARS);
 
-            if (strpos($rule, AbstractFlags::RULE_SEP) === false) {
-                $item['type'] = $rule;
+            // not found sep char.
+            if (strpos($rule, $sep) === false) {
+                // has multi words, is an desc string.
+                if (strpos($rule, ' ') > 1) {
+                    $item['desc'] = $rule;
+                } else { // only type name.
+                    $item['type'] = $rule;
+                }
             } else { // eg: 'type;desc;required;default;shorts'
-                $nodes = Str::splitTrimmed($rule, AbstractFlags::RULE_SEP, 5);
+                $nodes = Str::splitTrimmed($rule, $sep, 5);
 
                 // first is type.
                 $item['type'] = $nodes[0];
