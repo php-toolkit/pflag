@@ -2,7 +2,6 @@
 
 namespace Toolkit\PFlag\Validator;
 
-use Toolkit\PFlag\AbstractFlags;
 use Toolkit\PFlag\Contract\ValidatorInterface;
 
 /**
@@ -10,11 +9,6 @@ use Toolkit\PFlag\Contract\ValidatorInterface;
  */
 abstract class AbstractValidator implements ValidatorInterface
 {
-    /**
-     * @var AbstractFlags
-     */
-    protected $fs;
-
     /**
      * @param mixed  $value
      * @param string $name
@@ -33,20 +27,4 @@ abstract class AbstractValidator implements ValidatorInterface
      * @return bool
      */
     abstract public function checkInput($value, string $name): bool;
-
-    /**
-     * @return AbstractFlags
-     */
-    public function getFs(): AbstractFlags
-    {
-        return $this->fs;
-    }
-
-    /**
-     * @param AbstractFlags $fs
-     */
-    public function setFs(AbstractFlags $fs): void
-    {
-        $this->fs = $fs;
-    }
 }

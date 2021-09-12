@@ -11,6 +11,11 @@ use Toolkit\PFlag\AbstractFlags;
 abstract class CondValidator extends AbstractValidator
 {
     /**
+     * @var AbstractFlags
+     */
+    protected $fs;
+
+    /**
      * Before condition check.
      * if return false, will skip call checkInput();
      *
@@ -33,6 +38,22 @@ abstract class CondValidator extends AbstractValidator
         }
 
         return $this->checkInput($value, $name);
+    }
+
+    /**
+     * @return AbstractFlags
+     */
+    public function getFs(): AbstractFlags
+    {
+        return $this->fs;
+    }
+
+    /**
+     * @param AbstractFlags $fs
+     */
+    public function setFs(AbstractFlags $fs): void
+    {
+        $this->fs = $fs;
     }
 
     /**
