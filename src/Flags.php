@@ -10,17 +10,18 @@
 namespace Toolkit\PFlag;
 
 use RuntimeException;
-use Toolkit\Cli\Cli;
 use Toolkit\PFlag\Exception\FlagException;
+use Toolkit\PFlag\Exception\FlagParseException;
 use Toolkit\PFlag\Flag\Argument;
 use Toolkit\PFlag\Flag\Option;
 use Toolkit\Stdlib\Str;
 use function array_shift;
-use function array_slice;
 use function count;
+use function implode;
 use function is_array;
 use function is_string;
 use function ltrim;
+use function sprintf;
 use function str_split;
 use function strlen;
 use function substr;
@@ -77,20 +78,6 @@ class Flags extends AbstractFlags
     private $arguments = [];
 
     /**
-     * Has array argument
-     *
-     * @var bool
-     */
-    private $arrayArg = false;
-
-    /**
-     * Has optional argument
-     *
-     * @var bool
-     */
-    private $optionalArg = false;
-
-    /**
      * @return self
      */
     public static function std(): self
@@ -132,21 +119,11 @@ class Flags extends AbstractFlags
                 break;
             }
 
-            // echo error and display help
-            if (self::STATUS_ERR === $status) {
-                Cli::colored('ERROR: TODO flag error', 'error');
-                $this->displayHelp();
-                break;
-            }
-
             // display help
             if (self::STATUS_HELP === $status) {
                 $this->displayHelp();
                 break;
             }
-
-            // $status = self::STATUS_ARG is arg, collect value.
-            // $this->rawArgs[] = array_shift($this->flags);
         }
 
         // revert flags.
@@ -256,7 +233,7 @@ class Flags extends AbstractFlags
                 return [true, self::STATUS_OK];
             }
 
-            throw new FlagException("flag option provided but not defined: $val", 404);
+            throw new FlagParseException("flag option provided but not defined: $val", 404);
         }
 
         $opt = $this->options[$rName];
@@ -283,7 +260,7 @@ class Flags extends AbstractFlags
             }
 
             if (!$hasVal) {
-                throw new FlagException("flag option '$val' needs an value", 400);
+                throw new FlagParseException("flag option '$val' needs an value", 400);
             }
 
             // set value
@@ -416,15 +393,19 @@ class Flags extends AbstractFlags
             }
 
             if ($arg->isArray()) {
-                // remain args
-                $values = array_slice($args, $index);
-
-                foreach ($values as $value) {
+                // collect remain args
+                foreach ($args as $value) {
                     $arg->setValue($value);
                 }
+                $args = [];
             } else {
                 $arg->setValue($args[$index]);
+                unset($args[$index]);
             }
+        }
+
+        if ($this->strictCheckArgs && $args) {
+            throw new FlagException(sprintf('unknown arguments (error: "%s").', implode(', ', $args)));
         }
 
         return $this;
@@ -490,9 +471,10 @@ class Flags extends AbstractFlags
      *
      * @param string       $name
      * @param string|array $rule
-     * @see argRules for an rule
      *
      * @return self
+     * @see argRules for an rule
+     *
      */
     public function addArgByRule(string $name, $rule): AbstractFlags
     {
@@ -632,22 +614,6 @@ class Flags extends AbstractFlags
         return $this->arguments;
     }
 
-    /**
-     * @return bool
-     */
-    public function hasOptionalArg(): bool
-    {
-        return $this->optionalArg;
-    }
-
-    /**
-     * @return bool
-     */
-    public function hasArrayArg(): bool
-    {
-        return $this->arrayArg;
-    }
-
     protected function resetArguments(): void
     {
         $this->name2index = [];
@@ -697,9 +663,10 @@ class Flags extends AbstractFlags
      *
      * @param string       $name
      * @param string|array $rule
-     * @see optRules for rule
      *
      * @return self
+     * @see optRules for rule
+     *
      */
     public function addOptByRule(string $name, $rule): AbstractFlags
     {

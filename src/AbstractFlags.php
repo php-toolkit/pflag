@@ -47,11 +47,11 @@ abstract class AbstractFlags implements ParserInterface
 
     public const STATUS_OK = 0;
 
-    public const STATUS_ERR = 1;
+    public const STATUS_ARG = 1;
 
-    public const STATUS_ARG = 2;
+    public const STATUS_HELP = 2; // found `-h|--help` flag
 
-    public const STATUS_HELP = 3; // found `-h|--help` flag
+    // public const STATUS_ERR = 3;
 
     /**
      * Special short option style
@@ -185,9 +185,28 @@ abstract class AbstractFlags implements ParserInterface
     // -------------------- settings for parse argument --------------------
 
     /**
+     * Has array argument
+     *
      * @var bool
      */
-    private $autoBindArgs = true;
+    protected $arrayArg = false;
+
+    /**
+     * Has optional argument
+     *
+     * @var bool
+     */
+    protected $optionalArg = false;
+
+    /**
+     * @var bool
+     */
+    protected $autoBindArgs = true;
+
+    /**
+     * @var bool
+     */
+    protected $strictCheckArgs = false;
 
     // -------------------- settings for render help --------------------
 
@@ -572,6 +591,22 @@ abstract class AbstractFlags implements ParserInterface
     /**
      * @return string
      */
+    public function getName(): string
+    {
+        return $this->getScriptName();
+    }
+
+    /**
+     * @param string $name
+     */
+    public function setName(string $name): void
+    {
+        $this->setScriptName($name);
+    }
+
+    /**
+     * @return string
+     */
     public function getDesc(): string
     {
         return $this->desc;
@@ -660,6 +695,22 @@ abstract class AbstractFlags implements ParserInterface
     /**
      * @return bool
      */
+    public function hasOptionalArg(): bool
+    {
+        return $this->optionalArg;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasArrayArg(): bool
+    {
+        return $this->arrayArg;
+    }
+
+    /**
+     * @return bool
+     */
     public function isAutoBindArgs(): bool
     {
         return $this->autoBindArgs;
@@ -671,6 +722,22 @@ abstract class AbstractFlags implements ParserInterface
     public function setAutoBindArgs(bool $autoBindArgs): void
     {
         $this->autoBindArgs = $autoBindArgs;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isStrictCheckArgs(): bool
+    {
+        return $this->strictCheckArgs;
+    }
+
+    /**
+     * @param bool $strictCheckArgs
+     */
+    public function setStrictCheckArgs(bool $strictCheckArgs): void
+    {
+        $this->strictCheckArgs = $strictCheckArgs;
     }
 
     /**

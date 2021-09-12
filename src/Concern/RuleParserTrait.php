@@ -135,8 +135,9 @@ trait RuleParserTrait
                 } else { // only type name.
                     $item['type'] = $rule;
                 }
-            } else { // eg: 'type;desc;required;default;shorts'
-                $nodes = Str::splitTrimmed($rule, $sep, 5);
+            } else { // has multi node. eg: 'type;desc;required;default;shorts'
+                $limit = $isOption ? 5 : 4;
+                $nodes = Str::splitTrimmed($rule, $sep, $limit);
 
                 // first is type.
                 $item['type'] = $nodes[0];
@@ -156,8 +157,8 @@ trait RuleParserTrait
                     $item['default'] = FlagType::str2ArrValue($nodes[0], $nodes[3]);
                 }
 
-                // shorts
-                if (isset($nodes[4]) && $nodes[4] !== '') {
+                // for option: shorts
+                if ($isOption && isset($nodes[4]) && $nodes[4] !== '') {
                     $shortsFromRule = Str::explode($nodes[4], ',');
                 }
             }

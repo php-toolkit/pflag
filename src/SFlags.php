@@ -11,19 +11,21 @@ namespace Toolkit\PFlag;
 
 use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\PFlag\Exception\FlagException;
+use Toolkit\PFlag\Exception\FlagParseException;
 use Toolkit\Stdlib\OS;
-use function array_slice;
+use Toolkit\Stdlib\Str;
 use function current;
 use function explode;
+use function implode;
 use function is_int;
 use function is_string;
 use function next;
+use function sprintf;
 use function str_split;
 use function strlen;
 use function strpos;
 use function substr;
 use function trim;
-use function vdump;
 
 /**
  * Class SFlags
@@ -270,7 +272,7 @@ class SFlags extends AbstractFlags
                         continue;
                     }
 
-                    throw new FlagException("flag option provided but not defined: $p", 404);
+                    throw new FlagParseException("flag option provided but not defined: $p", 404);
                 }
 
                 $define = $this->optDefines[$option];
@@ -286,7 +288,7 @@ class SFlags extends AbstractFlags
                 $next = current($flags);
                 if ($hasVal === false && $isBool === false) {
                     if (false === FlagHelper::isOptionValue($next)) {
-                        throw new FlagException("must provide value for the option: $option", 404);
+                        throw new FlagParseException("must provide value for the option: $option", 404);
                     }
 
                     $value = $next;
@@ -421,14 +423,20 @@ class SFlags extends AbstractFlags
 
             // collect value
             if ($isArray) {
-                $arrValues = array_slice($args, $index); // remain args
-                foreach ($arrValues as $arrValue) {
+                // remain args
+                foreach ($args as $arrValue) {
                     $this->collectArgValue($arrValue, $index, true, $define);
                 }
+                $args = [];
             } else {
                 $value = $args[$index];
                 $this->collectArgValue($value, $index, false, $define);
+                unset($args[$index]);
             }
+        }
+
+        if ($this->strictCheckArgs && $args) {
+            throw new FlagException(sprintf('unknown arguments (error: "%s").', implode(', ', $args)));
         }
     }
 
@@ -504,6 +512,70 @@ class SFlags extends AbstractFlags
     }
 
     /****************************************************************
+     * add opt&arg
+     ***************************************************************/
+
+    /**
+     * @param string $name
+     * @param string $shortcut
+     * @param string $desc
+     * @param string $type The argument data type. default is: string. {@see FlagType}
+     * @param bool   $required
+     * @param mixed  $default
+     *
+     * @return SFlags
+     */
+    public function addOpt(
+        string $name,
+        string $shortcut,
+        string $desc,
+        string $type = '',
+        bool $required = false,
+        $default = null
+    ): self {
+        $define = self::DEFINE_ITEM;
+
+        $define['name'] = $name;
+        $define['desc'] = $desc;
+        $define['type'] = $type ?: FlagType::STRING;
+
+        $define['required'] = $required;
+        $define['default']  = $default;
+        $define['shorts']   = $shortcut ? Str::explode($shortcut, ',') : [];
+
+        $this->addOptDefine($define);
+        return $this;
+    }
+
+    /**
+     * @param string     $name
+     * @param string     $desc
+     * @param string     $type The argument data type. default is: string. {@see FlagType}
+     * @param bool       $required
+     * @param null|mixed $default
+     *
+     * @return SFlags
+     */
+    public function addArg(
+        string $name,
+        string $desc,
+        string $type = '',
+        bool $required = false,
+        $default = null
+    ): self {
+        $define = self::DEFINE_ITEM;
+
+        $define['name'] = $name;
+        $define['desc'] = $desc;
+        $define['type'] = $type ?: FlagType::STRING;
+
+        $define['required'] = $required;
+        $define['default']  = $default;
+
+        $this->addArgDefine($define);
+        return $this;
+    }
+    /****************************************************************
      * parse rule to definition
      ***************************************************************/
 
@@ -528,36 +600,49 @@ class SFlags extends AbstractFlags
             // parse rule
             $define = $this->parseRule($rule, $key);
 
-            $type = $define['type'];
-            $name = $define['name'];
-
-            // has default value
-            if (isset($define['default'])) {
-                if ($define['required']) {
-                    throw new FlagException("cannot set a default value, if flag is required. flag: $name");
-                }
-
-                $default = FlagType::fmtBasicTypeValue($type, $define['default']);
-
-                // save as value.
-                $this->opts[$name] = $define['default'] = $default;
-            }
-
-            // support read value from ENV var
-            if ($define['envVar'] && ($envVal = OS::getEnvVal($define['envVar']))) {
-                $this->opts[$name] = FlagType::fmtBasicTypeValue($type, $envVal);
-            }
-
-            // has shorts
-            if ($define['shorts']) {
-                foreach ($define['shorts'] as $short) {
-                    $this->setAlias($name, $short, true);
-                }
-            }
-
-            // save parse definition
-            $this->optDefines[$name] = $define;
+            // add define
+            $this->addOptDefine($define);
         }
+    }
+
+    /**
+     * @param array $define
+     */
+    protected function addOptDefine(array $define): void
+    {
+        $type = $define['type'];
+        $name = $define['name'];
+
+        if (!FlagHelper::isValidName($name)) {
+            throw new FlagException('invalid option name: ' . $name);
+        }
+
+        // has default value
+        if (isset($define['default'])) {
+            if ($define['required']) {
+                throw new FlagException("cannot set a default value, if flag is required. flag: $name");
+            }
+
+            $default = FlagType::fmtBasicTypeValue($type, $define['default']);
+
+            // save as value.
+            $this->opts[$name] = $define['default'] = $default;
+        }
+
+        // support read value from ENV var
+        if ($define['envVar'] && ($envVal = OS::getEnvVal($define['envVar']))) {
+            $this->opts[$name] = FlagType::fmtBasicTypeValue($type, $envVal);
+        }
+
+        // has shorts
+        if ($define['shorts']) {
+            foreach ($define['shorts'] as $short) {
+                $this->setAlias($name, $short, true);
+            }
+        }
+
+        // save parse definition
+        $this->optDefines[$name] = $define;
     }
 
     /**
@@ -567,9 +652,6 @@ class SFlags extends AbstractFlags
      */
     protected function parseArgRules(array $rules): void
     {
-        // init with default value.
-        $hasArrayArg = $hasOptional = false;
-
         // check and collect arguments
         $index = 0;
         foreach ($rules as $name => $rule) {
@@ -578,43 +660,60 @@ class SFlags extends AbstractFlags
             }
 
             // parse rule
-            $define = $this->parseRule($rule, is_string($name) ? $name : '', $index, false);
+            $name   = is_string($name) ? $name : '';
+            $define = $this->parseRule($rule, $name, $index, false);
 
-            // set argument name
-            $this->setArgName($index, $name = $define['name']);
-            $type = $define['type'];
-            $mark = $name ? "#$index($name)" : "#$index";
-
-            // has default value
-            $required = $define['required'];
-            if (isset($define['default'])) {
-                $default = FlagType::fmtBasicTypeValue($type, $define['default']);
-
-                // save as value
-                $this->args[$index] = $define['default'] = $default;
-
-                if ($required) {
-                    throw new FlagException("cannot set a default value, if flag is required. flag: $mark");
-                }
-            }
-
-            // NOTICE: only allow one array argument and must be at last.
-            $isArray = FlagType::isArray($define['type']);
-            if ($hasArrayArg && $isArray) {
-                throw new FlagException("cannot add argument $mark after an array argument");
-            }
-
-            if ($hasOptional && $required) {
-                throw new FlagException("cannot add a required argument $mark after an optional one");
-            }
-
-            $hasArrayArg = $hasArrayArg || $isArray;
-            $hasOptional = $hasOptional || !$required;
-
-            // save define
-            $this->argDefines[] = $define;
+            // add define
+            $this->addArgDefine($define);
             $index++;
         }
+    }
+
+    /**
+     * @param array $define
+     */
+    protected function addArgDefine(array $define): void
+    {
+        $name  = $define['name'];
+        $index = $define['index'];
+
+        if ($name && !FlagHelper::isValidName($name)) {
+            throw new FlagException('invalid argument name: ' . $name);
+        }
+
+        // set argument name
+        $this->setArgName($index, $name = $define['name']);
+        $type = $define['type'];
+        $mark = $name ? "#$index($name)" : "#$index";
+
+        // has default value
+        $required = $define['required'];
+        if (isset($define['default'])) {
+            $default = FlagType::fmtBasicTypeValue($type, $define['default']);
+
+            // save as value
+            $this->args[$index] = $define['default'] = $default;
+
+            if ($required) {
+                throw new FlagException("cannot set a default value, if flag is required. flag: $mark");
+            }
+        }
+
+        // NOTICE: only allow one array argument and must be at last.
+        $isArray = FlagType::isArray($define['type']);
+        if ($this->arrayArg && $isArray) {
+            throw new FlagException("cannot add argument $mark after an array argument");
+        }
+
+        if ($this->optionalArg && $required) {
+            throw new FlagException("cannot add a required argument $mark after an optional one");
+        }
+
+        $this->arrayArg    = $this->arrayArg || $isArray;
+        $this->optionalArg = $this->optionalArg || !$required;
+
+        // save define
+        $this->argDefines[] = $define;
     }
 
     /****************************************************************
