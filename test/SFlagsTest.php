@@ -139,4 +139,5 @@ class SFlagsTest extends BaseTestCase
         ]);
         $fs->parse([]);
     }
+
 }
