@@ -25,6 +25,11 @@ interface ParserInterface
     public function getRawArgs(): array;
 
     /**
+     * @return bool
+     */
+    public function isNotEmpty(): bool;
+
+    /**
      * @param array|null $flags
      *
      * @return bool

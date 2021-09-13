@@ -434,6 +434,14 @@ class Flags extends AbstractFlags
         ];
     }
 
+    /**
+     * @return bool
+     */
+    public function isNotEmpty(): bool
+    {
+        return count($this->options) > 0 || count($this->arguments) > 0;
+    }
+
     /**************************************************************************
      * arguments
      **************************************************************************/

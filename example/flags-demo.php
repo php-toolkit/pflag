@@ -71,6 +71,13 @@ $arg->setType(FlagType::STRINGS);
 $arg->setDesc("this is an array arg,\n allow multi value,\n must define at last");
 $fs->addArgument($arg);
 
+$fs->setMoreHelp('more help message ...');
+
+$fs->setExampleHelp([
+    'example usage 1',
+    'example usage 2',
+]);
+
 // edump($fs);
 
 // do parsing

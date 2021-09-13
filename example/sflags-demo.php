@@ -40,6 +40,13 @@ $fs->setScriptFile($scriptFile);
 $fs->setOptRules($optRules);
 $fs->setArgRules($argRules);
 
+$fs->setMoreHelp('more help message ...');
+
+$fs->setExample([
+    'example usage 1',
+    'example usage 2',
+]);
+
 // do parsing
 try {
     if (!$fs->parse($flags)) {

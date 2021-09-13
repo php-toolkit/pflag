@@ -14,6 +14,7 @@ use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\Exception\FlagParseException;
 use Toolkit\Stdlib\OS;
 use Toolkit\Stdlib\Str;
+use function count;
 use function current;
 use function explode;
 use function implode;
@@ -126,6 +127,14 @@ class SFlags extends AbstractFlags
     public function buildHelp(bool $withColor = true): string
     {
         return $this->doBuildHelp($this->argDefines, $this->optDefines, $withColor);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isNotEmpty(): bool
+    {
+        return count($this->optDefines) > 0 || count($this->argDefines) > 0;
     }
 
     /****************************************************************

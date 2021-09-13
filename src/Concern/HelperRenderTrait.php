@@ -30,8 +30,6 @@ use function trim;
 trait HelperRenderTrait
 {
 
-    // -------------------- settings for render help --------------------
-
     /**
      * Custom help renderer.
      *
@@ -46,12 +44,7 @@ trait HelperRenderTrait
      */
     protected $autoRenderHelp = true;
 
-    /**
-     * Show flag data type on render help
-     *
-     * @var bool
-     */
-    protected $showTypeOnHelp = true;
+    // -------------------- settings for built-in render help --------------------
 
     /**
      * @var string|array|null
@@ -62,6 +55,18 @@ trait HelperRenderTrait
      * @var string|array|null
      */
     protected $exampleHelp = '';
+
+    /**
+     * Show flag data type on render help
+     *
+     * @var bool
+     */
+    protected $showTypeOnHelp = true;
+
+    /**
+     * @var callable
+     */
+    private $beforePrintHelp;
 
     /**
      * @param array $argDefines
@@ -147,21 +152,28 @@ trait HelperRenderTrait
         }
 
         // --------------- extra: moreHelp, example -----------------
-        if ($this->moreHelp) {
-            $buf->writeln('<ylw>More Help:</ylw>');
-
-            $lines = is_array($this->moreHelp) ? $this->moreHelp : [$this->moreHelp];
-            $buf->writeln('  ' . implode("\n  ", $lines));;
-        }
-
         if ($this->exampleHelp) {
-            $buf->writeln('<ylw>Examples:</ylw>');
+            $buf->writeln("\n<ylw>Examples:</ylw>");
 
             $lines = is_array($this->exampleHelp) ? $this->exampleHelp : [$this->exampleHelp];
             $buf->writeln('  ' . implode("\n  ", $lines));;
         }
 
-        return $withColor ? $buf->clear() : ColorTag::clear($buf->clear());
+        if ($this->moreHelp) {
+            $buf->writeln("\n<ylw>More Help:</ylw>");
+
+            $lines = is_array($this->moreHelp) ? $this->moreHelp : [$this->moreHelp];
+            $buf->writeln('  ' . implode("\n  ", $lines));
+        }
+
+        // fire event
+        if ($fn = $this->beforePrintHelp) {
+            $text = $fn($buf->getAndClear());
+        } else {
+            $text = $buf->getAndClear();
+        }
+
+        return $withColor ? $text : ColorTag::clear($text);
     }
 
     /**
@@ -373,10 +385,26 @@ trait HelperRenderTrait
     }
 
     /**
+     * @param array|string|null $example
+     */
+    public function setExample($example): void
+    {
+        $this->setExampleHelp($example);
+    }
+
+    /**
      * @param array|string|null $exampleHelp
      */
     public function setExampleHelp($exampleHelp): void
     {
         $this->exampleHelp = $exampleHelp;
+    }
+
+    /**
+     * @param callable $beforePrintHelp
+     */
+    public function setBeforePrintHelp(callable $beforePrintHelp): void
+    {
+        $this->beforePrintHelp = $beforePrintHelp;
     }
 }
