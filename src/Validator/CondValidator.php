@@ -3,7 +3,7 @@
 namespace Toolkit\PFlag\Validator;
 
 use Closure;
-use Toolkit\PFlag\AbstractFlags;
+use Toolkit\PFlag\FlagsParser;
 
 /**
  * class CondValidator
@@ -11,7 +11,7 @@ use Toolkit\PFlag\AbstractFlags;
 abstract class CondValidator extends AbstractValidator
 {
     /**
-     * @var AbstractFlags
+     * @var FlagsParser
      */
     protected $fs;
 
@@ -20,7 +20,7 @@ abstract class CondValidator extends AbstractValidator
      * if return false, will skip call checkInput();
      *
      * @var callable
-     * @psalm-param Closure($fs AbstractFlags):bool
+     * @psalm-param Closure($fs FlagsParser):bool
      */
     protected $cond;
 
@@ -41,17 +41,17 @@ abstract class CondValidator extends AbstractValidator
     }
 
     /**
-     * @return AbstractFlags
+     * @return FlagsParser
      */
-    public function getFs(): AbstractFlags
+    public function getFs(): FlagsParser
     {
         return $this->fs;
     }
 
     /**
-     * @param AbstractFlags $fs
+     * @param FlagsParser $fs
      */
-    public function setFs(AbstractFlags $fs): void
+    public function setFs(FlagsParser $fs): void
     {
         $this->fs = $fs;
     }

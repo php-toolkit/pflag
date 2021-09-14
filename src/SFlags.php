@@ -34,7 +34,7 @@ use function trim;
  *
  * @package Toolkit\PFlag
  */
-class SFlags extends AbstractFlags
+class SFlags extends FlagsParser
 {
     /**
      * @var self

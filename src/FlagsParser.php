@@ -18,10 +18,10 @@ use function explode;
 use function strpos;
 
 /**
- * class AbstractFlags
+ * class FlagsParser
  * abstract parser
  */
-abstract class AbstractFlags implements ParserInterface
+abstract class FlagsParser implements ParserInterface
 {
     use HelperRenderTrait;
     use QuickInitTrait;

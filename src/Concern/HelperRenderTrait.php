@@ -3,7 +3,7 @@
 namespace Toolkit\PFlag\Concern;
 
 use Toolkit\Cli\Color\ColorTag;
-use Toolkit\PFlag\AbstractFlags;
+use Toolkit\PFlag\FlagsParser;
 use Toolkit\PFlag\Flag\Argument;
 use Toolkit\PFlag\Flag\Option;
 use Toolkit\PFlag\FlagType;
@@ -180,7 +180,7 @@ trait HelperRenderTrait
      * @param array|Option|Argument $define
      *
      * @return array
-     * @see AbstractFlags::DEFINE_ITEM for array $define
+     * @see FlagsParser::DEFINE_ITEM for array $define
      */
     protected function formatDesc($define): array
     {

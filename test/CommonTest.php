@@ -2,7 +2,7 @@
 
 namespace Toolkit\PFlagTest;
 
-use Toolkit\PFlag\AbstractFlags;
+use Toolkit\PFlag\FlagsParser;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\Flags;
 use Toolkit\PFlag\SFlags;
@@ -21,7 +21,7 @@ class CommonTest extends BaseTestCase
         $this->runStopOnFirstArg($sfs);
     }
 
-    private function runStopOnFirstArg(AbstractFlags $fs): void
+    private function runStopOnFirstArg(FlagsParser $fs): void
     {
         $fs->addOptsByRules([
             'name' => 'string',
@@ -74,7 +74,7 @@ class CommonTest extends BaseTestCase
         $this->runSkipOnUndefined_false($sfs);
     }
 
-    private function runSkipOnUndefined_false(AbstractFlags $fs): void
+    private function runSkipOnUndefined_false(FlagsParser $fs): void
     {
         $fs->addOptsByRules([
             'name' => 'string',
@@ -100,9 +100,9 @@ class CommonTest extends BaseTestCase
     }
 
     /**
-     * @param AbstractFlags $fs
+     * @param FlagsParser $fs
      */
-    private function runSkipOnUndefined_true(AbstractFlags $fs): void
+    private function runSkipOnUndefined_true(FlagsParser $fs): void
     {
         $fs->addOptsByRules([
             'name' => 'string',

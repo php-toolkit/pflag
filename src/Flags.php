@@ -32,7 +32,7 @@ use function substr;
  *
  * @package Toolkit\PFlag
  */
-class Flags extends AbstractFlags
+class Flags extends FlagsParser
 {
     /**
      * @var self
@@ -490,7 +490,7 @@ class Flags extends AbstractFlags
      * @see argRules for an rule
      *
      */
-    public function addArgByRule(string $name, $rule): AbstractFlags
+    public function addArgByRule(string $name, $rule): FlagsParser
     {
         parent::addArgByRule($name, $rule);
 
@@ -689,7 +689,7 @@ class Flags extends AbstractFlags
      * @see optRules for rule
      *
      */
-    public function addOptByRule(string $name, $rule): AbstractFlags
+    public function addOptByRule(string $name, $rule): FlagsParser
     {
         parent::addOptByRule($name, $rule);
 

@@ -3,7 +3,7 @@
 namespace Toolkit\PFlag\Concern;
 
 use InvalidArgumentException;
-use Toolkit\PFlag\AbstractFlags;
+use Toolkit\PFlag\FlagsParser;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\FlagType;
 use Toolkit\Stdlib\Arr;
@@ -28,7 +28,7 @@ trait RuleParserTrait
      * The options rules
      *
      * **rule item**
-     * - array  It is define item, see {@see AbstractFlags::DEFINE_ITEM}
+     * - array  It is define item, see {@see FlagsParser::DEFINE_ITEM}
      * - string Value is rule(format: `type;desc;required;default;shorts`)
      *
      * **data type**
@@ -61,7 +61,7 @@ trait RuleParserTrait
      * The arguments rules
      *
      * **rule item**
-     * - array  It is define item, see {@see AbstractFlags::DEFINE_ITEM}
+     * - array  It is define item, see {@see FlagsParser::DEFINE_ITEM}
      * - string Value is rule(format: `type;desc;required;default;shorts`)
      *
      * **data type**
@@ -93,7 +93,7 @@ trait RuleParserTrait
      *
      * **array rule**
      *
-     * - will merge an {@see AbstractFlags::DEFINE_ITEM}
+     * - will merge an {@see FlagsParser::DEFINE_ITEM}
      *
      * **string rule**
      *
@@ -111,7 +111,7 @@ trait RuleParserTrait
      * @param int          $index
      * @param bool         $isOption
      *
-     * @return array {@see AbstractFlags::DEFINE_ITEM}
+     * @return array {@see FlagsParser::DEFINE_ITEM}
      * @see argRules
      * @see optRules
      */
@@ -119,13 +119,13 @@ trait RuleParserTrait
     {
         $shortsFromRule = [];
         if (is_array($rule)) {
-            $item = Arr::replace(AbstractFlags::DEFINE_ITEM, $rule);
+            $item = Arr::replace(FlagsParser::DEFINE_ITEM, $rule);
             // set alias by array item
             $shortsFromRule = $item['shorts'];
         } else { // parse string rule.
-            $sep  = AbstractFlags::RULE_SEP;
-            $item = AbstractFlags::DEFINE_ITEM;
-            $rule = trim((string)$rule, AbstractFlags::TRIM_CHARS);
+            $sep  = FlagsParser::RULE_SEP;
+            $item = FlagsParser::DEFINE_ITEM;
+            $rule = trim((string)$rule, FlagsParser::TRIM_CHARS);
 
             // not found sep char.
             if (strpos($rule, $sep) === false) {
@@ -203,7 +203,7 @@ trait RuleParserTrait
      */
     protected function parseRuleOptName(string $key): array
     {
-        $key = trim($key, AbstractFlags::TRIM_CHARS);
+        $key = trim($key, FlagsParser::TRIM_CHARS);
         if (!$key) {
             throw new FlagException('flag option name cannot be empty');
         }
