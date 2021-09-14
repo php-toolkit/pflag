@@ -10,6 +10,7 @@
 namespace Toolkit\PFlag;
 
 use Toolkit\Cli\Helper\FlagHelper;
+use Toolkit\PFlag\Contract\ParserInterface;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\Exception\FlagParseException;
 use Toolkit\Stdlib\OS;
@@ -379,7 +380,7 @@ class SFlags extends AbstractFlags
     }
 
     /**
-     * @param string $name   The option name
+     * @param string $name The option name
      * @param mixed  $value
      * @param array  $define {@see DEFINE_ITEM}
      */
@@ -525,12 +526,15 @@ class SFlags extends AbstractFlags
      ***************************************************************/
 
     /**
-     * @param string $name
-     * @param string $shortcut
-     * @param string $desc
-     * @param string $type The argument data type. default is: string. {@see FlagType}
-     * @param bool   $required
-     * @param mixed  $default
+     * @param string                                       $name
+     * @param string                                       $shortcut
+     * @param string                                       $desc
+     * @param string                                       $type The argument data type. default is: string. {@see FlagType}
+     * @param bool                                         $required
+     * @param mixed                                        $default
+     * @param array                                        $moreInfo
+     *
+     * @psalm-param array{alias: string, showType: string} $moreInfo
      *
      * @return SFlags
      */
@@ -540,8 +544,9 @@ class SFlags extends AbstractFlags
         string $desc,
         string $type = '',
         bool $required = false,
-        $default = null
-    ): self {
+        $default = null,
+        array $moreInfo = []
+    ): ParserInterface {
         $define = self::DEFINE_ITEM;
 
         $define['name'] = $name;
@@ -552,16 +557,23 @@ class SFlags extends AbstractFlags
         $define['default']  = $default;
         $define['shorts']   = $shortcut ? Str::explode($shortcut, ',') : [];
 
+        if (isset($moreInfo['showType'])) {
+            $define['showType'] = $moreInfo['showType'];
+        }
+
         $this->addOptDefine($define);
         return $this;
     }
 
     /**
-     * @param string     $name
-     * @param string     $desc
-     * @param string     $type The argument data type. default is: string. {@see FlagType}
-     * @param bool       $required
-     * @param null|mixed $default
+     * @param string                                       $name
+     * @param string                                       $desc
+     * @param string                                       $type The argument data type. default is: string. {@see FlagType}
+     * @param bool                                         $required
+     * @param mixed                                        $default
+     * @param array                                        $moreInfo
+     *
+     * @psalm-param array{alias: string, showType: string} $moreInfo
      *
      * @return SFlags
      */
@@ -570,16 +582,22 @@ class SFlags extends AbstractFlags
         string $desc,
         string $type = '',
         bool $required = false,
-        $default = null
-    ): self {
+        $default = null,
+        array $moreInfo = []
+    ): ParserInterface {
         $define = self::DEFINE_ITEM;
 
-        $define['name'] = $name;
-        $define['desc'] = $desc;
-        $define['type'] = $type ?: FlagType::STRING;
+        $define['name']  = $name;
+        $define['desc']  = $desc;
+        $define['index'] = count($this->argDefines);
+        $define['type']  = $type ?: FlagType::STRING;
 
         $define['required'] = $required;
         $define['default']  = $default;
+
+        if (isset($moreInfo['showType'])) {
+            $define['showType'] = $moreInfo['showType'];
+        }
 
         $this->addArgDefine($define);
         return $this;
@@ -662,19 +680,19 @@ class SFlags extends AbstractFlags
     protected function parseArgRules(array $rules): void
     {
         // check and collect arguments
-        $index = 0;
         foreach ($rules as $name => $rule) {
             if (!$rule) {
                 throw new FlagException('flag argument rule cannot be empty');
             }
 
+            $name  = is_string($name) ? $name : '';
+            $index = count($this->argDefines);
+
             // parse rule
-            $name   = is_string($name) ? $name : '';
             $define = $this->parseRule($rule, $name, $index, false);
 
             // add define
             $this->addArgDefine($define);
-            $index++;
         }
     }
 

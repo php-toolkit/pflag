@@ -19,7 +19,7 @@ class NameValidator extends RegexValidator
      *
      * @return static
      */
-    public static function new(string $regex = ''): parent
+    public static function new(string $regex = self::DEFAULT_REGEX): parent
     {
         return new static($regex);
     }
@@ -29,7 +29,7 @@ class NameValidator extends RegexValidator
      *
      * @param string $regex
      */
-    public function __construct(string $regex = '')
+    public function __construct(string $regex = self::DEFAULT_REGEX)
     {
         parent::__construct($regex);
     }

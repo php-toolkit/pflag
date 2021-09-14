@@ -10,6 +10,7 @@
 namespace Toolkit\PFlag;
 
 use RuntimeException;
+use Toolkit\PFlag\Contract\ParserInterface;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\Exception\FlagParseException;
 use Toolkit\PFlag\Flag\Argument;
@@ -452,18 +453,23 @@ class Flags extends AbstractFlags
      * @param string     $type The argument data type. default is: string. {@see FlagType}
      * @param bool       $required
      * @param null|mixed $default
+     * @param array      $moreInfo
+     *
+     * @return ParserInterface|self
      */
     public function addArg(
         string $name,
         string $desc,
         string $type = '',
         bool $required = false,
-        $default = null
-    ): void {
+        $default = null,
+        array $moreInfo = []
+    ): ParserInterface {
         /** @var Argument $arg */
         $arg = Argument::new($name, $desc, $type, $required, $default);
 
         $this->addArgument($arg);
+        return $this;
     }
 
     /**
@@ -633,29 +639,36 @@ class Flags extends AbstractFlags
      **************************************************************************/
 
     /**
+     * Add option
+     *
      * @param string $name
-     * @param string $shorts
+     * @param string $shortcut
      * @param string $desc
      * @param string $type The argument data type. default is: string. {@see FlagType}
      * @param bool   $required
      * @param mixed  $default
-     * @param string $alias
+     * @param array  $moreInfo
+     *
+     * @psalm-param array{alias: string, showType: string} $moreInfo
+     *
+     * @return ParserInterface|self
      */
     public function addOpt(
         string $name,
-        string $shorts,
+        string $shortcut,
         string $desc,
         string $type = '',
         bool $required = false,
         $default = null,
-        string $alias = ''
-    ): void {
+        array $moreInfo = []
+    ): ParserInterface {
         /** @var Option $opt */
         $opt = Option::new($name, $desc, $type, $required, $default);
-        $opt->setAlias($alias);
-        $opt->setShortcut($shorts);
+        $opt->setAlias($moreInfo['alias'] ?? '');
+        $opt->setShortcut($shortcut);
 
         $this->addOption($opt);
+        return $this;
     }
 
     /**

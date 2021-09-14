@@ -16,11 +16,13 @@ interface ParserInterface
 {
     /**
      * @return array
+     * @psalm-return list<string>
      */
     public function getFlags(): array;
 
     /**
      * @return array
+     * @psalm-return list<string>
      */
     public function getRawArgs(): array;
 
@@ -30,7 +32,55 @@ interface ParserInterface
     public function isNotEmpty(): bool;
 
     /**
-     * @param array|null $flags
+     * Add option
+     *
+     * @param string $name
+     * @param string $shortcut
+     * @param string $desc
+     * @param string $type The argument data type. default is: string. {@see FlagType}
+     * @param bool   $required
+     * @param mixed  $default
+     * @param array  $moreInfo
+     *
+     * @psalm-param array{alias: string, showType: string} $moreInfo
+     *
+     * @return self
+     */
+    public function addOpt(
+        string $name,
+        string $shortcut,
+        string $desc,
+        string $type = '',
+        bool $required = false,
+        $default = null,
+        array $moreInfo = []
+    ): self;
+
+    /**
+     * Add an argument
+     *
+     * @param string $name
+     * @param string $desc
+     * @param string $type The argument data type. default is: string. {@see FlagType}
+     * @param bool   $required
+     * @param mixed  $default
+     * @param array  $moreInfo
+     *
+     * @psalm-param array{alias: string, showType: string} $moreInfo
+     *
+     * @return self
+     */
+    public function addArg(
+        string $name,
+        string $desc,
+        string $type = '',
+        bool $required = false,
+        $default = null,
+        array $moreInfo = []
+    ): self;
+
+    /**
+     * @param array|null $flags If NULL, will parse the $_SERVER['argv]
      *
      * @return bool
      */
@@ -72,6 +122,7 @@ interface ParserInterface
 
     /**
      * @return array
+     * @psalm-return array<string, mixed>
      */
     public function getOpts(): array;
 

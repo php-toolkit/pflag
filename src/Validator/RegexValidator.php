@@ -11,6 +11,8 @@ use function preg_match;
  */
 class RegexValidator extends AbstractValidator
 {
+    public const ALPHA_NUM = '^\w+$';
+
     /**
      * Regex string. eg: '^\w+$'
      *
