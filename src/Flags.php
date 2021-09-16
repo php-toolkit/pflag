@@ -386,13 +386,16 @@ class Flags extends FlagsParser
 
         // collect argument values
         foreach ($this->arguments as $index => $arg) {
-            if (!isset($args[$index]) && $arg->isRequired()) {
-                $mark = $arg->getNameMark();
-                throw new FlagException("flag argument $mark is required");
+            if (!isset($args[$index])) {
+                if ($arg->isRequired()) {
+                    $mark = $arg->getNameMark();
+                    throw new FlagException("flag argument $mark is required");
+                }
+                continue;
             }
 
             if ($arg->isArray()) {
-                // collect remain args
+                // collect all remain args
                 foreach ($args as $value) {
                     $arg->setValue($value);
                 }
@@ -404,7 +407,7 @@ class Flags extends FlagsParser
         }
 
         if ($this->strictCheckArgs && $args) {
-            throw new FlagException(sprintf('unknown arguments (error: "%s").', implode(', ', $args)));
+            throw new FlagException(sprintf('unknown arguments (error: "%s").', implode(' ', $args)));
         }
 
         return $this;

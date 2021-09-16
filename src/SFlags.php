@@ -28,6 +28,7 @@ use function strlen;
 use function strpos;
 use function substr;
 use function trim;
+use function vdump;
 
 /**
  * Class SFlags
@@ -546,8 +547,11 @@ class SFlags extends FlagsParser
             $required = $define['required'];
             $isArray  = FlagType::isArray($define['type']);
 
-            if ($required && !isset($args[$index])) {
-                throw new FlagException("flag argument $mark is required");
+            if (!isset($args[$index])) {
+                if ($required) {
+                    throw new FlagException("flag argument $mark is required");
+                }
+                continue;
             }
 
             // collect value
