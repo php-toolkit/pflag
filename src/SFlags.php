@@ -740,7 +740,7 @@ class SFlags extends FlagsParser
      */
     public function hasOpt(string $name): bool
     {
-        return isset($this->opts[$name]);
+        return isset($this->optDefines[$name]);
     }
 
     /**
@@ -782,6 +782,20 @@ class SFlags extends FlagsParser
         }
 
         return $default ?? FlagType::getDefault($define['type']);
+    }
+
+    /**
+     * @param string $name
+     * @param mixed $value
+     */
+    public function setOpt(string $name, $value): void
+    {
+        $define = $this->optDefines[$name] ?? [];
+        if (!$define) { // not exist option
+            throw new FlagException("flag option '$name' is undefined");
+        }
+
+        $this->opts[$name] = FlagType::fmtBasicTypeValue($define['type'], $value);
     }
 
     /**

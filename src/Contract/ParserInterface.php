@@ -109,6 +109,14 @@ interface ParserInterface
     public function getOpt(string $name, $default = null);
 
     /**
+     * @param string $name
+     * @param mixed $value
+     *
+     * @return mixed
+     */
+    public function setOpt(string $name, $value): void;
+
+    /**
      * @param string|int $nameOrIndex
      *
      * @return bool

@@ -783,7 +783,7 @@ class Flags extends FlagsParser
      */
     public function hasOpt(string $name): bool
     {
-        return isset($this->matched[$name]);
+        return isset($this->options[$name]);
     }
 
     /**
@@ -804,11 +804,30 @@ class Flags extends FlagsParser
      */
     public function getOpt(string $name, $default = null)
     {
-        if ($opt = $this->getOption($name)) {
+        $opt = $this->getDefinedOption($name);
+        if (!$opt) { // not exist option
+            throw new FlagException("flag option '$name' is undefined");
+        }
+
+        if ($opt->hasValue()) {
             return $opt->getValue();
         }
 
-        return $default;
+        return $default ?? $opt->getTypeDefault();
+    }
+
+    /**
+     * @param string $name
+     * @param mixed $value
+     */
+    public function setOpt(string $name, $value): void
+    {
+        $opt = $this->getDefinedOption($name);
+        if (!$opt) { // not exist option
+            throw new FlagException("flag option '$name' is undefined");
+        }
+
+        $opt->setValue($value);
     }
 
     /**

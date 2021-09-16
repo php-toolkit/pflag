@@ -19,6 +19,7 @@ use Toolkit\Stdlib\Obj;
 use Toolkit\Stdlib\OS;
 use function is_array;
 use function is_bool;
+use function is_scalar;
 use function trim;
 
 /**
@@ -190,7 +191,8 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
         $value = FlagType::fmtBasicTypeValue($this->type, $value);
 
         // has validator
-        if ($cb = $this->validator) {
+        $cb = $this->validator;
+        if ($cb && is_scalar($value)) {
             $ok  = true;
             $ret = $cb($value, $this->name);
 
@@ -206,7 +208,11 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
         }
 
         if ($this->isArray()) {
-            $this->value[] = $value;
+            if (is_array($value)) {
+                $this->value = $value;
+            } else {
+                $this->value[] = $value;
+            }
         } else {
             $this->value = $value;
         }
@@ -283,6 +289,14 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
         }
 
         $this->name = $name;
+    }
+
+    /**
+     * @return array|false|float|int|string|null
+     */
+    public function getTypeDefault()
+    {
+        return FlagType::getDefault($this->type);
     }
 
     /**
