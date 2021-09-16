@@ -54,7 +54,7 @@ abstract class FlagsParser implements ParserInterface
         'name'      => '',
         'desc'      => '',
         'type'      => FlagType::STRING,
-        'showType'  => '', // use for show help
+        'helpType'  => '', // use for render help
         // 'index'    => 0, // only for argument
         'required'  => false,
         'envVar'    => '', // support read value from ENV var
@@ -183,6 +183,16 @@ abstract class FlagsParser implements ParserInterface
     // -------------------- settings for parse argument --------------------
 
     /**
+     * @var bool
+     */
+    protected $autoBindArgs = true;
+
+    /**
+     * @var bool
+     */
+    protected $strictCheckArgs = false;
+
+    /**
      * Has array argument
      *
      * @var bool
@@ -195,16 +205,6 @@ abstract class FlagsParser implements ParserInterface
      * @var bool
      */
     protected $optionalArg = false;
-
-    /**
-     * @var bool
-     */
-    protected $autoBindArgs = true;
-
-    /**
-     * @var bool
-     */
-    protected $strictCheckArgs = false;
 
     /**
      * Class constructor.

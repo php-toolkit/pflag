@@ -11,6 +11,34 @@ use function get_class;
  */
 class FlagsParserTest extends BaseFlagsTestCase
 {
+    public function testBasic(): void
+    {
+        $this->runTestsWithParsers(function (FlagsParser $fs) {
+            $this->doCheckBasic($fs);
+        });
+    }
+
+    private function doCheckBasic(FlagsParser $fs): void
+    {
+        $this->assertTrue($fs->isEmpty());
+        $this->assertFalse($fs->isNotEmpty());
+        $this->assertFalse($fs->hasShortOpts());
+
+        $fs->setArgRules([
+            'github' => 'an string argument'
+        ]);
+        $this->assertFalse($fs->isEmpty());
+        $this->assertTrue($fs->isNotEmpty());
+        $this->assertFalse($fs->hasShortOpts());
+
+        $fs->setOptRules([
+            '-n,--name' => 'an string option'
+        ]);
+        $this->assertFalse($fs->isEmpty());
+        $this->assertTrue($fs->isNotEmpty());
+        $this->assertTrue($fs->hasShortOpts());
+    }
+
     public function testStopOnFirstArg(): void
     {
         $this->runTestsWithParsers(function (FlagsParser $fs) {

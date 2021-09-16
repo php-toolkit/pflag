@@ -653,7 +653,7 @@ class Flags extends FlagsParser
      * @param mixed  $default
      * @param array  $moreInfo
      *
-     * @psalm-param array{alias: string, showType: string} $moreInfo
+     * @psalm-param array{alias: string, helpType: string} $moreInfo
      *
      * @return ParserInterface|self
      */

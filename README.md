@@ -363,7 +363,7 @@ public const DEFINE_ITEM = [
     'name'      => '',
     'desc'      => '',
     'type'      => FlagType::STRING,
-    'showType'  => '', // use for show help
+    'helpType'  => '', // use for render help
     // 'index'    => 0, // only for argument
     'required'  => false,
     'default'   => null,
@@ -372,6 +372,42 @@ public const DEFINE_ITEM = [
     'validator' => null,
     // 'category' => null
 ];
+```
+
+## Costom Settings
+
+```php
+
+    /**
+     * Stop parse option on found first argument.
+     *
+     * - Useful for support multi commands. eg: `top --opt ... sub --opt ...`
+     *
+     * @var bool
+     */
+    protected $stopOnFistArg = true;
+
+    /**
+     * Skip on found undefined option.
+     *
+     * - FALSE will throw FlagException error.
+     * - TRUE  will skip it and collect as raw arg, then continue parse next.
+     *
+     * @var bool
+     */
+    protected $skipOnUndefined = false;
+
+    // -------------------- settings for parse argument --------------------
+
+    /**
+     * @var bool
+     */
+    protected $autoBindArgs = true;
+
+    /**
+     * @var bool
+     */
+    protected $strictCheckArgs = false;
 ```
 
 ## Unit tests

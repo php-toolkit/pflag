@@ -57,7 +57,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
     /**
      * @var string
      */
-    protected $showType = '';
+    protected $helpType = '';
 
     /**
      * ENV var name. support read value from ENV var
@@ -347,7 +347,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
             'envVar'   => $this->envVar,
             'required' => $this->required,
             'isArray'  => $this->isArray(),
-            'showType' => $this->getShowType(),
+            'helpType' => $this->getHelpType(),
         ];
     }
 
@@ -388,21 +388,21 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
      *
      * @return string
      */
-    public function getShowType(bool $useTypeOnEmpty = false): string
+    public function getHelpType(bool $useTypeOnEmpty = false): string
     {
         if ($useTypeOnEmpty) {
-            return $this->showType ?: $this->type;
+            return $this->helpType ?: $this->type;
         }
 
-        return $this->showType;
+        return $this->helpType;
     }
 
     /**
-     * @param string $showType
+     * @param string $helpType
      */
-    public function setShowType(string $showType): void
+    public function setHelpType(string $helpType): void
     {
-        $this->showType = $showType;
+        $this->helpType = $helpType;
     }
 
     /**

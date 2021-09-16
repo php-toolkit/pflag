@@ -300,7 +300,7 @@ trait HelperRenderTrait
 
             // show type name.
             if ($this->showTypeOnHelp) {
-                $typeName = $opt['showType'] ?: FlagType::getHelpName($opt['type']);
+                $typeName = $opt['helpType'] ?: FlagType::getHelpName($opt['type']);
                 $helpName .= $typeName ? " $typeName" : '';
             }
 

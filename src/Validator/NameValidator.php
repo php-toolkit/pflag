@@ -21,7 +21,7 @@ class NameValidator extends RegexValidator
      */
     public static function new(string $regex = self::DEFAULT_REGEX): parent
     {
-        return new static($regex);
+        return new self($regex);
     }
 
     /**

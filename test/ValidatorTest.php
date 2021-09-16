@@ -25,6 +25,13 @@ class ValidatorTest extends BaseFlagsTestCase
     {
         $v = NameValidator::new();
         $this->assertTrue($v('inhere', 'test'));
+        $this->assertEmpty((string)$v);
+
+        $v->setRegex('');
+        $this->assertTrue($v('inhere', 'test'));
+
+        $v = new NameValidator;
+        $this->assertTrue($v('inhere', 'test'));
 
         $this->expectException(FlagException::class);
         $this->expectExceptionMessage("flag 'test' value should match: " . NameValidator::DEFAULT_REGEX);

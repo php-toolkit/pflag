@@ -55,7 +55,7 @@ interface ParserInterface
      * @param mixed  $default
      * @param array  $moreInfo
      *
-     * @psalm-param array{alias: string, showType: string} $moreInfo
+     * @psalm-param array{alias: string, helpType: string} $moreInfo
      *
      * @return self
      */
@@ -79,7 +79,7 @@ interface ParserInterface
      * @param mixed  $default
      * @param array  $moreInfo
      *
-     * @psalm-param array{showType: string} $moreInfo
+     * @psalm-param array{helpType: string} $moreInfo
      *
      * @return self
      */

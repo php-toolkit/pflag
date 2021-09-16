@@ -19,7 +19,6 @@ use function count;
 use function current;
 use function explode;
 use function implode;
-use function is_int;
 use function is_string;
 use function next;
 use function sprintf;
@@ -143,15 +142,15 @@ class SFlags extends FlagsParser
      ***************************************************************/
 
     /**
-     * @param string                                       $name
-     * @param string                                       $shortcut
-     * @param string                                       $desc
-     * @param string                                       $type The argument data type. default is: string. {@see FlagType}
-     * @param bool                                         $required
-     * @param mixed                                        $default
-     * @param array                                        $moreInfo
+     * @param string $name
+     * @param string $shortcut
+     * @param string $desc
+     * @param string $type The argument data type. default is: string. {@see FlagType}
+     * @param bool $required
+     * @param mixed $default
+     * @param array $moreInfo
      *
-     * @psalm-param array{alias: string, showType: string} $moreInfo
+     * @psalm-param array{alias: string, helpType: string} $moreInfo
      *
      * @return SFlags
      */
@@ -174,8 +173,8 @@ class SFlags extends FlagsParser
         $define['default']  = $default;
         $define['shorts']   = $shortcut ? Str::explode($shortcut, ',') : [];
 
-        if (isset($moreInfo['showType'])) {
-            $define['showType'] = $moreInfo['showType'];
+        if (isset($moreInfo['helpType'])) {
+            $define['helpType'] = $moreInfo['helpType'];
         }
 
         $this->addOptDefine($define);
@@ -183,14 +182,14 @@ class SFlags extends FlagsParser
     }
 
     /**
-     * @param string                                       $name
-     * @param string                                       $desc
-     * @param string                                       $type The argument data type. default is: string. {@see FlagType}
-     * @param bool                                         $required
-     * @param mixed                                        $default
-     * @param array                                        $moreInfo
+     * @param string $name
+     * @param string $desc
+     * @param string $type The argument data type. default is: string. {@see FlagType}
+     * @param bool $required
+     * @param mixed $default
+     * @param array $moreInfo
      *
-     * @psalm-param array{alias: string, showType: string} $moreInfo
+     * @psalm-param array{alias: string, helpType: string} $moreInfo
      *
      * @return SFlags
      */
@@ -212,8 +211,8 @@ class SFlags extends FlagsParser
         $define['required'] = $required;
         $define['default']  = $default;
 
-        if (isset($moreInfo['showType'])) {
-            $define['showType'] = $moreInfo['showType'];
+        if (isset($moreInfo['helpType'])) {
+            $define['helpType'] = $moreInfo['helpType'];
         }
 
         $this->addArgDefine($define);
@@ -485,7 +484,7 @@ class SFlags extends FlagsParser
 
     /**
      * @param string $option
-     * @param mixed  $value
+     * @param mixed $value
      */
     protected function setOptValue(string $option, $value): void
     {
@@ -500,8 +499,8 @@ class SFlags extends FlagsParser
 
     /**
      * @param string $name The option name
-     * @param mixed  $value
-     * @param array  $define {@see DEFINE_ITEM}
+     * @param mixed $value
+     * @param array $define {@see DEFINE_ITEM}
      */
     protected function setRealOptValue(string $name, $value, array $define): void
     {
@@ -574,8 +573,8 @@ class SFlags extends FlagsParser
 
     /**
      * @param mixed $value
-     * @param int   $index
-     * @param bool  $isArray
+     * @param int $index
+     * @param bool $isArray
      * @param array $define
      */
     protected function collectArgValue($value, int $index, bool $isArray, array $define): void
@@ -753,7 +752,7 @@ class SFlags extends FlagsParser
     }
 
     /**
-     * @param string     $name
+     * @param string $name
      * @param null|mixed $default
      *
      * @return mixed
@@ -764,7 +763,7 @@ class SFlags extends FlagsParser
     }
 
     /**
-     * @param string     $name
+     * @param string $name
      * @param null|mixed $default
      *
      * @return mixed
