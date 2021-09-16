@@ -4,12 +4,12 @@ namespace Toolkit\PFlagTest\Flag;
 
 use Toolkit\PFlag\Flag\Option;
 use Toolkit\PFlag\FlagType;
-use Toolkit\PFlagTest\BaseTestCase;
+use Toolkit\PFlagTest\BaseFlagsTestCase;
 
 /**
  * class OptionTest
  */
-class OptionTest extends BaseTestCase
+class OptionTest extends BaseFlagsTestCase
 {
     public function testBasic(): void
     {

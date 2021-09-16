@@ -28,7 +28,6 @@ use function strlen;
 use function strpos;
 use function substr;
 use function trim;
-use function vdump;
 
 /**
  * Class SFlags
@@ -128,7 +127,7 @@ class SFlags extends FlagsParser
      */
     public function buildHelp(bool $withColor = true): string
     {
-        return $this->doBuildHelp($this->argDefines, $this->optDefines, $withColor, $this->countAlias() > 0);
+        return $this->doBuildHelp($this->argDefines, $this->optDefines, $withColor, $this->hasShortOpts());
     }
 
     /**
@@ -418,7 +417,7 @@ class SFlags extends FlagsParser
                 $next = current($flags);
                 if ($hasVal === false && $isBool === false) {
                     if (false === FlagHelper::isOptionValue($next)) {
-                        throw new FlagParseException("must provide value for the option: $option", 404);
+                        throw new FlagParseException("must provide value for the option: $p", 404);
                     }
 
                     $value = $next;
@@ -637,7 +636,7 @@ class SFlags extends FlagsParser
         }
 
         if (!FlagHelper::isValidName($name)) {
-            throw new FlagException('invalid option name: ' . $name);
+            throw new FlagException('invalid flag option name: ' . $name);
         }
 
         if (isset($this->optDefines[$name])) {

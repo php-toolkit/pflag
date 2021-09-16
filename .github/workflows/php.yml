@@ -55,7 +55,7 @@ jobs:
 
       - name: Run test suite
         run: |
-          phpunit -v
+          phpunit -v --debug
           php example flags-demo.php
           php example sflags-demo.php
 

@@ -3,23 +3,19 @@
 namespace Toolkit\PFlagTest;
 
 use Toolkit\PFlag\Exception\FlagException;
-use Toolkit\PFlag\Flags;
 use Toolkit\PFlag\FlagsParser;
-use Toolkit\PFlag\SFlags;
 use function get_class;
 
 /**
  * class CommonTest
  */
-class CommonTest extends BaseTestCase
+class FlagsParserTest extends BaseFlagsTestCase
 {
     public function testStopOnFirstArg(): void
     {
-        $fs = Flags::new();
-        $this->runStopOnFirstArg($fs);
-
-        $sfs = SFlags::new();
-        $this->runStopOnFirstArg($sfs);
+        $this->runTestsWithParsers(function (FlagsParser $fs) {
+            $this->runStopOnFirstArg($fs);
+        });
     }
 
     private function runStopOnFirstArg(FlagsParser $fs): void
@@ -66,13 +62,15 @@ class CommonTest extends BaseTestCase
         $fs->reset();
     }
 
-    public function testSkipOnUndefined_false(): void
+    public function testSkipOnUndefined(): void
     {
-        $fs = Flags::new();
-        $this->runSkipOnUndefined_false($fs);
+        $this->runTestsWithParsers(function (FlagsParser $fs) {
+            $this->runSkipOnUndefined_false($fs);
+        });
 
-        $sfs = SFlags::new();
-        $this->runSkipOnUndefined_false($sfs);
+        $this->runTestsWithParsers(function (FlagsParser $fs) {
+            $this->runSkipOnUndefined_true($fs);
+        });
     }
 
     private function runSkipOnUndefined_false(FlagsParser $fs): void
@@ -89,15 +87,6 @@ class CommonTest extends BaseTestCase
         $this->expectExceptionMessage('flag option provided but not defined: --not-exist');
         $flags = ['--name', 'inhere', '--not-exist', '--age', '90', 'arg0', 'arg1'];
         $fs->parse($flags);
-    }
-
-    public function testSkipOnUndefined_true(): void
-    {
-        $fs = Flags::new();
-        $this->runSkipOnUndefined_true($fs);
-
-        $sfs = SFlags::new();
-        $this->runSkipOnUndefined_true($sfs);
     }
 
     /**
@@ -122,48 +111,8 @@ class CommonTest extends BaseTestCase
         $this->assertSame(['name' => 'inhere', 'age' => 90], $fs->getOpts());
     }
 
-    public function testParseRule_string(): void
+    public function testException_RepeatName(): void
     {
-        $p = RuleParser::new();
-
-        $define = $p->parseOpt('string;flag desc;true;inhere;a,b', 'username');
-
-        $this->assertNotEmpty($define);
-        $this->assertSame('string', $define['type']);
-        $this->assertSame('username', $define['name']);
-        $this->assertSame('flag desc', $define['desc']);
-        $this->assertSame('inhere', $define['default']);
-        $this->assertSame(['a', 'b'], $define['shorts']);
-        $this->assertTrue($define['required']);
-
-        $define = $p->parseOpt('strings;this is an array, allow multi value;;[ab,cd]', 'names');
-        $this->assertFalse($define['required']);
-        $this->assertEmpty($define['shorts']);
-        $this->assertSame(['ab', 'cd'], $define['default']);
-
-        $define = $p->parseOpt('ints;this is an array, allow multi value;no;[23,45];', 'ids');
-        $this->assertFalse($define['required']);
-        $this->assertEmpty($define['shorts']);
-        $this->assertSame([23, 45], $define['default']);
-
-        $define = $p->parseOpt('array;this is an array, allow multi value;no;[23,45];', 'ids');
-        $this->assertFalse($define['required']);
-        $this->assertEmpty($define['shorts']);
-        $this->assertSame(['23', '45'], $define['default']);
-    }
-
-    protected function createParsers(): array
-    {
-        $fs = Flags::new(['name' => 'flags']);
-        $sfs = SFlags::new(['name' => 'simple-flags']);
-
-        return [$fs, $sfs];
-        // return [$sfs];
-    }
-
-    public function testRepeatName(): void
-    {
-        echo "- testRepeatName\n";
         foreach ($this->createParsers() as $fs) {
             $this->doCheckRepeatName($fs);
         }
@@ -186,53 +135,58 @@ class CommonTest extends BaseTestCase
             ]);
             $fs->addArg('name', 'an string');
         }, $fs);
+
         $this->assertSame(FlagException::class, get_class($e));
     }
 
-    public function testRenderHelp(): void
+    public function testRenderHelp_showTypeOnHelp(): void
     {
-        echo "- testRenderHelp\n";
-        $fs = Flags::new(['name' => 'flags']);
-        $this->bindingOptsAndArgs($fs);
-        $this->runRenderHelp($fs);
-
-        $sfs = SFlags::new(['name' => 'simple-flags']);
-        $this->bindingOptsAndArgs($sfs);
-        $this->runRenderHelp($sfs);
+        $this->runTestsWithParsers(function (FlagsParser $fs) {
+            $this->bindingOptsAndArgs($fs);
+            $this->renderFlagsHelp($fs);
+        });
     }
 
     public function testRenderHelp_showTypeOnHelp_false(): void
     {
-        echo "- testRenderHelp_showTypeOnHelp_false \n";
-        $fs = Flags::new(['name' => 'flags']);
-        $fs->setShowTypeOnHelp(false);
-        $this->bindingOptsAndArgs($fs);
-        $this->runRenderHelp($fs);
-
-        $sfs = SFlags::new(['name' => 'simple-flags']);
-        $sfs->setShowTypeOnHelp(false);
-        $this->bindingOptsAndArgs($sfs);
-        $this->runRenderHelp($sfs);
+        $this->runTestsWithParsers(function (FlagsParser $fs) {
+            $fs->setShowTypeOnHelp(false);
+            $this->bindingOptsAndArgs($fs);
+            $this->renderFlagsHelp($fs);
+        });
     }
 
-    protected function bindingOptsAndArgs(FlagsParser $fs): void
-    {
-        $optRules = [
-            'intopt'  => 'int;an int option',
-            'intopt1' => 'int;an int option with shorts;false;;i,g',
-        ];
-        $argRules = [
-            'intarg' => 'int;an int argument',
-        ];
-
-        $fs->addOptsByRules($optRules);
-        $fs->addArgsByRules($argRules);
-    }
-
-    public function runRenderHelp(FlagsParser $fs): void
+    private function renderFlagsHelp(FlagsParser $fs): void
     {
         $ok = $fs->parse(['-h']);
         $this->assertFalse($ok);
         $this->assertSame(FlagsParser::STATUS_HELP, $fs->getParseStatus());
+    }
+
+
+    public function testException_addOpt(): void
+    {
+        foreach ($this->createParsers() as $fs) {
+            $this->doCheckErrorOnAddOpt($fs);
+        }
+    }
+
+    private function doCheckErrorOnAddOpt(FlagsParser $fs): void
+    {
+        // empty name
+        $e = $this->runAndGetException(function (FlagsParser $fs) {
+            $fs->addOpt('', '', 'an desc');
+        }, $fs);
+
+        $this->assertSame(FlagException::class, get_class($e));
+        $this->assertSame('invalid flag option name: ', $e->getMessage());
+
+        // invalid name
+        $e = $this->runAndGetException(function (FlagsParser $fs) {
+            $fs->addOpt('name=+', '', 'an desc');
+        }, $fs);
+
+        $this->assertSame(FlagException::class, get_class($e));
+        $this->assertSame('invalid flag option name: name=+', $e->getMessage());
     }
 }

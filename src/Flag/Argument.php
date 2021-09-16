@@ -9,6 +9,7 @@
 
 namespace Toolkit\PFlag\Flag;
 
+use Toolkit\PFlag\FlagsParser;
 use Toolkit\Stdlib\Str;
 use function sprintf;
 
@@ -35,6 +36,14 @@ class Argument extends AbstractFlag
         if ($name) {
             parent::setName($name);
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function getKind(): string
+    {
+        return FlagsParser::KIND_ARG;
     }
 
     /**

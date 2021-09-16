@@ -66,4 +66,9 @@ interface FlagInterface
      * @return bool
      */
     public function isOptional(): bool;
+
+    /**
+     * @return string
+     */
+    public function getKind(): string;
 }

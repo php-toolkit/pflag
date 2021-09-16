@@ -6,12 +6,12 @@ use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\Flag\Argument;
 use Toolkit\PFlag\FlagType;
 use Toolkit\PFlag\Validator\EmptyValidator;
-use Toolkit\PFlagTest\BaseTestCase;
+use Toolkit\PFlagTest\BaseFlagsTestCase;
 
 /**
  * class ArgumentTest
  */
-class ArgumentTest extends BaseTestCase
+class ArgumentTest extends BaseFlagsTestCase
 {
     public function testBasic(): void
     {

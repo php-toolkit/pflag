@@ -293,6 +293,14 @@ abstract class FlagsParser implements ParserInterface
         return !$this->isNotEmpty();
     }
 
+    /**
+     * @return bool
+     */
+    public function hasShortOpts(): bool
+    {
+        return $this->countAlias() > 0;
+    }
+
     /****************************************************************
      * build and render help
      ***************************************************************/

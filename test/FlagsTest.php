@@ -21,7 +21,7 @@ use function vdump;
  *
  * @package Toolkit\PFlagTest\Flag
  */
-class FlagsTest extends BaseTestCase
+class FlagsTest extends BaseFlagsTestCase
 {
     public function testParse(): void
     {

@@ -420,7 +420,7 @@ class Flags extends FlagsParser
      */
     public function buildHelp(bool $withColor = true): string
     {
-        return $this->doBuildHelp($this->arguments, $this->options, $withColor, $this->countAlias() > 0);
+        return $this->doBuildHelp($this->arguments, $this->options, $withColor, $this->hasShortOpts());
     }
 
     /**

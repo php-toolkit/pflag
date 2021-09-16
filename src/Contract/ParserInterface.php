@@ -14,6 +14,9 @@ namespace Toolkit\PFlag\Contract;
  */
 interface ParserInterface
 {
+    public const KIND_OPT = 'option';
+    public const KIND_ARG = 'argument';
+
     /**
      * @return array
      * @psalm-return list<string>
@@ -35,6 +38,11 @@ interface ParserInterface
      * @return bool
      */
     public function isNotEmpty(): bool;
+
+    /**
+     * @return bool
+     */
+    public function hasShortOpts(): bool;
 
     /**
      * Add option

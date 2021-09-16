@@ -18,7 +18,7 @@ use Toolkit\PFlag\SFlags;
  *
  * @package Toolkit\PFlagTest\Flag
  */
-class SFlagsTest extends BaseTestCase
+class SFlagsTest extends BaseFlagsTestCase
 {
     public function testParseDefined(): void
     {

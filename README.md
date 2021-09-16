@@ -77,11 +77,13 @@ $fs->addOpt('age', 'a', 'this is a int option', FlagType::INT);
 
 // - use string rule
 $fs->addOptByRule('name,n', 'string;this is a string option;true');
+
 // -- add multi option at once.
 $fs->addOptsByRules([
     'tag,t' => 'strings;array option, allow set multi times',
     'f'     => 'bool;this is an bool option',
 ]);
+
 // - use array rule
 /** @see Flags::DEFINE_ITEM for array rule */
 $fs->addOptByRule('name-is-very-lang', [
@@ -375,7 +377,13 @@ public const DEFINE_ITEM = [
 ## Unit tests
 
 ```bash
-phpunit
+phpunit --debug
+```
+
+test with coverage:
+
+```bash
+phpdbg -qrr $(which phpunit) --coverage-text
 ```
 
 ## License

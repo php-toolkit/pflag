@@ -9,7 +9,7 @@ use Toolkit\PFlag\Validator\RegexValidator;
 /**
  * class ValidatorTest
  */
-class ValidatorTest extends BaseTestCase
+class ValidatorTest extends BaseFlagsTestCase
 {
     public function testRegexValidator(): void
     {

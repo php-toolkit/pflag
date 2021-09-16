@@ -27,6 +27,6 @@
     }
   },
   "scripts": {
-    "test": "php vender/bin/phpunit"
+    "test": "php vender/bin/phpunit -v --debug"
   }
 }

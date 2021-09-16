@@ -14,6 +14,7 @@ use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\PFlag\Contract\FlagInterface;
 use Toolkit\PFlag\Contract\ValidatorInterface;
 use Toolkit\PFlag\Exception\FlagException;
+use Toolkit\PFlag\FlagsParser;
 use Toolkit\PFlag\FlagType;
 use Toolkit\Stdlib\Obj;
 use Toolkit\Stdlib\OS;
@@ -203,7 +204,8 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
             }
 
             if (false === $ok) {
-                throw new FlagException('invalid value for flag: ' . $this->getNameMark());
+                $kind = $this->getKind();
+                throw new FlagException("set invalid value for flag $kind: " . $this->getNameMark());
             }
         }
 
@@ -240,6 +242,14 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
     public function getNameMark(): string
     {
         return $this->name;
+    }
+
+    /**
+     * @return string
+     */
+    public function getKind(): string
+    {
+        return FlagsParser::KIND_OPT;
     }
 
     /******************************************************************
@@ -285,7 +295,8 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
     public function setName(string $name): void
     {
         if (!FlagHelper::isValidName($name)) {
-            throw new FlagException('invalid flag name: ' . $name);
+            $kind = $this->getKind();
+            throw new FlagException("invalid flag $kind name: " . $name);
         }
 
         $this->name = $name;
