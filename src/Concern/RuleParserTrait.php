@@ -3,14 +3,16 @@
 namespace Toolkit\PFlag\Concern;
 
 use InvalidArgumentException;
-use Toolkit\PFlag\FlagsParser;
 use Toolkit\PFlag\Exception\FlagException;
+use Toolkit\PFlag\FlagsParser;
 use Toolkit\PFlag\FlagType;
 use Toolkit\Stdlib\Arr;
 use Toolkit\Stdlib\Str;
 use function array_shift;
 use function is_array;
 use function is_callable;
+use function is_int;
+use function is_numeric;
 use function ltrim;
 use function strlen;
 use function strpos;
@@ -85,6 +87,77 @@ trait RuleParserTrait
     protected $argRules = [];
 
     /****************************************************************
+     * add rule methods
+     ***************************************************************/
+
+    /**
+     * @param array $rules
+     */
+    public function addOptsByRules(array $rules): void
+    {
+        foreach ($rules as $name => $rule) {
+            if (is_int($name)) { // only name.
+                $name = (string)$rule;
+                $rule = FlagType::STRING;
+            } else {
+                $name = (string)$name;
+            }
+
+            $this->addOptByRule($name, $rule);
+        }
+    }
+
+    /**
+     * Add and option by rule
+     *
+     * @param string $name
+     * @param string|array $rule {@see optRules}
+     *
+     * @return $this
+     */
+    public function addOptByRule(string $name, $rule): self
+    {
+        $this->optRules[$name] = $rule;
+
+        return $this;
+    }
+
+    /**
+     * @param array $rules
+     *
+     * @see addArgByRule()
+     */
+    public function addArgsByRules(array $rules): void
+    {
+        foreach ($rules as $name => $rule) {
+            if (!$rule) {
+                throw new FlagException('flag argument rule cannot be empty');
+            }
+
+            $this->addArgByRule((string)$name, $rule);
+        }
+    }
+
+    /**
+     * Add and argument by rule
+     *
+     * @param string|int $name
+     * @param string|array $rule please see {@see argRules}
+     *
+     * @return $this
+     */
+    public function addArgByRule(string $name, $rule): self
+    {
+        if ($name && !is_numeric($name)) {
+            $this->argRules[$name] = $rule;
+        } else {
+            $this->argRules[] = $rule;
+        }
+
+        return $this;
+    }
+
+    /****************************************************************
      * parse rule to definition
      ***************************************************************/
 
@@ -107,9 +180,9 @@ trait RuleParserTrait
      * - 'type;;;default' - not set required,desc
      *
      * @param string|array $rule
-     * @param string       $name
-     * @param int          $index
-     * @param bool         $isOption
+     * @param string $name
+     * @param int $index
+     * @param bool $isOption
      *
      * @return array {@see FlagsParser::DEFINE_ITEM}
      * @see argRules
@@ -117,6 +190,10 @@ trait RuleParserTrait
      */
     protected function parseRule($rule, string $name = '', int $index = 0, bool $isOption = true): array
     {
+        if (!$rule) {
+            $rule = FlagType::STRING;
+        }
+
         $shortsFromRule = [];
         if (is_array($rule)) {
             $item = Arr::replace(FlagsParser::DEFINE_ITEM, $rule);
@@ -240,35 +317,6 @@ trait RuleParserTrait
         return [$name, $shorts];
     }
 
-    /****************************************************************
-     * add rule methods
-     ***************************************************************/
-
-    /**
-     * @param array $rules
-     */
-    public function addOptsByRules(array $rules): void
-    {
-        foreach ($rules as $name => $rule) {
-            $this->addOptByRule($name, $rule);
-        }
-    }
-
-    /**
-     * Add and option by rule
-     *
-     * @param string       $name
-     * @param string|array $rule {@see optRules}
-     *
-     * @return $this
-     */
-    public function addOptByRule(string $name, $rule): self
-    {
-        $this->optRules[$name] = $rule;
-
-        return $this;
-    }
-
     /**
      * @return array
      */
@@ -284,7 +332,7 @@ trait RuleParserTrait
      */
     public function setOptRules(array $optRules): void
     {
-        $this->optRules = $optRules;
+        $this->addOptsByRules($optRules);
     }
 
     /**
@@ -302,38 +350,7 @@ trait RuleParserTrait
      */
     public function setArgRules(array $argRules): void
     {
-        $this->argRules = $argRules;
-    }
-
-    /**
-     * @param array $rules
-     *
-     * @see addArgByRule()
-     */
-    public function addArgsByRules(array $rules): void
-    {
-        foreach ($rules as $name => $rule) {
-            $this->addArgByRule($name, $rule);
-        }
-    }
-
-    /**
-     * Add and argument by rule
-     *
-     * @param string       $name
-     * @param string|array $rule please see {@see argRules}
-     *
-     * @return $this
-     */
-    public function addArgByRule(string $name, $rule): self
-    {
-        if ($name) {
-            $this->argRules[$name] = $rule;
-        } else {
-            $this->argRules[] = $rule;
-        }
-
-        return $this;
+        $this->addArgsByRules($argRules);
     }
 
 }

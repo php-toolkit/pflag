@@ -140,7 +140,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
      * @param string $desc
      * @param string $type
      * @param bool   $required
-     * @param mixed  $default   The default value
+     * @param mixed  $default The default value
      *                          - for Flag::ARG_OPTIONAL mode only
      *                          - must be null for Flag::OPT_BOOLEAN
      */
@@ -359,11 +359,17 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
     }
 
     /**
+     * @param bool $useTypeOnEmpty
+     *
      * @return string
      */
-    public function getShowType(): string
+    public function getShowType(bool $useTypeOnEmpty = false): string
     {
-        return $this->showType ?: $this->type;
+        if ($useTypeOnEmpty) {
+            return $this->showType ?: $this->type;
+        }
+
+        return $this->showType;
     }
 
     /**

@@ -101,8 +101,6 @@ class Flags extends FlagsParser
      */
     public function doParse(array $flags): bool
     {
-        // $parsing = true;
-
         // $status = self::STATUS_OK;
         while (true) {
             // if (!$parsing) {
@@ -419,7 +417,7 @@ class Flags extends FlagsParser
      */
     public function buildHelp(bool $withColor = true): string
     {
-        return $this->doBuildHelp($this->arguments, $this->options, $withColor);
+        return $this->doBuildHelp($this->arguments, $this->options, $withColor, $this->countAlias() > 0);
     }
 
     /**
@@ -473,14 +471,6 @@ class Flags extends FlagsParser
     }
 
     /**
-     * @param array $argRules
-     */
-    public function setArgRules(array $argRules): void
-    {
-        $this->addArgsByRules($argRules);
-    }
-
-    /**
      * Add and argument by rule
      *
      * @param string       $name
@@ -492,13 +482,12 @@ class Flags extends FlagsParser
      */
     public function addArgByRule(string $name, $rule): FlagsParser
     {
-        parent::addArgByRule($name, $rule);
-
         $index  = count($this->arguments);
         $define = $this->parseRule($rule, $name, $index, false);
         /** @var Argument $arg */
         $arg = Argument::newByArray($name, $define);
 
+        parent::addArgByRule($name, $rule);
         return $this->addArgument($arg);
     }
 
@@ -519,6 +508,10 @@ class Flags extends FlagsParser
      */
     public function addArgument(Argument $argument): self
     {
+        if ($this->isLocked()) {
+            throw new FlagException('flags has been locked, cannot add argument');
+        }
+
         $isArray  = $argument->isArray();
         $required = $argument->isRequired();
 
@@ -545,10 +538,18 @@ class Flags extends FlagsParser
         $this->arrayArg    = $this->arrayArg || $isArray;
         $this->optionalArg = $this->optionalArg || !$required;
 
+        // record index
+        if ($name) {
+            if (isset($this->name2index[$name])) {
+                throw new FlagException('cannot repeat add named argument: ' . $name);
+            }
+
+            $this->name2index[$name] = $index;
+        }
+
         // append
         $this->arguments[] = $argument;
-        // record index
-        $this->name2index[$name] = $index;
+
         return $this;
     }
 
@@ -672,14 +673,6 @@ class Flags extends FlagsParser
     }
 
     /**
-     * @param array $optRules
-     */
-    public function setOptRules(array $optRules): void
-    {
-        $this->addOptsByRules($optRules);
-    }
-
-    /**
      * Add and option by rule
      *
      * @param string       $name
@@ -691,8 +684,6 @@ class Flags extends FlagsParser
      */
     public function addOptByRule(string $name, $rule): FlagsParser
     {
-        parent::addOptByRule($name, $rule);
-
         $define = $this->parseRule($rule, $name);
         /** @var Option $option */
         $option = Option::newByArray($define['name'], $define);
@@ -701,6 +692,7 @@ class Flags extends FlagsParser
             $option->setAlias($rule['alias']);
         }
 
+        parent::addOptByRule($name, $rule);
         return $this->addOption($option);
     }
 
@@ -721,6 +713,10 @@ class Flags extends FlagsParser
      */
     public function addOption(Option $option): self
     {
+        if ($this->isLocked()) {
+            throw new FlagException('flags has been locked, cannot add argument');
+        }
+
         $name = $option->getName();
         if (isset($this->options[$name])) {
             throw new FlagException('cannot repeat add option: ' . $name);

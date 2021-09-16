@@ -29,6 +29,11 @@ interface ParserInterface
     /**
      * @return bool
      */
+    public function isEmpty(): bool;
+
+    /**
+     * @return bool
+     */
     public function isNotEmpty(): bool;
 
     /**
@@ -66,7 +71,7 @@ interface ParserInterface
      * @param mixed  $default
      * @param array  $moreInfo
      *
-     * @psalm-param array{alias: string, showType: string} $moreInfo
+     * @psalm-param array{showType: string} $moreInfo
      *
      * @return self
      */
@@ -136,4 +141,13 @@ interface ParserInterface
      * @psalm-return array<string, string>
      */
     public function getOptSimpleDefines(): array;
+
+    /**
+     * @return bool
+     */
+    public function isLocked(): bool;
+
+    public function lock(): void;
+
+    public function unlock(): void;
 }

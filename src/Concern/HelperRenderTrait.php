@@ -3,9 +3,9 @@
 namespace Toolkit\PFlag\Concern;
 
 use Toolkit\Cli\Color\ColorTag;
-use Toolkit\PFlag\FlagsParser;
 use Toolkit\PFlag\Flag\Argument;
 use Toolkit\PFlag\Flag\Option;
+use Toolkit\PFlag\FlagsParser;
 use Toolkit\PFlag\FlagType;
 use Toolkit\PFlag\FlagUtil;
 use Toolkit\Stdlib\Helper\DataHelper;
@@ -72,10 +72,11 @@ trait HelperRenderTrait
      * @param array $argDefines
      * @param array $optDefines
      * @param bool  $withColor
+     * @param bool  $hasShortOpt
      *
      * @return string
      */
-    protected function doBuildHelp(array $argDefines, array $optDefines, bool $withColor): string
+    protected function doBuildHelp(array $argDefines, array $optDefines, bool $withColor, bool $hasShortOpt = false): string
     {
         $buf = Str\StrBuffer::new();
 
@@ -90,7 +91,7 @@ trait HelperRenderTrait
         // ------- usage -------
         $binName = $this->scriptName ?: FlagUtil::getBinName();
         if ($hasArgs || $hasOpts) {
-            $buf->writeln("<ylw>Usage:</ylw> $binName [Options ...] -- [Arguments ...]\n");
+            $buf->writeln("<ylw>Usage:</ylw> $binName [--Options ...] [Arguments ...]\n");
         }
 
         // ------- args -------
@@ -126,7 +127,7 @@ trait HelperRenderTrait
         }
 
         $nameTag = 'info';
-        $fmtOpts = $this->buildOptsForHelp($optDefines);
+        $fmtOpts = $this->buildOptsForHelp($optDefines, $hasShortOpt);
 
         $nameLen  = $this->settings['optNameLen'];
         $maxWidth = $this->settings['descNlOnOptLen'];
@@ -156,7 +157,7 @@ trait HelperRenderTrait
             $buf->writeln("\n<ylw>Examples:</ylw>");
 
             $lines = is_array($this->exampleHelp) ? $this->exampleHelp : [$this->exampleHelp];
-            $buf->writeln('  ' . implode("\n  ", $lines));;
+            $buf->writeln('  ' . implode("\n  ", $lines));
         }
 
         if ($this->moreHelp) {
@@ -258,10 +259,11 @@ trait HelperRenderTrait
 
     /**
      * @param array $optDefines
+     * @param bool  $hasShortOpt
      *
      * @return array
      */
-    protected function buildOptsForHelp(array $optDefines): array
+    protected function buildOptsForHelp(array $optDefines, bool $hasShortOpt): array
     {
         if (!$optDefines) {
             return [];
@@ -271,26 +273,34 @@ trait HelperRenderTrait
         $nameLen = $this->settings['optNameLen'];
         ksort($optDefines);
 
-        /** @var array|Option $opt {@see DEFINE_ITEM} */
+        // $hasShortOpt=true will add `strlen('-h, ')` indent.
+        $prefix = $hasShortOpt ? '    ' : '';
+
+        /** @var array|Option $opt {@see FlagsParser::DEFINE_ITEM} */
         foreach ($optDefines as $name => $opt) {
             $names = $opt['shorts'];
             /** @see Option support alias name. */
             if (isset($opt['alias']) && $opt['alias']) {
                 $names[] = $opt['alias'];
             }
-            // real name.
-            $names[] = $name;
 
-            if ($desc = $opt['desc']) {
-                $desc = trim($desc);
-            }
+            // option name.
+            $names[] = $name;
+            // option description
+            $desc = $opt['desc'] ? trim($opt['desc']) : '';
 
             // ensure desc is not empty
             $opt['desc'] = $desc ? Str::ucfirst($desc) : "Option $name";
+            $helpName    = FlagUtil::buildOptHelpName($names);
 
-            $helpName = FlagUtil::buildOptHelpName($names);
+            // first elem is long option name.
+            if (isset($names[0][1])) {
+                $helpName = $prefix . $helpName;
+            }
+
+            // show type name.
             if ($this->showTypeOnHelp) {
-                $typeName = FlagType::getHelpName($opt['type']);
+                $typeName = $opt['showType'] ?: FlagType::getHelpName($opt['type']);
                 $helpName .= $typeName ? " $typeName" : '';
             }
 

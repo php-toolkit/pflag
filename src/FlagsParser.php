@@ -66,6 +66,13 @@ abstract class FlagsParser implements ParserInterface
     ];
 
     /**
+     * TODO If locked, cannot add option and argument
+     *
+     * @var bool
+     */
+    protected $locked = false;
+
+    /**
      * @var bool Mark option is parsed
      */
     protected $parsed = false;
@@ -217,7 +224,7 @@ abstract class FlagsParser implements ParserInterface
     public function parse(?array $flags = null): bool
     {
         if ($this->parsed) {
-            return true;
+            return $this->parseStatus === self::STATUS_OK;
         }
 
         $this->parsed  = true;
@@ -276,6 +283,14 @@ abstract class FlagsParser implements ParserInterface
         // clear match results
         $this->parsed  = false;
         $this->rawArgs = $this->flags = [];
+    }
+
+    /**
+     * @return bool
+     */
+    public function isEmpty(): bool
+    {
+        return !$this->isNotEmpty();
     }
 
     /****************************************************************
@@ -376,6 +391,32 @@ abstract class FlagsParser implements ParserInterface
     public function popFirstRawArg(): string
     {
         return array_shift($this->rawArgs);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isLocked(): bool
+    {
+        return $this->locked;
+    }
+
+    public function lock(): void
+    {
+        $this->locked = true;
+    }
+
+    public function unlock(): void
+    {
+        $this->locked = false;
+    }
+
+    /**
+     * @param bool $locked
+     */
+    public function setLocked(bool $locked): void
+    {
+        $this->locked = $locked;
     }
 
     /**

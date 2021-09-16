@@ -2,10 +2,11 @@
 
 namespace Toolkit\PFlagTest;
 
-use Toolkit\PFlag\FlagsParser;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\Flags;
+use Toolkit\PFlag\FlagsParser;
 use Toolkit\PFlag\SFlags;
+use function get_class;
 
 /**
  * class CommonTest
@@ -149,5 +150,89 @@ class CommonTest extends BaseTestCase
         $this->assertFalse($define['required']);
         $this->assertEmpty($define['shorts']);
         $this->assertSame(['23', '45'], $define['default']);
+    }
+
+    protected function createParsers(): array
+    {
+        $fs = Flags::new(['name' => 'flags']);
+        $sfs = SFlags::new(['name' => 'simple-flags']);
+
+        return [$fs, $sfs];
+        // return [$sfs];
+    }
+
+    public function testRepeatName(): void
+    {
+        echo "- testRepeatName\n";
+        foreach ($this->createParsers() as $fs) {
+            $this->doCheckRepeatName($fs);
+        }
+    }
+
+    protected function doCheckRepeatName(FlagsParser $fs): void
+    {
+        $e = $this->runAndGetException(function (FlagsParser $fs) {
+            $fs->addOptsByRules([
+                '--name' => 'an string',
+                'name'   => 'an string',
+            ]);
+        }, $fs);
+
+        $this->assertSame(FlagException::class, get_class($e));
+
+        $e = $this->runAndGetException(function (FlagsParser $fs) {
+            $fs->addArgsByRules([
+                'name' => 'an string',
+            ]);
+            $fs->addArg('name', 'an string');
+        }, $fs);
+        $this->assertSame(FlagException::class, get_class($e));
+    }
+
+    public function testRenderHelp(): void
+    {
+        echo "- testRenderHelp\n";
+        $fs = Flags::new(['name' => 'flags']);
+        $this->bindingOptsAndArgs($fs);
+        $this->runRenderHelp($fs);
+
+        $sfs = SFlags::new(['name' => 'simple-flags']);
+        $this->bindingOptsAndArgs($sfs);
+        $this->runRenderHelp($sfs);
+    }
+
+    public function testRenderHelp_showTypeOnHelp_false(): void
+    {
+        echo "- testRenderHelp_showTypeOnHelp_false \n";
+        $fs = Flags::new(['name' => 'flags']);
+        $fs->setShowTypeOnHelp(false);
+        $this->bindingOptsAndArgs($fs);
+        $this->runRenderHelp($fs);
+
+        $sfs = SFlags::new(['name' => 'simple-flags']);
+        $sfs->setShowTypeOnHelp(false);
+        $this->bindingOptsAndArgs($sfs);
+        $this->runRenderHelp($sfs);
+    }
+
+    protected function bindingOptsAndArgs(FlagsParser $fs): void
+    {
+        $optRules = [
+            'intopt'  => 'int;an int option',
+            'intopt1' => 'int;an int option with shorts;false;;i,g',
+        ];
+        $argRules = [
+            'intarg' => 'int;an int argument',
+        ];
+
+        $fs->addOptsByRules($optRules);
+        $fs->addArgsByRules($argRules);
+    }
+
+    public function runRenderHelp(FlagsParser $fs): void
+    {
+        $ok = $fs->parse(['-h']);
+        $this->assertFalse($ok);
+        $this->assertSame(FlagsParser::STATUS_HELP, $fs->getParseStatus());
     }
 }

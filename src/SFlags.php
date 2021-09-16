@@ -127,7 +127,7 @@ class SFlags extends FlagsParser
      */
     public function buildHelp(bool $withColor = true): string
     {
-        return $this->doBuildHelp($this->argDefines, $this->optDefines, $withColor);
+        return $this->doBuildHelp($this->argDefines, $this->optDefines, $withColor, $this->countAlias() > 0);
     }
 
     /**
@@ -136,6 +136,125 @@ class SFlags extends FlagsParser
     public function isNotEmpty(): bool
     {
         return count($this->optDefines) > 0 || count($this->argDefines) > 0;
+    }
+
+    /****************************************************************
+     * add opt&arg
+     ***************************************************************/
+
+    /**
+     * @param string                                       $name
+     * @param string                                       $shortcut
+     * @param string                                       $desc
+     * @param string                                       $type The argument data type. default is: string. {@see FlagType}
+     * @param bool                                         $required
+     * @param mixed                                        $default
+     * @param array                                        $moreInfo
+     *
+     * @psalm-param array{alias: string, showType: string} $moreInfo
+     *
+     * @return SFlags
+     */
+    public function addOpt(
+        string $name,
+        string $shortcut,
+        string $desc,
+        string $type = '',
+        bool $required = false,
+        $default = null,
+        array $moreInfo = []
+    ): ParserInterface {
+        $define = self::DEFINE_ITEM;
+
+        $define['name'] = $name;
+        $define['desc'] = $desc;
+        $define['type'] = $type ?: FlagType::STRING;
+
+        $define['required'] = $required;
+        $define['default']  = $default;
+        $define['shorts']   = $shortcut ? Str::explode($shortcut, ',') : [];
+
+        if (isset($moreInfo['showType'])) {
+            $define['showType'] = $moreInfo['showType'];
+        }
+
+        $this->addOptDefine($define);
+        return $this;
+    }
+
+    /**
+     * @param string                                       $name
+     * @param string                                       $desc
+     * @param string                                       $type The argument data type. default is: string. {@see FlagType}
+     * @param bool                                         $required
+     * @param mixed                                        $default
+     * @param array                                        $moreInfo
+     *
+     * @psalm-param array{alias: string, showType: string} $moreInfo
+     *
+     * @return SFlags
+     */
+    public function addArg(
+        string $name,
+        string $desc,
+        string $type = '',
+        bool $required = false,
+        $default = null,
+        array $moreInfo = []
+    ): ParserInterface {
+        $define = self::DEFINE_ITEM;
+
+        $define['name']  = $name;
+        $define['desc']  = $desc;
+        $define['index'] = count($this->argDefines);
+        $define['type']  = $type ?: FlagType::STRING;
+
+        $define['required'] = $required;
+        $define['default']  = $default;
+
+        if (isset($moreInfo['showType'])) {
+            $define['showType'] = $moreInfo['showType'];
+        }
+
+        $this->addArgDefine($define);
+        return $this;
+    }
+
+    /**
+     * @param string $name
+     * @param array|string $rule
+     *
+     * @return FlagsParser
+     */
+    public function addArgByRule(string $name, $rule): FlagsParser
+    {
+        // parse rule
+        $index  = count($this->argDefines);
+        $define = $this->parseRule($rule, $name, $index, false);
+
+        // add define
+        $this->addArgDefine($define);
+
+        parent::addArgByRule($name, $rule);
+        return $this;
+    }
+
+    /**
+     * @param string $name
+     * @param array|string $rule
+     *
+     * @return FlagsParser
+     */
+    public function addOptByRule(string $name, $rule): FlagsParser
+    {
+        // parse rule
+        $define = $this->parseRule($rule, $name);
+
+        // add define
+        $this->addOptDefine($define);
+
+        parent::addOptByRule($name, $rule);
+        return $this;
     }
 
     /****************************************************************
@@ -223,8 +342,8 @@ class SFlags extends FlagsParser
     public function doParse(array $flags): bool
     {
         // parse rules
-        $this->parseOptRules($this->optRules);
-        $this->parseArgRules($this->argRules);
+        // $this->parseOptRules($this->optRules);
+        // $this->parseArgRules($this->argRules);
 
         $optParseEnd = false;
         $parseStatus = self::STATUS_OK;
@@ -476,26 +595,6 @@ class SFlags extends FlagsParser
     }
 
     /**
-     * @param int          $index
-     * @param string|mixed $name
-     *
-     * @return bool
-     */
-    protected function setArgName(int $index, $name): bool
-    {
-        if (!$name || !is_string($name)) {
-            return false;
-        }
-
-        if (isset($this->name2index[$name])) {
-            throw new FlagException("cannot repeat define flag argument '$name'");
-        }
-
-        $this->name2index[$name] = $index;
-        return true;
-    }
-
-    /**
      * @param bool $resetDefines
      */
     public function reset(bool $resetDefines = true): void
@@ -521,117 +620,6 @@ class SFlags extends FlagsParser
         $this->opts = $this->args = [];
     }
 
-    /****************************************************************
-     * add opt&arg
-     ***************************************************************/
-
-    /**
-     * @param string                                       $name
-     * @param string                                       $shortcut
-     * @param string                                       $desc
-     * @param string                                       $type The argument data type. default is: string. {@see FlagType}
-     * @param bool                                         $required
-     * @param mixed                                        $default
-     * @param array                                        $moreInfo
-     *
-     * @psalm-param array{alias: string, showType: string} $moreInfo
-     *
-     * @return SFlags
-     */
-    public function addOpt(
-        string $name,
-        string $shortcut,
-        string $desc,
-        string $type = '',
-        bool $required = false,
-        $default = null,
-        array $moreInfo = []
-    ): ParserInterface {
-        $define = self::DEFINE_ITEM;
-
-        $define['name'] = $name;
-        $define['desc'] = $desc;
-        $define['type'] = $type ?: FlagType::STRING;
-
-        $define['required'] = $required;
-        $define['default']  = $default;
-        $define['shorts']   = $shortcut ? Str::explode($shortcut, ',') : [];
-
-        if (isset($moreInfo['showType'])) {
-            $define['showType'] = $moreInfo['showType'];
-        }
-
-        $this->addOptDefine($define);
-        return $this;
-    }
-
-    /**
-     * @param string                                       $name
-     * @param string                                       $desc
-     * @param string                                       $type The argument data type. default is: string. {@see FlagType}
-     * @param bool                                         $required
-     * @param mixed                                        $default
-     * @param array                                        $moreInfo
-     *
-     * @psalm-param array{alias: string, showType: string} $moreInfo
-     *
-     * @return SFlags
-     */
-    public function addArg(
-        string $name,
-        string $desc,
-        string $type = '',
-        bool $required = false,
-        $default = null,
-        array $moreInfo = []
-    ): ParserInterface {
-        $define = self::DEFINE_ITEM;
-
-        $define['name']  = $name;
-        $define['desc']  = $desc;
-        $define['index'] = count($this->argDefines);
-        $define['type']  = $type ?: FlagType::STRING;
-
-        $define['required'] = $required;
-        $define['default']  = $default;
-
-        if (isset($moreInfo['showType'])) {
-            $define['showType'] = $moreInfo['showType'];
-        }
-
-        $this->addArgDefine($define);
-        return $this;
-    }
-    /****************************************************************
-     * parse rule to definition
-     ***************************************************************/
-
-    /**
-     * Parse option rules
-     *
-     * @param array $rules rule please {@see optRules}
-     */
-    protected function parseOptRules(array $rules): void
-    {
-        /**
-         * @var string|int $key
-         */
-        foreach ($rules as $key => $rule) {
-            if (is_int($key)) { // only name.
-                $key  = (string)$rule;
-                $rule = FlagType::STRING;
-            } else {
-                $key = (string)$key;
-            }
-
-            // parse rule
-            $define = $this->parseRule($rule, $key);
-
-            // add define
-            $this->addOptDefine($define);
-        }
-    }
-
     /**
      * @param array $define
      */
@@ -640,8 +628,16 @@ class SFlags extends FlagsParser
         $type = $define['type'];
         $name = $define['name'];
 
+        if ($this->isLocked()) {
+            throw new FlagException('flags has been locked, cannot add option');
+        }
+
         if (!FlagHelper::isValidName($name)) {
             throw new FlagException('invalid option name: ' . $name);
+        }
+
+        if (isset($this->optDefines[$name])) {
+            throw new FlagException('cannot repeat add option: ' . $name);
         }
 
         // has default value
@@ -673,43 +669,29 @@ class SFlags extends FlagsParser
     }
 
     /**
-     * Parse argument rules
-     *
-     * @param array $rules rule please {@see argRules}
-     */
-    protected function parseArgRules(array $rules): void
-    {
-        // check and collect arguments
-        foreach ($rules as $name => $rule) {
-            if (!$rule) {
-                throw new FlagException('flag argument rule cannot be empty');
-            }
-
-            $name  = is_string($name) ? $name : '';
-            $index = count($this->argDefines);
-
-            // parse rule
-            $define = $this->parseRule($rule, $name, $index, false);
-
-            // add define
-            $this->addArgDefine($define);
-        }
-    }
-
-    /**
      * @param array $define
      */
     protected function addArgDefine(array $define): void
     {
-        $name  = $define['name'];
-        $index = $define['index'];
-
-        if ($name && !FlagHelper::isValidName($name)) {
-            throw new FlagException('invalid argument name: ' . $name);
+        if ($this->isLocked()) {
+            throw new FlagException('flags has been locked, cannot add argument');
         }
 
-        // set argument name
-        $this->setArgName($index, $name = $define['name']);
+        // has name
+        $index = $define['index'];
+        if ($name = $define['name']) {
+            if (!FlagHelper::isValidName($name)) {
+                throw new FlagException('invalid argument name: ' . $name);
+            }
+
+            if (isset($this->name2index[$name])) {
+                throw new FlagException('cannot repeat add named argument: ' . $name);
+            }
+
+            // set argument name
+            $this->name2index[$name] = $index;
+        }
+
         $type = $define['type'];
         $mark = $name ? "#$index($name)" : "#$index";
 
