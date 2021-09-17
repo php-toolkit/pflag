@@ -142,6 +142,14 @@ interface ParserInterface
     public function getArg($nameOrIndex, $default = null);
 
     /**
+     * @param string|int $nameOrIndex
+     * @param mixed $value
+     *
+     * @return mixed
+     */
+    // TODO public function setArg($nameOrIndex, $value): void;
+
+    /**
      * @return array
      * @psalm-return array<string, mixed>
      */
@@ -176,4 +184,14 @@ interface ParserInterface
     public function lock(): void;
 
     public function unlock(): void;
+
+    /**
+     * @param mixed $value
+     */
+    // TODO public function setTrustedOpt(string $name, $value): void;
+
+    /**
+     * @param mixed $value
+     */
+    // TODO public function setTrustedArg(string $name, $value): void;
 }

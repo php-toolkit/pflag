@@ -203,7 +203,7 @@ $flags = ['--name', 'inhere', '--age', '99', '--tag', 'php', '-t', 'go', '--tag'
 
 $optRules = [
     'name', // string
-    'age'   => 'int;;required', // set required
+    'age'   => 'int;an int option;required', // set required
     'tag,t' => FlagType::ARRAY,
     'f'     => FlagType::BOOL,
 ];
@@ -251,7 +251,7 @@ $scriptFile = array_shift($rawFlags);
 $optRules = [
     // some option rules
     'name', // string
-    'age'   => 'int;;required', // set required
+    'age'   => 'int;an int option;required', // set required
     'tag,t' => FlagType::ARRAY,
     'f'     => FlagType::BOOL,
 ];
@@ -374,7 +374,9 @@ public const DEFINE_ITEM = [
 ];
 ```
 
-## Costom Settings
+## Costom settings
+
+### Settings for parse
 
 ```php
     // -------------------- settings for parse option --------------------
@@ -401,14 +403,67 @@ public const DEFINE_ITEM = [
     // -------------------- settings for parse argument --------------------
 
     /**
+     * Whether auto bind remaining args after option parsed
+     *
      * @var bool
      */
     protected $autoBindArgs = true;
 
     /**
+     * Strict match args number.
+     * if exist unbind args, will throw FlagException
+     *
      * @var bool
      */
-    protected $strictCheckArgs = false;
+    protected $strictMatchArgs = false;
+
+```
+
+### Setting for render help
+
+support some settings for render help
+
+```php
+
+    // -------------------- settings for built-in render help --------------------
+
+    /**
+     * Auto render help on provide '-h', '--help'
+     *
+     * @var bool
+     */
+    protected $autoRenderHelp = true;
+
+    /**
+     * Show flag data type on render help.
+     *
+     * if False:
+     *
+     * -o, --opt    Option desc
+     *
+     * if True:
+     *
+     * -o, --opt STRING   Option desc
+     *
+     * @var bool
+     */
+    protected $showTypeOnHelp = true;
+
+    /**
+     * Will call it on before print help message
+     *
+     * @var callable
+     */
+    private $beforePrintHelp;
+
+```
+
+- custom help message renderer
+
+```php
+$fs->setHelpRenderer(function (\Toolkit\PFlag\FlagsParser $fs) {
+    // render help messages
+});
 ```
 
 ## Unit tests

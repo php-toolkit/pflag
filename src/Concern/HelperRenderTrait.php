@@ -29,22 +29,12 @@ use function trim;
  */
 trait HelperRenderTrait
 {
-
     /**
      * Custom help renderer.
      *
      * @var callable
      */
     protected $helpRenderer;
-
-    /**
-     * Auto render help on provide '-h', '--help'
-     *
-     * @var bool
-     */
-    protected $autoRenderHelp = true;
-
-    // -------------------- settings for built-in render help --------------------
 
     /**
      * @var string|array|null
@@ -56,14 +46,33 @@ trait HelperRenderTrait
      */
     protected $exampleHelp = '';
 
+    // -------------------- settings for built-in render help --------------------
+
     /**
-     * Show flag data type on render help
+     * Auto render help on provide '-h', '--help'
+     *
+     * @var bool
+     */
+    protected $autoRenderHelp = true;
+
+    /**
+     * Show flag data type on render help.
+     *
+     * if False:
+     *
+     * -o, --opt    Option desc
+     *
+     * if True:
+     *
+     * -o, --opt STRING   Option desc
      *
      * @var bool
      */
     protected $showTypeOnHelp = true;
 
     /**
+     * Will call it on before print help message
+     *
      * @var callable
      */
     private $beforePrintHelp;
@@ -383,7 +392,9 @@ trait HelperRenderTrait
      */
     public function setMoreHelp($moreHelp): void
     {
-        $this->moreHelp = $moreHelp;
+        if ($moreHelp) {
+            $this->moreHelp = $moreHelp;
+        }
     }
 
     /**
@@ -407,7 +418,9 @@ trait HelperRenderTrait
      */
     public function setExampleHelp($exampleHelp): void
     {
-        $this->exampleHelp = $exampleHelp;
+        if ($exampleHelp) {
+            $this->exampleHelp = $exampleHelp;
+        }
     }
 
     /**

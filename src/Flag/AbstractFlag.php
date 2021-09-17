@@ -186,6 +186,14 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
     /**
      * @param mixed $value
      */
+    public function setTrustedValue($value): void
+    {
+        $this->value = $value;
+    }
+
+    /**
+     * @param mixed $value
+     */
     public function setValue($value): void
     {
         // format value by type
@@ -274,8 +282,9 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
         }
 
         if (!FlagType::isValid($type)) {
+            $kind = $this->getKind();
             $name = $this->getNameMark();
-            throw new FlagException("cannot define invalid flag type: $type $name");
+            throw new FlagException("invalid flag type '$type', $kind: $name");
         }
 
         $this->type = $type;
@@ -295,8 +304,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
     public function setName(string $name): void
     {
         if (!FlagHelper::isValidName($name)) {
-            $kind = $this->getKind();
-            throw new FlagException("invalid flag $kind name: " . $name);
+            throw new FlagException("invalid flag option name: $name");
         }
 
         $this->name = $name;

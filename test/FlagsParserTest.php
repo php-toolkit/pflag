@@ -39,6 +39,29 @@ class FlagsParserTest extends BaseFlagsTestCase
         $this->assertTrue($fs->hasShortOpts());
     }
 
+    public function testStopOnTwoHl(): void
+    {
+        $this->runTestsWithParsers(function (FlagsParser $fs) {
+            $this->doCheckStopOnTwoHl($fs);
+        });
+    }
+
+    private function doCheckStopOnTwoHl(FlagsParser $fs): void
+    {
+        $fs->addOpt('name', '', 'desc');
+        $fs->addArg('arg0', 'desc');
+        $this->assertFalse($fs->isStrictMatchArgs());
+
+        $ok = $fs->parse(['--name', 'inhere', 'val0']);
+        $this->assertTrue($ok);
+        $this->assertSame('val0', $fs->getArg('arg0'));
+
+        $fs->resetResults();
+        $ok = $fs->parse(['--name', 'inhere', '--', '--val0']);
+        $this->assertTrue($ok);
+        $this->assertSame('--val0', $fs->getArg('arg0'));
+    }
+
     public function testStopOnFirstArg(): void
     {
         $this->runTestsWithParsers(function (FlagsParser $fs) {
@@ -139,6 +162,30 @@ class FlagsParserTest extends BaseFlagsTestCase
         $this->assertSame(['name' => 'inhere', 'age' => 90], $fs->getOpts());
     }
 
+    public function testRenderHelp_showTypeOnHelp(): void
+    {
+        $this->runTestsWithParsers(function (FlagsParser $fs) {
+            $this->bindingOptsAndArgs($fs);
+            $this->renderFlagsHelp($fs);
+        });
+    }
+
+    public function testRenderHelp_showTypeOnHelp_false(): void
+    {
+        $this->runTestsWithParsers(function (FlagsParser $fs) {
+            $fs->setShowTypeOnHelp(false);
+            $this->bindingOptsAndArgs($fs);
+            $this->renderFlagsHelp($fs);
+        });
+    }
+
+    private function renderFlagsHelp(FlagsParser $fs): void
+    {
+        $ok = $fs->parse(['-h']);
+        $this->assertFalse($ok);
+        $this->assertSame(FlagsParser::STATUS_HELP, $fs->getParseStatus());
+    }
+
     public function testException_RepeatName(): void
     {
         foreach ($this->createParsers() as $fs) {
@@ -167,31 +214,6 @@ class FlagsParserTest extends BaseFlagsTestCase
         $this->assertSame(FlagException::class, get_class($e));
     }
 
-    public function testRenderHelp_showTypeOnHelp(): void
-    {
-        $this->runTestsWithParsers(function (FlagsParser $fs) {
-            $this->bindingOptsAndArgs($fs);
-            $this->renderFlagsHelp($fs);
-        });
-    }
-
-    public function testRenderHelp_showTypeOnHelp_false(): void
-    {
-        $this->runTestsWithParsers(function (FlagsParser $fs) {
-            $fs->setShowTypeOnHelp(false);
-            $this->bindingOptsAndArgs($fs);
-            $this->renderFlagsHelp($fs);
-        });
-    }
-
-    private function renderFlagsHelp(FlagsParser $fs): void
-    {
-        $ok = $fs->parse(['-h']);
-        $this->assertFalse($ok);
-        $this->assertSame(FlagsParser::STATUS_HELP, $fs->getParseStatus());
-    }
-
-
     public function testException_addOpt(): void
     {
         foreach ($this->createParsers() as $fs) {
@@ -216,5 +238,39 @@ class FlagsParserTest extends BaseFlagsTestCase
 
         $this->assertSame(FlagException::class, get_class($e));
         $this->assertSame('invalid flag option name: name=+', $e->getMessage());
+
+        // invalid type
+        $e = $this->runAndGetException(function (FlagsParser $fs) {
+            $fs->addOpt('name', '', 'an desc', 'invalid');
+        }, $fs);
+
+        $this->assertSame(FlagException::class, get_class($e));
+        $this->assertSame("invalid flag type 'invalid', option: name", $e->getMessage());
+    }
+
+    public function testException_addArg(): void
+    {
+        foreach ($this->createParsers() as $fs) {
+            $this->doCheckErrorOnAddArg($fs);
+        }
+    }
+
+    private function doCheckErrorOnAddArg(FlagsParser $fs): void
+    {
+        // invalid name
+        $e = $this->runAndGetException(function (FlagsParser $fs) {
+            $fs->addArg('name=+', 'an desc');
+        }, $fs);
+
+        $this->assertSame(FlagException::class, get_class($e));
+        $this->assertSame('invalid flag argument name: #0(name=+)', $e->getMessage());
+
+        // invalid type
+        $e = $this->runAndGetException(function (FlagsParser $fs) {
+            $fs->addArg('name', 'an desc', 'invalid');
+        }, $fs);
+
+        $this->assertSame(FlagException::class, get_class($e));
+        $this->assertSame("invalid flag type 'invalid', argument: #0(name)", $e->getMessage());
     }
 }

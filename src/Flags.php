@@ -406,7 +406,7 @@ class Flags extends FlagsParser
             }
         }
 
-        if ($this->strictCheckArgs && $args) {
+        if ($this->strictMatchArgs && $args) {
             throw new FlagException(sprintf('unknown arguments (error: "%s").', implode(' ', $args)));
         }
 

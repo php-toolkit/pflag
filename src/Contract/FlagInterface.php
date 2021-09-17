@@ -53,6 +53,11 @@ interface FlagInterface
     public function setValue($value): void;
 
     /**
+     * @param mixed $value
+     */
+    public function setTrustedValue($value): void;
+
+    /**
      * @return bool
      */
     public function isArray(): bool;

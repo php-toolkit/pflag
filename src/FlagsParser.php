@@ -147,7 +147,7 @@ abstract class FlagsParser implements ParserInterface
      *
      * @var bool
      */
-    protected $delayValidate = false;
+    // protected $delayValidate = false;
 
     // -------------------- settings for parse option --------------------
 
@@ -183,14 +183,19 @@ abstract class FlagsParser implements ParserInterface
     // -------------------- settings for parse argument --------------------
 
     /**
+     * Whether auto bind remaining args after option parsed
+     *
      * @var bool
      */
     protected $autoBindArgs = true;
 
     /**
+     * Strict match args number.
+     * if exist unbind args, will throw FlagException
+     *
      * @var bool
      */
-    protected $strictCheckArgs = false;
+    protected $strictMatchArgs = false;
 
     /**
      * Has array argument
@@ -371,10 +376,18 @@ abstract class FlagsParser implements ParserInterface
 
     /**
      * @param string $desc
+     * @param bool $setOnEmpty only set on desc is empty
      */
-    public function setDesc(string $desc): void
+    public function setDesc(string $desc, bool $setOnEmpty = false): void
     {
-        $this->desc = $desc;
+        // only set on desc is empty
+        if ($setOnEmpty && $this->desc) {
+            return;
+        }
+
+        if ($desc) {
+            $this->desc = $desc;
+        }
     }
 
     /**
@@ -510,17 +523,17 @@ abstract class FlagsParser implements ParserInterface
     /**
      * @return bool
      */
-    public function isStrictCheckArgs(): bool
+    public function isStrictMatchArgs(): bool
     {
-        return $this->strictCheckArgs;
+        return $this->strictMatchArgs;
     }
 
     /**
-     * @param bool $strictCheckArgs
+     * @param bool $strictMatchArgs
      */
-    public function setStrictCheckArgs(bool $strictCheckArgs): void
+    public function setStrictMatchArgs(bool $strictMatchArgs): void
     {
-        $this->strictCheckArgs = $strictCheckArgs;
+        $this->strictMatchArgs = $strictMatchArgs;
     }
 
     /**

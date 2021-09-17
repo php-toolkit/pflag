@@ -9,6 +9,7 @@
 
 namespace Toolkit\PFlag;
 
+use InvalidArgumentException;
 use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\PFlag\Contract\ParserInterface;
 use Toolkit\PFlag\Exception\FlagException;
@@ -19,6 +20,7 @@ use function count;
 use function current;
 use function explode;
 use function implode;
+use function is_callable;
 use function is_string;
 use function next;
 use function sprintf;
@@ -567,7 +569,7 @@ class SFlags extends FlagsParser
             }
         }
 
-        if ($this->strictCheckArgs && $args) {
+        if ($this->strictMatchArgs && $args) {
             throw new FlagException(sprintf('unknown arguments (error: "%s").', implode(', ', $args)));
         }
     }
@@ -625,28 +627,52 @@ class SFlags extends FlagsParser
 
     /**
      * @param array $define
+     * @param string $mark
+     * @param string $kind
+     */
+    protected function checkDefine(array $define, string $mark, string $kind = self::KIND_OPT): void
+    {
+        $type = $define['type'];
+        $name = $define['name'];
+
+        if ($this->isLocked()) {
+            throw new FlagException("flags has been locked, cannot add $kind");
+        }
+
+        if (isset($this->optDefines[$name])) {
+            throw new FlagException("cannot repeat add $kind: $mark");
+        }
+
+        // check type
+        if (!FlagType::isValid($type)) {
+            throw new FlagException("invalid flag type '$type', $kind: $mark");
+        }
+
+        // check name.
+        if ((self::KIND_OPT === $kind || $name) && !FlagHelper::isValidName($name)) {
+            throw new FlagException("invalid flag $kind name: $mark");
+        }
+
+        // validator must be callable
+        if (!empty($item['validator']) && !is_callable($item['validator'])) {
+            throw new InvalidArgumentException("validator must be callable. $kind: $mark");
+        }
+    }
+
+    /**
+     * @param array $define
      */
     protected function addOptDefine(array $define): void
     {
         $type = $define['type'];
         $name = $define['name'];
 
-        if ($this->isLocked()) {
-            throw new FlagException('flags has been locked, cannot add option');
-        }
-
-        if (!FlagHelper::isValidName($name)) {
-            throw new FlagException('invalid flag option name: ' . $name);
-        }
-
-        if (isset($this->optDefines[$name])) {
-            throw new FlagException('cannot repeat add option: ' . $name);
-        }
+        $this->checkDefine($define, $name);
 
         // has default value
         if (isset($define['default'])) {
             if ($define['required']) {
-                throw new FlagException("cannot set a default value, if flag is required. flag: $name");
+                throw new FlagException("cannot set a default value on flag is required. option: $name");
             }
 
             $default = FlagType::fmtBasicTypeValue($type, $define['default']);
@@ -676,17 +702,14 @@ class SFlags extends FlagsParser
      */
     protected function addArgDefine(array $define): void
     {
-        if ($this->isLocked()) {
-            throw new FlagException('flags has been locked, cannot add argument');
-        }
+        $index = $define['index'];
+        $name  = $define['name'];
+        $mark  = $name ? "#$index($name)" : "#$index";
+
+        $this->checkDefine($define, $mark, self::KIND_ARG);
 
         // has name
-        $index = $define['index'];
-        if ($name = $define['name']) {
-            if (!FlagHelper::isValidName($name)) {
-                throw new FlagException('invalid argument name: ' . $name);
-            }
-
+        if ($name) {
             if (isset($this->name2index[$name])) {
                 throw new FlagException('cannot repeat add named argument: ' . $name);
             }
@@ -696,19 +719,18 @@ class SFlags extends FlagsParser
         }
 
         $type = $define['type'];
-        $mark = $name ? "#$index($name)" : "#$index";
 
         // has default value
         $required = $define['required'];
         if (isset($define['default'])) {
+            if ($required) {
+                throw new FlagException("cannot set a default value on flag is required. argument: $mark");
+            }
+
             $default = FlagType::fmtBasicTypeValue($type, $define['default']);
 
             // save as value
             $this->args[$index] = $define['default'] = $default;
-
-            if ($required) {
-                throw new FlagException("cannot set a default value, if flag is required. flag: $mark");
-            }
         }
 
         // NOTICE: only allow one array argument and must be at last.

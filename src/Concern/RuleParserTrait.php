@@ -255,18 +255,6 @@ trait RuleParserTrait
             $item['index'] = $index;
         }
 
-        $nameMark = $name ? "(name: $name)" : "(#$index)";
-
-        // check type
-        if (!FlagType::isValid($type = $item['type'])) {
-            throw new FlagException("cannot define invalid flag type: $type$nameMark");
-        }
-
-        // validator must be callable
-        if (!empty($item['validator']) && !is_callable($item['validator'])) {
-            throw new InvalidArgumentException("validator must be callable. flag: $nameMark");
-        }
-
         $item['name'] = $name;
         return $item;
     }
