@@ -38,6 +38,8 @@ Generic PHP command line flags parse library
 composer require toolkit/pflag
 ```
 
+-----------
+
 ## Flags Usage
 
 Flags - is an cli flags(options&argument) parser and manager.
@@ -62,6 +64,8 @@ $fs->setScriptFile($scriptFile);
 $fs->setSettings([
     'descNlOnOptLen' => 26
 ]);
+
+// ...
 ```
 
 ### Define options
@@ -109,13 +113,16 @@ use Toolkit\PFlag\FlagType;
 // add arguments
 // - quick add
 $fs->addArg('strArg1', 'the is string arg and is required', 'string', true);
+
 // - use string rule
 $fs->addArgByRule('intArg2', 'int;this is a int arg and with default value;no;89');
+
 // - use Argument object
 $arg = Argument::new('arrArg');
 // OR $arg->setType(FlagType::ARRAY);
 $arg->setType(FlagType::STRINGS);
 $arg->setDesc("this is an array arg,\n allow multi value,\n must define at last");
+
 $fs->addArgument($arg);
 ```
 
@@ -176,23 +183,11 @@ array(3) {
 }
 ```
 
+-----------
+
 ## SFlags Usage
 
 SFlags - is an simple flags(options&argument) parser and manager.
-
-> `SFlags` only support add option/argument by rule string or define array.
-
-### Methods
-
-Options:
-
-- `setOptRules(array $rules)`
-- `addOptRule(string $name, string|array $rule)`
-
-Arguments:
-
-- `setArgRules(array $rules)`
-- `addArgRule(string $name, string|array $rule)`
 
 ### Examples
 
@@ -300,6 +295,8 @@ array(2) {
 $ php example/sflags-demo.php --help
 ```
 
+-----------
+
 ## Get Value
 
 **Options**
@@ -320,6 +317,8 @@ $arrArg = $fs->getArg(1); // array{"arr0", "arr1"}
 // get value by name
 $arrArg = $fs->getArg('arrArg'); // array{"arr0", "arr1"}
 ```
+
+-----------
 
 ## Flag Rule
 
@@ -373,6 +372,8 @@ public const DEFINE_ITEM = [
     // 'category' => null
 ];
 ```
+
+-----------
 
 ## Costom settings
 
@@ -466,6 +467,8 @@ $fs->setHelpRenderer(function (\Toolkit\PFlag\FlagsParser $fs) {
 });
 ```
 
+-----------
+
 ## Unit tests
 
 ```bash
@@ -477,6 +480,14 @@ test with coverage:
 ```bash
 phpdbg -qrr $(which phpunit) --coverage-text
 ```
+
+## Project use
+
+Check out these projects, which use https://github.com/php-toolkit/pflag :
+
+- [inhere/console](https://github.com/inhere/console) Full-featured php command line application library.
+- [kite](https://github.com/inhere/kite) Kite is a tool for help development.
+- More, please see [Packagist](https://packagist.org/packages/toolkit/pflag)
 
 ## License
 
