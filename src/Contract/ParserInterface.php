@@ -153,10 +153,20 @@ interface ParserInterface
     public function getArgs(): array;
 
     /**
+     * Get args help data
+     *
      * @return array
      * @psalm-return array<string, string>
      */
-    public function getOptSimpleDefines(): array;
+    public function getArgsHelpData(): array;
+
+    /**
+     * Get opts help data
+     *
+     * @return array
+     * @psalm-return array<string, string>
+     */
+    public function getOptsHelpData(): array;
 
     /**
      * @return bool

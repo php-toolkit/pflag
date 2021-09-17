@@ -27,6 +27,7 @@ use function strlen;
 use function strpos;
 use function substr;
 use function trim;
+use function ucfirst;
 
 /**
  * Class SFlags
@@ -889,19 +890,34 @@ class SFlags extends FlagsParser
     /**
      * @return array
      */
-    public function getOptSimpleDefines(): array
+    public function getArgsHelpData(): array
     {
-        $map = [];
+        $helpData = [];
+        foreach ($this->argDefines as $define) {
+            $name = $define['name'];
+
+            $helpData[$name] = $define['desc'];
+        }
+
+        return $helpData;
+    }
+
+    /**
+     * @return array
+     */
+    public function getOptsHelpData(): array
+    {
+        $helpData = [];
         foreach ($this->optDefines as $name => $define) {
             $names   = $define['shorts'];
             $names[] = $name;
 
             $helpName = FlagUtil::buildOptHelpName($names);
 
-            $map[$helpName] = $define['desc'];
+            $helpData[$helpName] = ucfirst($define['desc']);
         }
 
-        return $map;
+        return $helpData;
     }
 
     /**

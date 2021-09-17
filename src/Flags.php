@@ -856,19 +856,34 @@ class Flags extends FlagsParser
     /**
      * @return array
      */
-    public function getOptSimpleDefines(): array
+    public function getArgsHelpData(): array
     {
-        $map = [];
-        foreach ($this->options as $name => $define) {
-            $names   = $define['shorts'];
+        $helpData = [];
+        foreach ($this->arguments as $arg) {
+            $name = $arg->getHelpName();
+            // append
+            $helpData[$name] = $arg->getDesc(true);
+        }
+
+        return $helpData;
+    }
+
+    /**
+     * @return array
+     */
+    public function getOptsHelpData(): array
+    {
+        $helpData = [];
+        foreach ($this->options as $name => $opt) {
+            $names   = $opt['shorts'];
             $names[] = $name;
 
             $helpName = FlagUtil::buildOptHelpName($names);
-
-            $map[$helpName] = $define['desc'];
+            // append
+            $helpData[$helpName] = $opt->getDesc(true);
         }
 
-        return $map;
+        return $helpData;
     }
 
     /**

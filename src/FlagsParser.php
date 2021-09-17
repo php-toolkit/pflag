@@ -66,7 +66,7 @@ abstract class FlagsParser implements ParserInterface
     ];
 
     /**
-     * TODO If locked, cannot add option and argument
+     * If locked, cannot add option and argument
      *
      * @var bool
      */

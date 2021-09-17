@@ -377,6 +377,7 @@ public const DEFINE_ITEM = [
 ## Costom Settings
 
 ```php
+    // -------------------- settings for parse option --------------------
 
     /**
      * Stop parse option on found first argument.
