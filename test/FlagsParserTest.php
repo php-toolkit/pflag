@@ -11,7 +11,7 @@ use function get_class;
  */
 class FlagsParserTest extends BaseFlagsTestCase
 {
-    public function testBasic(): void
+    public function testParserBasic(): void
     {
         $this->runTestsWithParsers(function (FlagsParser $fs) {
             $this->doCheckBasic($fs);
@@ -23,11 +23,14 @@ class FlagsParserTest extends BaseFlagsTestCase
         $this->assertTrue($fs->isEmpty());
         $this->assertFalse($fs->isNotEmpty());
         $this->assertFalse($fs->hasShortOpts());
+        $this->assertFalse($fs->hasArg('github'));
 
         $fs->setArgRules([
             'github' => 'an string argument'
         ]);
         $this->assertFalse($fs->isEmpty());
+        $this->assertTrue($fs->hasArg('github'));
+        $this->assertFalse($fs->hasArg('not-exist'));
         $this->assertTrue($fs->isNotEmpty());
         $this->assertFalse($fs->hasShortOpts());
 
@@ -37,6 +40,8 @@ class FlagsParserTest extends BaseFlagsTestCase
         $this->assertFalse($fs->isEmpty());
         $this->assertTrue($fs->isNotEmpty());
         $this->assertTrue($fs->hasShortOpts());
+        $this->assertTrue($fs->hasOpt('name'));
+        $this->assertFalse($fs->hasOpt('not-exist'));
     }
 
     public function testStopOnTwoHl(): void
@@ -272,5 +277,53 @@ class FlagsParserTest extends BaseFlagsTestCase
 
         $this->assertSame(FlagException::class, get_class($e));
         $this->assertSame("invalid flag type 'invalid', argument: #0(name)", $e->getMessage());
+    }
+
+    public function testSetOptAndSetArg(): void
+    {
+        foreach ($this->createParsers() as $fs) {
+            $this->bindingOptsAndArgs($fs);
+            $this->doCheckSetOptAndSetArg($fs);
+        }
+    }
+
+    private function doCheckSetOptAndSetArg($fs): void
+    {
+        $this->assertSame(0, $fs->getOpt('int-opt'));
+        $this->assertSame('', $fs->getOpt('str-opt'));
+        $this->assertSame('', $fs->getArg('str-arg'));
+
+        // test set
+        $fs->setOpt('int-opt', '22');
+        $fs->setOpt('str-opt', 'value');
+        $fs->setArg('str-arg', 'value1');
+
+        $this->assertSame(22, $fs->getOpt('int-opt'));
+        $this->assertSame('value', $fs->getOpt('str-opt'));
+        $this->assertSame('value1', $fs->getArg('str-arg'));
+
+        // test set trust
+        $fs->setTrustedOpt('int-opt', '33'); // will not format, validate value.
+        $fs->setTrustedOpt('str-opt', 'trust-value');
+        $fs->setTrustedArg('str-arg', 'trust-value1');
+
+        $this->assertSame('33', $fs->getOpt('int-opt'));
+        $this->assertSame('trust-value', $fs->getOpt('str-opt'));
+        $this->assertSame('trust-value1', $fs->getArg('str-arg'));
+
+        // test error
+        $e = $this->runAndGetException(function (FlagsParser $fs) {
+            $fs->setOpt('not-exist-opt', '22');
+        }, $fs);
+
+        $this->assertSame(FlagException::class, get_class($e));
+        $this->assertSame("flag option 'not-exist-opt' is undefined", $e->getMessage());
+
+        $e = $this->runAndGetException(function (FlagsParser $fs) {
+            $fs->setArg('not-exist-arg', '22');
+        }, $fs);
+
+        $this->assertSame(FlagException::class, get_class($e));
+        $this->assertSame("flag argument 'not-exist-arg' is undefined", $e->getMessage());
     }
 }

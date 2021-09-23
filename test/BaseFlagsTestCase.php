@@ -19,6 +19,7 @@ use Toolkit\PFlag\SFlags;
 
 /**
  * Class BaseTestCase
+ *
  * @package Inhere\ConsoleTest
  */
 abstract class BaseFlagsTestCase extends TestCase
@@ -66,17 +67,18 @@ abstract class BaseFlagsTestCase extends TestCase
     protected function bindingOptsAndArgs(FlagsParser $fs): void
     {
         $optRules = [
-            'int-opt'  => 'int;an int option',
-            'int-opt1' => 'int;an int option with shorts;false;;i,g',
-            'str-opt'  => 'an string option',
-            'str-opt1' => 'string;an int option with required;true',
-            'str-opt2' => 'string;an int option with default;false;inhere',
-            'bool-opt' => 'bool;an int option with an short;false;;b',
+            'int-opt'         => 'int;an int option',
+            'int-opt1'        => 'int;an int option with shorts;false;;i,g',
+            'str-opt'         => 'an string option',
+            'str-opt1'        => "string;an int option with required,\nand has multi line desc;true",
+            'str-opt2'        => 'string;an string option with default;false;inhere',
+            'bool-opt'        => 'bool;an int option with an short;false;;b',
             '-a, --bool-opt1' => 'bool;an int option with an short',
-            's'        => 'string;an string option only short name',
+            's'               => 'string;an string option only short name',
         ];
         $argRules = [
             'intarg' => 'int;an int argument',
+            'str-arg' => "an string argument,\nand has multi line desc",
         ];
 
         $fs->addOptsByRules($optRules);

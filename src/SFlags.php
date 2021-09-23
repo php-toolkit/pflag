@@ -820,6 +820,20 @@ class SFlags extends FlagsParser
     }
 
     /**
+     * @param string $name
+     * @param mixed $value
+     */
+    public function setTrustedOpt(string $name, $value): void
+    {
+        $define = $this->optDefines[$name] ?? [];
+        if (!$define) { // not exist
+            throw new FlagException("flag option '$name' is undefined");
+        }
+
+        $this->opts[$name] = $value;
+    }
+
+    /**
      * @return array
      */
     public function getOpts(): array
@@ -836,7 +850,7 @@ class SFlags extends FlagsParser
     {
         $index = $this->getArgIndex($nameOrIndex);
 
-        return $index > -1 && isset($this->args[$index]);
+        return $index > -1;
     }
 
     /**
@@ -848,6 +862,36 @@ class SFlags extends FlagsParser
     public function getArgument($nameOrIndex, $default = null)
     {
         return $this->getArg($nameOrIndex, $default);
+    }
+
+    /**
+     * @param int|string $nameOrIndex
+     * @param mixed $value
+     */
+    public function setArg($nameOrIndex, $value): void
+    {
+        $index = $this->getArgIndex($nameOrIndex);
+        if ($index < 0) {
+            throw new FlagException("flag argument '$nameOrIndex' is undefined");
+        }
+
+        $define = $this->argDefines[$index];
+        // set value
+        $this->args[$index] = FlagType::fmtBasicTypeValue($define['type'], $value);
+    }
+
+    /**
+     * @param string $name
+     * @param mixed $value
+     */
+    public function setTrustedArg(string $name, $value): void
+    {
+        $index = $this->getArgIndex($name);
+        if ($index < 0) {
+            throw new FlagException("flag argument '$name' is undefined");
+        }
+
+        $this->args[$index] = $value;
     }
 
     /**

@@ -117,12 +117,21 @@ interface ParserInterface
     public function getOpt(string $name, $default = null);
 
     /**
+     * Set option value, will format and validate value.
+     *
      * @param string $name
      * @param mixed $value
      *
      * @return mixed
      */
     public function setOpt(string $name, $value): void;
+
+    /**
+     * Set trusted option value, will not format and validate value.
+     *
+     * @param mixed $value
+     */
+    public function setTrustedOpt(string $name, $value): void;
 
     /**
      * @param string|int $nameOrIndex
@@ -142,12 +151,22 @@ interface ParserInterface
     public function getArg($nameOrIndex, $default = null);
 
     /**
+     * Set trusted argument value, will not format and validate value.
+     *
      * @param string|int $nameOrIndex
      * @param mixed $value
      *
      * @return mixed
      */
-    // TODO public function setArg($nameOrIndex, $value): void;
+    public function setArg($nameOrIndex, $value): void;
+
+    /**
+     * Set trusted argument value, will not format and validate value.
+     *
+     * @param string $name
+     * @param mixed $value
+     */
+    public function setTrustedArg(string $name, $value): void;
 
     /**
      * @return array
@@ -184,14 +203,4 @@ interface ParserInterface
     public function lock(): void;
 
     public function unlock(): void;
-
-    /**
-     * @param mixed $value
-     */
-    // TODO public function setTrustedOpt(string $name, $value): void;
-
-    /**
-     * @param mixed $value
-     */
-    // TODO public function setTrustedArg(string $name, $value): void;
 }

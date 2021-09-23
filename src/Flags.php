@@ -578,17 +578,50 @@ class Flags extends FlagsParser
 
     /**
      * @param string|int $nameOrIndex
+     * @param mixed $value
+     */
+    public function setArg($nameOrIndex, $value): void
+    {
+        $arg = $this->getArgument($nameOrIndex);
+        if (!$arg) { // not exist
+            throw new FlagException("flag argument '$nameOrIndex' is undefined");
+        }
+
+        $arg->setValue($value);
+    }
+
+    /**
+     * @param string $name
+     * @param mixed $value
+     */
+    public function setTrustedArg(string $name, $value): void
+    {
+        $arg = $this->getArgument($name);
+        if (!$arg) { // not exist
+            throw new FlagException("flag argument '$name' is undefined");
+        }
+
+        $arg->setTrustedValue($value);
+    }
+
+    /**
+     * @param string|int $nameOrIndex
      * @param null|mixed $default
      *
      * @return mixed|null
      */
     public function getArg($nameOrIndex, $default = null)
     {
-        if ($arg = $this->getArgument($nameOrIndex)) {
+        $arg = $this->getArgument($nameOrIndex);
+        if (!$arg) { // not exist
+            throw new FlagException("flag argument '$nameOrIndex' is undefined");
+        }
+
+        if ($arg->hasValue()) {
             return $arg->getValue();
         }
 
-        return $default;
+        return $default ?? $arg->getTypeDefault();
     }
 
     /**
@@ -828,6 +861,20 @@ class Flags extends FlagsParser
         }
 
         $opt->setValue($value);
+    }
+
+    /**
+     * @param string $name
+     * @param mixed $value
+     */
+    public function setTrustedOpt(string $name, $value): void
+    {
+        $opt = $this->getDefinedOption($name);
+        if (!$opt) { // not exist option
+            throw new FlagException("flag option '$name' is undefined");
+        }
+
+        $opt->setTrustedValue($value);
     }
 
     /**
