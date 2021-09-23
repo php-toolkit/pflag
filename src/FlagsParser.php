@@ -283,6 +283,16 @@ abstract class FlagsParser implements ParserInterface
         return $args;
     }
 
+    /**
+     * @param mixed|null $default
+     *
+     * @return mixed|null
+     */
+    public function getFirstArg($default = null)
+    {
+        return $this->getArg(0, $default);
+    }
+
     public function resetResults(): void
     {
         // clear match results

@@ -873,16 +873,6 @@ class SFlags extends FlagsParser
     }
 
     /**
-     * @param mixed|null $default
-     *
-     * @return mixed|null
-     */
-    public function getFirstArg($default = null)
-    {
-        return $this->getArg(0, $default);
-    }
-
-    /**
      * @param string|int $nameOrIndex
      *
      * @return int Will return -1 if arg not exists
