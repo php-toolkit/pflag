@@ -123,7 +123,7 @@ trait HelperRenderTrait
             if ($lines) {
                 $indent = Str::repeat(' ', $nameLen);
                 foreach ($lines as $line) {
-                    $buf->writef("     %s%s\n", $indent, $line);
+                    $buf->writef("      %s%s\n", $indent, $line);
                 }
             }
         }
@@ -156,7 +156,7 @@ trait HelperRenderTrait
             if ($lines) {
                 $indent = Str::repeat(' ', $nameLen);
                 foreach ($lines as $line) {
-                    $buf->writef("     %s%s\n", $indent, $line);
+                    $buf->writef("      %s%s\n", $indent, $line);
                 }
             }
         }
@@ -385,6 +385,14 @@ trait HelperRenderTrait
     public function getMoreHelp()
     {
         return $this->moreHelp;
+    }
+
+    /**
+     * @param array|string|null $moreHelp
+     */
+    public function setHelp($moreHelp): void
+    {
+        $this->setMoreHelp($moreHelp);
     }
 
     /**

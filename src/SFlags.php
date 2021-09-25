@@ -572,6 +572,8 @@ class SFlags extends FlagsParser
         if ($this->strictMatchArgs && $args) {
             throw new FlagException(sprintf('unknown arguments (error: "%s").', implode(', ', $args)));
         }
+
+        $this->remainArgs = $args;
     }
 
     /**
@@ -636,7 +638,7 @@ class SFlags extends FlagsParser
         $name = $define['name'];
 
         if ($this->isLocked()) {
-            throw new FlagException("flags has been locked, cannot add $kind");
+            throw new FlagException("flags has been locked, cannot add $kind($name)");
         }
 
         if (isset($this->optDefines[$name])) {
@@ -679,6 +681,10 @@ class SFlags extends FlagsParser
 
             // save as value.
             $this->opts[$name] = $define['default'] = $default;
+        }
+
+        if ($define['required']) {
+            $this->requiredOpts[] = $name;
         }
 
         // support read value from ENV var

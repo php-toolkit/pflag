@@ -90,11 +90,18 @@ abstract class FlagsParser implements ParserInterface
     protected $flags = [];
 
     /**
-     * The remaining raw args, after option parsed from {@see $rawFlags}
+     * The remaining raw args, after option parsed from {@see $flags}
      *
      * @var string[]
      */
     protected $rawArgs = [];
+
+    /**
+     * The overage raw args, after argument parsed from {@see $rawArgs}
+     *
+     * @var string[]
+     */
+    protected $remainArgs = [];
 
     /**
      * The required option names.
@@ -414,6 +421,14 @@ abstract class FlagsParser implements ParserInterface
     public function getRawArgs(): array
     {
         return $this->rawArgs;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getRemainArgs(): array
+    {
+        return $this->remainArgs;
     }
 
     /**

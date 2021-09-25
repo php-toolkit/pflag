@@ -248,9 +248,6 @@ trait RuleParserTrait
 
             // save alias
             $item['shorts'] = $shorts ?: $shortsFromRule;
-            if ($item['required']) {
-                $this->requiredOpts[] = $name;
-            }
         } else {
             $item['index'] = $index;
         }

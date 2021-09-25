@@ -410,6 +410,7 @@ class Flags extends FlagsParser
             throw new FlagException(sprintf('unknown arguments (error: "%s").', implode(' ', $args)));
         }
 
+        $this->remainArgs = $args;
         return $this;
     }
 
