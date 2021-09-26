@@ -927,7 +927,7 @@ class SFlags extends FlagsParser
      *
      * @return int Will return -1 if arg not exists
      */
-    protected function getArgIndex($nameOrIndex): int
+    public function getArgIndex($nameOrIndex): int
     {
         if (!is_string($nameOrIndex)) {
             $index = (int)$nameOrIndex;
@@ -983,6 +983,20 @@ class SFlags extends FlagsParser
     }
 
     /**
+     * Whether input argument
+     *
+     * @param string|int $nameOrIndex
+     *
+     * @return bool
+     */
+    public function hasInputArg($nameOrIndex): bool
+    {
+        $index = $this->getArgIndex($nameOrIndex);
+
+        return isset($this->args[$index]);
+    }
+
+    /**
      * @param string|int $nameOrIndex
      *
      * @return bool
@@ -1000,6 +1014,18 @@ class SFlags extends FlagsParser
     public function getArgDefines(): array
     {
         return $this->argDefines;
+    }
+
+    /**
+     * Whether input argument
+     *
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function hasInputOpt(string $name): bool
+    {
+        return isset($this->opts[$name]);
     }
 
     /**

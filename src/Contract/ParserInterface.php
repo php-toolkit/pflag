@@ -100,11 +100,22 @@ interface ParserInterface
     public function parse(?array $flags = null): bool;
 
     /**
+     * Whether defined the option
+     *
      * @param string $name
      *
      * @return bool
      */
     public function hasOpt(string $name): bool;
+
+    /**
+     * Whether input argument
+     *
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function hasInputOpt(string $name): bool;
 
     /**
      * Get an option value by name
@@ -134,11 +145,29 @@ interface ParserInterface
     public function setTrustedOpt(string $name, $value): void;
 
     /**
+     * Whether defined the argument
+     *
      * @param string|int $nameOrIndex
      *
      * @return bool
      */
     public function hasArg($nameOrIndex): bool;
+
+    /**
+     * Whether input argument
+     *
+     * @param string|int $nameOrIndex
+     *
+     * @return bool
+     */
+    public function hasInputArg($nameOrIndex): bool;
+
+    /**
+     * @param string|int $nameOrIndex
+     *
+     * @return int Will return -1 if arg not exists
+     */
+    public function getArgIndex($nameOrIndex): int;
 
     /**
      * Get an argument value by name

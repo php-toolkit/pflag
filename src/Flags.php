@@ -634,7 +634,7 @@ class Flags extends FlagsParser
     {
         if (is_string($nameOrIndex)) {
             if (!isset($this->name2index[$nameOrIndex])) {
-                throw new FlagException("flag argument '$nameOrIndex' is undefined");
+                return null;
             }
 
             $index = $this->name2index[$nameOrIndex];
@@ -643,6 +643,38 @@ class Flags extends FlagsParser
         }
 
         return $this->arguments[$index] ?? null;
+    }
+
+    /**
+     * @param string|int $nameOrIndex
+     *
+     * @return int
+     */
+    public function getArgIndex($nameOrIndex): int
+    {
+        if (is_string($nameOrIndex)) {
+            return $this->name2index[$nameOrIndex] ?? -1;
+        }
+
+        $index = (int)$nameOrIndex;
+        return isset($this->arguments[$index]) ? $index : -1;
+    }
+
+    /**
+     * Whether input argument
+     *
+     * @param string|int $nameOrIndex
+     *
+     * @return bool
+     */
+    public function hasInputArg($nameOrIndex): bool
+    {
+        $arg = $this->getArgument($nameOrIndex);
+        if (!$arg) {
+            return false;
+        }
+
+        return $arg->hasValue();
     }
 
     /**
@@ -821,16 +853,6 @@ class Flags extends FlagsParser
     }
 
     /**
-     * @param string $name
-     *
-     * @return bool
-     */
-    public function hasMatched(string $name): bool
-    {
-        return isset($this->matched[$name]);
-    }
-
-    /**
      * @param string     $name
      * @param null|mixed $default
      *
@@ -839,7 +861,7 @@ class Flags extends FlagsParser
     public function getOpt(string $name, $default = null)
     {
         $opt = $this->getDefinedOption($name);
-        if (!$opt) { // not exist option
+        if (!$opt) { // not exist
             throw new FlagException("flag option '$name' is undefined");
         }
 
@@ -857,7 +879,7 @@ class Flags extends FlagsParser
     public function setOpt(string $name, $value): void
     {
         $opt = $this->getDefinedOption($name);
-        if (!$opt) { // not exist option
+        if (!$opt) { // not exist
             throw new FlagException("flag option '$name' is undefined");
         }
 
@@ -885,7 +907,27 @@ class Flags extends FlagsParser
      */
     public function getOption(string $name): ?Option
     {
-        return $this->matched[$name] ?? null;
+        return $this->options[$name] ?? null;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function hasInputOpt(string $name): bool
+    {
+        return isset($this->matched[$name]);
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function hasMatched(string $name): bool
+    {
+        return isset($this->matched[$name]);
     }
 
     /**
@@ -976,5 +1018,15 @@ class Flags extends FlagsParser
     public function getMatchedOptions(): array
     {
         return $this->matched;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return Option|null
+     */
+    public function getMatchedOption(string $name): ?Option
+    {
+        return $this->matched[$name] ?? null;
     }
 }
