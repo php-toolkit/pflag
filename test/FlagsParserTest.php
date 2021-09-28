@@ -44,6 +44,7 @@ class FlagsParserTest extends BaseFlagsTestCase
         $this->assertTrue($fs->hasOpt('name'));
         $this->assertFalse($fs->hasInputOpt('name'));
         $this->assertFalse($fs->hasOpt('not-exist'));
+        $this->assertNotEmpty($fs->getOptDefine('name'));
     }
 
     public function testGetOptAndGetArg(): void
