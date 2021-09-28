@@ -77,7 +77,7 @@ abstract class BaseFlagsTestCase extends TestCase
             's'               => 'string;an string option only short name',
         ];
         $argRules = [
-            'intarg' => 'int;an int argument',
+            'int-arg' => 'int;an int argument',
             'str-arg' => "an string argument,\nand has multi line desc",
         ];
 

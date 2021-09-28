@@ -45,6 +45,14 @@ class Argument extends AbstractFlag
         }
     }
 
+    public function toArray(): array
+    {
+        $info = parent::toArray();
+
+        $info['index'] = $this->index;
+        return $info;
+    }
+
     /**
      * @return string
      */

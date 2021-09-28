@@ -33,6 +33,7 @@ class FlagsParserTest extends BaseFlagsTestCase
         $this->assertFalse($fs->hasArg('not-exist'));
         $this->assertTrue($fs->isNotEmpty());
         $this->assertFalse($fs->hasShortOpts());
+        $this->assertNotEmpty($fs->getArgDefine('github'));
 
         $fs->setOptRules([
             '-n,--name' => 'an string option'
@@ -41,7 +42,26 @@ class FlagsParserTest extends BaseFlagsTestCase
         $this->assertTrue($fs->isNotEmpty());
         $this->assertTrue($fs->hasShortOpts());
         $this->assertTrue($fs->hasOpt('name'));
+        $this->assertFalse($fs->hasInputOpt('name'));
         $this->assertFalse($fs->hasOpt('not-exist'));
+    }
+
+    public function testGetOptAndGetArg(): void
+    {
+        $this->runTestsWithParsers(function (FlagsParser $fs) {
+            $this->bindingOptsAndArgs($fs);
+            $this->doTestGetOptAndGetArg($fs);
+        });
+    }
+
+    private function doTestGetOptAndGetArg(FlagsParser $fs): void
+    {
+        // int type
+        $ok = $fs->parse(['--str-opt1', 'val1', '--int-opt', '335', '233']);
+        $this->assertTrue($ok);
+        $this->assertSame(335, $fs->getOpt('int-opt'));
+        $this->assertSame(233, $fs->getArg('int-arg'));
+        $fs->resetResults();
     }
 
     public function testStopOnTwoHl(): void

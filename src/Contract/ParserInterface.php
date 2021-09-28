@@ -170,6 +170,13 @@ interface ParserInterface
     public function getArgIndex($nameOrIndex): int;
 
     /**
+     * @param string|int $nameOrIndex
+     *
+     * @return array
+     */
+    public function getArgDefine($nameOrIndex): array;
+
+    /**
      * Get an argument value by name
      *
      * @param string|int $nameOrIndex

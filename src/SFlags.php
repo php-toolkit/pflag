@@ -584,6 +584,8 @@ class SFlags extends FlagsParser
      */
     protected function collectArgValue($value, int $index, bool $isArray, array $define): void
     {
+        $value = FlagType::fmtBasicTypeValue($define['type'], $value);
+
         // has validator
         if ($cb = $define['validator']) {
             $name = $define['name'] ?: "#$index";
@@ -1005,7 +1007,21 @@ class SFlags extends FlagsParser
     {
         $index = $this->getArgIndex($nameOrIndex);
 
-        return isset($this->argDefines[$index]);
+        return $index > -1;
+    }
+
+    /**
+     * @param string|int $nameOrIndex
+     * @return array
+     */
+    public function getArgDefine($nameOrIndex): array
+    {
+        $index = $this->getArgIndex($nameOrIndex);
+        if ($index < 0) {
+            throw new FlagException("flag argument '$nameOrIndex' is undefined");
+        }
+
+        return $this->argDefines[$index];
     }
 
     /**

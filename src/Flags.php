@@ -632,17 +632,24 @@ class Flags extends FlagsParser
      */
     public function getArgument($nameOrIndex): ?Argument
     {
-        if (is_string($nameOrIndex)) {
-            if (!isset($this->name2index[$nameOrIndex])) {
-                return null;
-            }
-
-            $index = $this->name2index[$nameOrIndex];
-        } else {
-            $index = (int)$nameOrIndex;
-        }
+        $index = $this->getArgIndex($nameOrIndex);
 
         return $this->arguments[$index] ?? null;
+    }
+
+    /**
+     * @param string|int $nameOrIndex
+     *
+     * @return array
+     */
+    public function getArgDefine($nameOrIndex): array
+    {
+        $index = $this->getArgIndex($nameOrIndex);
+        if ($index < 0) {
+            throw new FlagException("flag argument '$nameOrIndex' is undefined");
+        }
+
+        return $this->arguments[$index]->toArray();
     }
 
     /**
