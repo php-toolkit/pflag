@@ -9,6 +9,8 @@
 
 namespace Toolkit\PFlag\Contract;
 
+use Toolkit\PFlag\FlagsParser;
+
 /**
  * interface ParserInterface
  */
@@ -128,6 +130,14 @@ interface ParserInterface
     public function getOpt(string $name, $default = null);
 
     /**
+     * @param string $name
+     *
+     * @return array
+     * @see FlagsParser::DEFINE_ITEM
+     */
+    public function getOptDefine(string $name): array;
+
+    /**
      * Set option value, will format and validate value.
      *
      * @param string $name
@@ -173,6 +183,7 @@ interface ParserInterface
      * @param string|int $nameOrIndex
      *
      * @return array
+     * @see FlagsParser::DEFINE_ITEM
      */
     public function getArgDefine($nameOrIndex): array;
 
@@ -231,12 +242,13 @@ interface ParserInterface
      */
     public function getOptsHelpData(): array;
 
+    public function lock(): void;
+
+    public function unlock(): void;
+
     /**
      * @return bool
      */
     public function isLocked(): bool;
 
-    public function lock(): void;
-
-    public function unlock(): void;
 }

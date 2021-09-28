@@ -815,6 +815,21 @@ class SFlags extends FlagsParser
 
     /**
      * @param string $name
+     *
+     * @return array
+     */
+    public function getOptDefine(string $name): array
+    {
+        $define = $this->optDefines[$name] ?? [];
+        if (!$define) { // not exist
+            throw new FlagException("flag option '$name' is undefined");
+        }
+
+        return $define;
+    }
+
+    /**
+     * @param string $name
      * @param mixed $value
      */
     public function setOpt(string $name, $value): void

@@ -867,7 +867,7 @@ class Flags extends FlagsParser
      */
     public function getOpt(string $name, $default = null)
     {
-        $opt = $this->getDefinedOption($name);
+        $opt = $this->getOption($name);
         if (!$opt) { // not exist
             throw new FlagException("flag option '$name' is undefined");
         }
@@ -899,7 +899,7 @@ class Flags extends FlagsParser
      */
     public function setTrustedOpt(string $name, $value): void
     {
-        $opt = $this->getDefinedOption($name);
+        $opt = $this->getOption($name);
         if (!$opt) { // not exist option
             throw new FlagException("flag option '$name' is undefined");
         }
@@ -915,6 +915,21 @@ class Flags extends FlagsParser
     public function getOption(string $name): ?Option
     {
         return $this->options[$name] ?? null;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return array
+     */
+    public function getOptDefine(string $name): array
+    {
+        $opt = $this->getOption($name);
+        if (!$opt) { // not exist option
+            throw new FlagException("flag option '$name' is undefined");
+        }
+
+        return $opt->toArray();
     }
 
     /**
