@@ -20,6 +20,7 @@ use function array_shift;
 use function count;
 use function implode;
 use function is_array;
+use function is_numeric;
 use function is_string;
 use function ltrim;
 use function sprintf;
@@ -175,7 +176,7 @@ class Flags extends FlagsParser
         }
 
         // check is an option name.
-        $name = $this->filterOptionName($val);
+        $name = FlagUtil::filterOptionName($val);
         if ('' === $name) {
             $goon   = true;
             $status = self::STATUS_ARG;
@@ -299,7 +300,12 @@ class Flags extends FlagsParser
             return '';
         }
 
-        return ltrim($val, '-');
+        $name = ltrim($val, '-');
+        if (is_numeric($name)) {
+            return '';
+        }
+
+        return $name;
     }
 
     /**

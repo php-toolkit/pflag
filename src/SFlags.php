@@ -22,6 +22,7 @@ use function explode;
 use function implode;
 use function is_callable;
 use function is_string;
+use function ltrim;
 use function next;
 use function sprintf;
 use function str_split;
@@ -358,8 +359,9 @@ class SFlags extends FlagsParser
                 continue;
             }
 
-            // is options and not equals '-' '--'
-            if ($p !== '' && $p[0] === '-' && '' !== trim($p, '-')) {
+            // is valid option name
+            $optName = FlagUtil::filterOptionName($p);
+            if ('' !== $optName) {
                 $value  = true; // bool option value default is true.
                 $hasVal = false;
 

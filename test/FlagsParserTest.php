@@ -65,6 +65,23 @@ class FlagsParserTest extends BaseFlagsTestCase
         $fs->resetResults();
     }
 
+    public function testParse_specialArg(): void
+    {
+        $this->runTestsWithParsers(function (FlagsParser $fs) {
+            $fs->addOpt('a', '', 'an string opt');
+            $fs->addArg('num', 'an int arg', 'int');
+
+            $ok = $fs->parse(['-a', 'val0', '-9']);
+            $this->assertTrue($ok);
+            $this->assertSame([-9], $fs->getArgs());
+            $fs->resetResults();
+
+            // $ok = $fs->parse(['-a', 'val0', '-90']);
+            // $this->assertTrue($ok);
+            // $fs->resetResults();
+        });
+    }
+
     public function testStopOnTwoHl(): void
     {
         $this->runTestsWithParsers(function (FlagsParser $fs) {

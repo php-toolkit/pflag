@@ -6,6 +6,8 @@ use function array_map;
 use function array_shift;
 use function basename;
 use function implode;
+use function is_numeric;
+use function ltrim;
 use function strlen;
 
 /**
@@ -25,6 +27,39 @@ class FlagUtil
         }, $names);
 
         return implode(', ', $nodes);
+    }
+
+    /**
+     * check and get option Name
+     *
+     * valid:
+     * `-a`
+     * `-b=value`
+     * `--long`
+     * `--long=value1`
+     *
+     * invalid:
+     * - empty string
+     * - no prefix '-' (is argument)
+     * - invalid option name as argument. eg: '-9' '--34' '- '
+     *
+     * @param string $val
+     *
+     * @return string
+     */
+    public static function filterOptionName(string $val): string
+    {
+        // is not an option.
+        if ('' === $val || $val[0] !== '-') {
+            return '';
+        }
+
+        $name = ltrim($val, '- ');
+        if (is_numeric($name)) {
+            return '';
+        }
+
+        return $name;
     }
 
     /**

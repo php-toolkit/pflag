@@ -228,6 +228,11 @@ abstract class FlagsParser implements ParserInterface
         Obj::init($this, $config);
     }
 
+    public function parseFromString(string $cmdline): bool
+    {
+
+    }
+
     /**
      * @param array|null $flags
      *

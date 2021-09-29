@@ -16,14 +16,14 @@ Generic PHP command line flags parse library
 - Support read flag value from ENV var.
 - Support set option/argument is required.
 - Support set validator for check input value.
-- Support auto generate help message.
+- Support auto render beautiful help message.
 
-**Arguments**:
+**Flag Arguments**:
 
 - Support binding named arguemnt
 - Support define array argument
 
-**Options**:
+**Flag Options**:
 
 - Support long option. eg: `--long` `--long value`
 - Support short option `-s -a value`, allow set multi short names.
@@ -70,6 +70,8 @@ $fs->setSettings([
 
 ### Define options
 
+Examples for add flag option define:
+
 ```php
 use Toolkit\PFlag\Flag\Option;
 use Toolkit\PFlag\FlagType;
@@ -105,6 +107,8 @@ $fs->addOption($opt);
 ```
 
 ### Define Arguments
+
+Examples for add flag argument define:
 
 ```php
 use Toolkit\PFlag\Flag\Argument;
@@ -299,6 +303,10 @@ $ php example/sflags-demo.php --help
 
 ## Get Value
 
+Get flag value is very simple, use method `getOpt(string $name)` `getArg($nameOrIndex)`.
+
+> TIP: Will auto format input value by define type.
+
 **Options**
 
 ```php
@@ -322,7 +330,7 @@ $arrArg = $fs->getArg('arrArg'); // array{"arr0", "arr1"}
 
 ## Flag Rule
 
-The options/arguments rules
+The options/arguments rules. Use rule can quick define an option or argument.
 
 - string value is rule(`type;desc;required;default;shorts`).
 - array is define item `SFlags::DEFINE_ITEM`
@@ -334,7 +342,7 @@ $rules = [
      // k-v: key is name, value can be string|array
      'long,s',
      // name => rule
-     'long,s' => 'int',
+     'long,a,b' => 'int', // long is option name, a and b is shorts.
      'f'      => 'bool',
      'long'   => FlagType::STRING,
      'tags'   => 'array', // can also: ints, strings
@@ -346,12 +354,12 @@ $rules = [
 
 - option allow set shorts
 
-> TIP: name `long,s` - first is the option name. remaining is short names.
+> TIP: name `long,a,b` - `long` is the option name. remaining `a,b` is short names.
 
 **For arguments**
 
 - arguemnt no alias/shorts
-- array value only allow defined last
+- array value only allow defined at last
 
 **Definition item**
 
