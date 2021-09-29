@@ -6,37 +6,38 @@
 [![Php Version Support](https://img.shields.io/packagist/php-v/toolkit/pflag)](https://packagist.org/packages/toolkit/pflag)
 [![Latest Stable Version](http://img.shields.io/packagist/v/toolkit/pflag.svg)](https://packagist.org/packages/toolkit/pflag)
 
-Generic PHP command line flags parse library
+通用 PHP 命令行标志(选项和参数)解析库
 
-## [中文说明](README.zh-CN.md)
+## [EN README](README.md)
 
-## Features
+## 功能说明
 
-- Generic command line options and arguments parser.
-- Support set value data type(`int,string,bool,array`), will auto format input value.
-- Support set multi short names for an option.
-- Support set default value for option/argument.
-- Support read flag value from ENV var.
-- Support set option/argument is required.
-- Support set validator for check input value.
-- Support auto render beautiful help message.
+- 通用命令行选项和参数解析器
+- 支持设置值数据类型(`int,string,bool,array`)，将自动格式化输入值
+- 支持为选项/参数设置默认值
+- 支持为一个选项设置多个短名称
+- 支持从环境变量读取标志值
+- 支持设置选项/参数为必须的(`required`)
+- 支持设置验证器以检查输入值
+- 支持自动渲染漂亮的帮助信息。
 
-**Flag Options**:
+**命令行选项**:
 
-- Options start with `-` or `--`, and the first character must be a letter
-- Support long option. eg: `--long` `--long value`
-- Support short option. eg: `-s -a value`
-- Support define array option
-  - eg: `--tag php --tag go` will get `tag: [php, go]`
+- 选项以 `-` 或者 `--` 开头的，且首字符必须是字母
+- 以 `--` 开头的为长选项. eg: `--long` `--long value`
+- 以 `--` 开头的为短选项 `-s -a value`
+- 支持定义数组选项
+    - eg: `--tag php --tag go` 将会得到 `$tag = [php, go]`
 
-**Flag Arguments**:
+**命令行参数**:
 
-- Support binding named arguemnt
-- Support define array argument
+- 不能满足选项的都认作参数
+- 支持绑定命名参数
+- 支持定义数组参数
 
-## Install
+## 安装
 
-**composer**
+**composer 安装**
 
 ```bash
 composer require toolkit/pflag
@@ -44,13 +45,15 @@ composer require toolkit/pflag
 
 -----------
 
-## Flags Usage
+## Flags 使用
 
-Flags - is an cli flags(options&argument) parser and manager.
+Flags - 是一个命令行标志（选项和参数）解析器和管理器。
 
-> example codes please see [example/flags-demo.php](example/flags-demo.php)
+> 示例代码请参见 [example/flags-demo.php](example/flags-demo.php)
 
-### Create Flags
+### 创建解析器
+
+创建和初始化解析器
 
 ```php
 use Toolkit\PFlag\Flags;
@@ -62,7 +65,8 @@ $flags = $_SERVER['argv'];
 $scriptFile = array_shift($flags);
 
 $fs = Flags::new();
-// can with some config
+
+// （可选的）可以添加一些自定义
 $fs->setScriptFile($scriptFile);
 /** @see Flags::$settings */
 $fs->setSettings([
@@ -72,9 +76,11 @@ $fs->setSettings([
 // ...
 ```
 
-### Define options
+### 定义选项
 
-Examples for add flag option define:
+定义选项 - 定义好支持的选项设置，解析时将会根据定义来解析输入
+
+添加选项定义的示例:
 
 ```php
 use Toolkit\PFlag\Flag\Option;
@@ -85,16 +91,16 @@ use Toolkit\PFlag\Validator\EnumValidator;
 // - quick add
 $fs->addOpt('age', 'a', 'this is a int option', FlagType::INT);
 
-// - use string rule
+// - 使用字符串规则快速添加选项定义
 $fs->addOptByRule('name,n', 'string;this is a string option;true');
 
-// -- add multi option at once.
+// -- 一次添加多个选项
 $fs->addOptsByRules([
     'tag,t' => 'strings;array option, allow set multi times',
     'f'     => 'bool;this is an bool option',
 ]);
 
-// - use array rule
+// - 使用数组定义
 /** @see Flags::DEFINE_ITEM for array rule */
 $fs->addOptByRule('name-is-very-lang', [
     'type'   => FlagType::STRING,
@@ -104,15 +110,17 @@ $fs->addOptByRule('name-is-very-lang', [
     'validator' => EnumValidator::new(['one', 'two', 'three']),
 ]);
 
-// - use Option
+// - 使用 Option 对象
 $opt = Option::new('str1', "this is  string option, \ndesc has multi line, \nhaha...");
 $opt->setDefault('defVal');
 $fs->addOption($opt);
 ```
 
-### Define Arguments
+### 定义参数
 
-Examples for add flag argument define:
+定义参数 - 定义好支持的选项设置，解析时将会根据定义来解析输入
+
+添加参数定义的示例:
 
 ```php
 use Toolkit\PFlag\Flag\Argument;
@@ -122,10 +130,10 @@ use Toolkit\PFlag\FlagType;
 // - quick add
 $fs->addArg('strArg1', 'the is string arg and is required', 'string', true);
 
-// - use string rule
+// - 使用字符串规则快速添加定义
 $fs->addArgByRule('intArg2', 'int;this is a int arg and with default value;no;89');
 
-// - use Argument object
+// - 使用 Argument 对象
 $arg = Argument::new('arrArg');
 // OR $arg->setType(FlagType::ARRAY);
 $arg->setType(FlagType::STRINGS);
@@ -134,12 +142,11 @@ $arg->setDesc("this is an array arg,\n allow multi value,\n must define at last"
 $fs->addArgument($arg);
 ```
 
-### Parse Input
+### 解析命令行输入
+
+最后调用 `parse()` 解析命令行输入数据
 
 ```php
-use Toolkit\PFlag\Flags;
-use Toolkit\PFlag\FlagType;
-
 // ...
 
 if (!$fs->parse($flags)) {
@@ -150,7 +157,9 @@ if (!$fs->parse($flags)) {
 vdump($fs->getOpts(), $fs->getArgs());
 ```
 
-**Show help**
+**显示帮助**
+
+当输入 `-h` 或 `--help` 会自动渲染帮助信息。
 
 ```bash
 $ php example/flags-demo.php --help
@@ -160,16 +169,16 @@ Output:
 
 ![flags-demo](example/images/flags-demo.png)
 
-**Run demo:**
+**运行示例:**
 
 ```bash
 $ php example/flags-demo.php --name inhere --age 99 --tag go -t php -t java -d one -f arg0 80 arr0 arr1
 ```
 
-Output:
+输出结果:
 
 ```text
-# options
+# 选项数据
 array(6) {
   ["str1"]=> string(6) "defVal"
   ["name"]=> string(6) "inhere"
@@ -183,7 +192,7 @@ array(6) {
   ["f"]=> bool(true)
 }
 
-# arguments
+# 参数数据 
 array(3) {
   [0]=> string(4) "arg0"
   [1]=> int(80)
@@ -196,15 +205,18 @@ array(3) {
 
 -----------
 
-## SFlags Usage
+## SFlags 使用
 
-SFlags - is an simple flags(options&argument) parser and manager.
+SFlags - 是一个简洁版本的标志（选项、参数）解析器和管理器
 
-### Examples
+### 使用示例
 
 ```php
 use Toolkit\PFlag\SFlags;
 
+$fs = SFlags::new();
+
+// 模拟输入参数
 $flags = ['--name', 'inhere', '--age', '99', '--tag', 'php', '-t', 'go', '--tag', 'java', '-f', 'arg0'];
 
 $optRules = [
@@ -243,9 +255,9 @@ array(1) {
 }
 ```
 
-### Parse CLI Input
+### 解析命令行输入
 
-write the codes to an php file(see [example/sflags-demo.php](example/sflags-demo.php))
+将代码写入 php 文件(see [example/sflags-demo.php](example/sflags-demo.php))
 
 ```php
 use Toolkit\PFlag\SFlags;
@@ -268,19 +280,21 @@ $argRules = [
     'arrArg' => 'array',
 ];
 
-$fs = SFlags::new();
-$fs->parseDefined($rawFlags, $optRules, $argRules);
+$fs->setOptRules($optRules);
+$fs->setArgRules($argRules);
+$fs->parse($rawFlags);
 ```
 
-**Run demo:**
+**运行示例:**
 
 ```bash
 php example/sflags-demo.php --name inhere --age 99 --tag go -t php -t java -f arg0 arr0 arr1
 ```
 
-Output:
+输出:
 
 ```text
+# 选项数据
 array(4) {
   ["name"]=> string(6) "inhere"
   ["age"]=> int(99)
@@ -291,6 +305,8 @@ array(4) {
   }
   ["f"]=> bool(true)
 }
+
+# 参数数据
 array(2) {
   [0]=> string(4) "arg0"
   [1]=> array(2) {
@@ -300,7 +316,7 @@ array(2) {
 }
 ```
 
-**Show help**
+**显示帮助**
 
 ```bash
 $ php example/sflags-demo.php --help
@@ -308,13 +324,13 @@ $ php example/sflags-demo.php --help
 
 -----------
 
-## Get Value
+## 获取输入值
 
-Get flag value is very simple, use method `getOpt(string $name)` `getArg($nameOrIndex)`.
+获取flag值很简单，使用方法 `getOpt(string $name)` `getArg($nameOrIndex)` 即可.
 
-> TIP: Will auto format input value by define type.
+> TIP: 将通过定义的数据类型自动格式化输入值
 
-**Options**
+**选项数据**
 
 ```php
 $force = $fs->getOpt('f'); // bool(true)
@@ -323,7 +339,7 @@ $name = $fs->getOpt('name'); // string(inhere)
 $tags = $fs->getOpt('tags'); // array{"php", "go", "java"}
 ```
 
-**Arguments**
+**参数数据**
 
 ```php
 $arg0 = $fs->getArg(0); // string(arg0)
@@ -335,13 +351,13 @@ $arrArg = $fs->getArg('arrArg'); // array{"arr0", "arr1"}
 
 -----------
 
-## Flag Rule
+## 扩展：规则定义 
 
-The options/arguments rules. Use rule can quick define an option or argument.
+选项参数规则。使用规则可以快速定义一个选项或参数。
 
-- string value is rule(`type;desc;required;default;shorts`).
-- array is define item `SFlags::DEFINE_ITEM`
-- supportted type see `FlagType::*`
+- string 字符串规则以分号 `;` 分割每个部分 (完整规则：`type;desc;required;default;shorts`).
+- array 规则按 `SFlags::DEFINE_ITEM` 设置定义
+- 支持的类型常量请看 `FlagType::*`
 
 ```php
 $rules = [
@@ -357,16 +373,16 @@ $rules = [
 ]
 ```
 
-**For options**
+**对于选项**
 
-- option allow set shorts
+- 选项允许设置短名称 `shorts`
 
-> TIP: name `long,a,b` - `long` is the option name. remaining `a,b` is short names.
+> TIP: 例如 `long,a,b` - `long` 是选项名称. 剩余的 `a,b` 都是它的短选项名.
 
-**For arguments**
+**对于参数**
 
-- arguemnt no alias/shorts
-- array value only allow defined at last
+- 参数没有别名或者短名称
+- 数组参数只允许定义在最后
 
 **Definition item**
 
@@ -390,12 +406,12 @@ public const DEFINE_ITEM = [
 
 -----------
 
-## Costom settings
+## 自定义设置
 
-### Settings for parse
+### 解析设置
 
 ```php
-    // -------------------- settings for parse option --------------------
+    // -------------------- 选项解析设置 --------------------
 
     /**
      * Stop parse option on found first argument.
@@ -416,7 +432,7 @@ public const DEFINE_ITEM = [
      */
     protected $skipOnUndefined = false;
 
-    // -------------------- settings for parse argument --------------------
+    // -------------------- 参数解析设置 --------------------
 
     /**
      * Whether auto bind remaining args after option parsed
@@ -435,7 +451,7 @@ public const DEFINE_ITEM = [
 
 ```
 
-### Setting for render help
+### 渲染帮助设置
 
 support some settings for render help
 
@@ -444,14 +460,14 @@ support some settings for render help
     // -------------------- settings for built-in render help --------------------
 
     /**
-     * Auto render help on provide '-h', '--help'
+     * 自动渲染帮助信息当输入 '-h', '--help' 选项时
      *
      * @var bool
      */
     protected $autoRenderHelp = true;
 
     /**
-     * Show flag data type on render help.
+     * 在渲染的帮助信息上显示数据类型
      *
      * if False:
      *
@@ -466,7 +482,7 @@ support some settings for render help
     protected $showTypeOnHelp = true;
 
     /**
-     * Will call it on before print help message
+     * 将在打印帮助消息之前调用它
      *
      * @var callable
      */
@@ -474,7 +490,7 @@ support some settings for render help
 
 ```
 
-- custom help message renderer
+自定义帮助消息渲染:
 
 ```php
 $fs->setHelpRenderer(function (\Toolkit\PFlag\FlagsParser $fs) {
@@ -484,7 +500,7 @@ $fs->setHelpRenderer(function (\Toolkit\PFlag\FlagsParser $fs) {
 
 -----------
 
-## Unit tests
+## 单元测试
 
 ```bash
 phpunit --debug
@@ -496,7 +512,7 @@ test with coverage:
 phpdbg -qrr $(which phpunit) --coverage-text
 ```
 
-## Project use
+## 使用pflag的项目
 
 Check out these projects, which use https://github.com/php-toolkit/pflag :
 

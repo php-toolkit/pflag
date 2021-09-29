@@ -76,9 +76,10 @@ class FlagsParserTest extends BaseFlagsTestCase
             $this->assertSame([-9], $fs->getArgs());
             $fs->resetResults();
 
-            // $ok = $fs->parse(['-a', 'val0', '-90']);
-            // $this->assertTrue($ok);
-            // $fs->resetResults();
+            $ok = $fs->parse(['-a', 'val0', '-90']);
+            $this->assertTrue($ok);
+            $this->assertSame([-90], $fs->getArgs());
+            $fs->resetResults();
         });
     }
 
