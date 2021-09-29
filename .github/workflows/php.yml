@@ -50,8 +50,13 @@ jobs:
       - name: Install dependencies
         run: composer update --no-progress
 
-      # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
-      # Docs: https://getcomposer.org/doc/articles/scripts.md
+      - name: Generate changelog file
+        id: changelog
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          wget -c https://github.com/inhere/kite/releases/download/v1.1.9/kite-v1.1.9.phar -O kite.phar
+          php kite.phar git cl last head --style gh-release --no-merges --fetch-tags --unshallow --file changelog.md
+          cat changelog.md
 
       # phpunit -v --debug
       - name: Run test suite
@@ -60,7 +65,7 @@ jobs:
           php example/sflags-demo.php
           phpdbg -qrr $(which phpunit) --coverage-clover ./test/clover.info
 
-      - name: Coveralls Parallel
+      - name: Coveralls parallel
         uses: coverallsapp/github-action@master
         if: ${{ matrix.os == 'ubuntu-latest' }}
         with:
