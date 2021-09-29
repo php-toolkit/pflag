@@ -5,6 +5,7 @@
 [![Actions Status](https://github.com/php-toolkit/pflag/workflows/Unit-Tests/badge.svg)](https://github.com/php-toolkit/pflag/actions)
 [![Php Version Support](https://img.shields.io/packagist/php-v/toolkit/pflag)](https://packagist.org/packages/toolkit/pflag)
 [![Latest Stable Version](http://img.shields.io/packagist/v/toolkit/pflag.svg)](https://packagist.org/packages/toolkit/pflag)
+[![Coverage Status](https://coveralls.io/repos/github/php-toolkit/pflag/badge.svg?branch=main)](https://coveralls.io/github/php-toolkit/pflag?branch=main)
 
 Generic PHP command line flags parse library
 
@@ -498,6 +499,7 @@ test with coverage:
 
 ```bash
 phpdbg -qrr $(which phpunit) --coverage-text
+phpdbg -qrr $(which phpunit) --coverage-clover ./test/clover.info
 ```
 
 ## Project use

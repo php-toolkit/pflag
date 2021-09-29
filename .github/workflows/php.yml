@@ -53,18 +53,27 @@ jobs:
       # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
       # Docs: https://getcomposer.org/doc/articles/scripts.md
 
+      # phpunit -v --debug
       - name: Run test suite
         run: |
-          phpunit -v --debug
-          php example flags-demo.php
-          php example sflags-demo.php
+          php example/flags-demo.php
+          php example/sflags-demo.php
+          phpdbg -qrr $(which phpunit) --coverage-clover ./test/clover.info
 
-      # git status && git log -1 && git fetch --tags --force
-      # git status && git log -1 && git fetch --prune --unshallow
-      # git status && git log -1 && git fetch --depth=500 --tags --force
-#      - name: Generate changelog
-#        if: ${{ matrix.os == 'ubuntu-latest' && matrix.php == '7.4' }}
-#        run: |
-#          echo "changelog list by kite"
-#          php bin/kite git chlog last head --style gh-release --no-merges --fetch-tags --unshallow --file tmp/changelog.md
-#          cat tmp/changelog.md
+      - name: Coveralls Parallel
+          uses: coverallsapp/github-action@master
+          with:
+            github-token: ${{ secrets.github_token }}
+            path-to-lcov: ./test/clover.info
+            flag-name: run-${{ matrix.php }}
+            parallel: true
+
+  finish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Coveralls Finished
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          parallel-finished: true

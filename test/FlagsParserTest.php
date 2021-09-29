@@ -45,6 +45,12 @@ class FlagsParserTest extends BaseFlagsTestCase
         $this->assertFalse($fs->hasInputOpt('name'));
         $this->assertFalse($fs->hasOpt('not-exist'));
         $this->assertNotEmpty($fs->getOptDefine('name'));
+
+        $fs->parseCmdline('bin/app --name inhere http://github.com/inhere');
+        $this->assertSame('bin/app', $fs->getScriptFile());
+        $this->assertSame('app', $fs->getScriptName());
+        $this->assertSame('inhere', $fs->getOpt('name'));
+        $this->assertSame('http://github.com/inhere', $fs->getArg('github'));
     }
 
     public function testGetOptAndGetArg(): void

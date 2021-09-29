@@ -4,6 +4,7 @@ namespace Toolkit\PFlag;
 
 use Toolkit\Cli\Cli;
 use Toolkit\Cli\Helper\FlagHelper;
+use Toolkit\Cli\Util\LineParser;
 use Toolkit\PFlag\Concern\HelperRenderTrait;
 use Toolkit\PFlag\Concern\RuleParserTrait;
 use Toolkit\PFlag\Contract\ParserInterface;
@@ -228,9 +229,22 @@ abstract class FlagsParser implements ParserInterface
         Obj::init($this, $config);
     }
 
-    public function parseFromString(string $cmdline): bool
+    /**
+     * @param string $cmdline
+     * @param bool $hasBin
+     *
+     * @return bool
+     */
+    public function parseCmdline(string $cmdline, bool $hasBin = true): bool
     {
+        $flags = LineParser::parseIt($cmdline);
 
+        if ($hasBin && $flags) {
+            $sFile = array_shift($flags);
+            $this->setScriptFile($sFile);
+        }
+
+        return $this->parse($flags);
     }
 
     /**

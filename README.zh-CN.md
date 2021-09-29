@@ -5,6 +5,7 @@
 [![Actions Status](https://github.com/php-toolkit/pflag/workflows/Unit-Tests/badge.svg)](https://github.com/php-toolkit/pflag/actions)
 [![Php Version Support](https://img.shields.io/packagist/php-v/toolkit/pflag)](https://packagist.org/packages/toolkit/pflag)
 [![Latest Stable Version](http://img.shields.io/packagist/v/toolkit/pflag.svg)](https://packagist.org/packages/toolkit/pflag)
+[![Coverage Status](https://coveralls.io/repos/github/php-toolkit/pflag/badge.svg?branch=main)](https://coveralls.io/github/php-toolkit/pflag?branch=main)
 
 `pflag` - PHP编写的，通用的命令行标志(选项和参数)解析库
 

@@ -3,7 +3,7 @@
 # 每行命令之前必须有一个tab键。如果想用其他键，可以用内置变量.RECIPEPREFIX 声明
 # mac 下这条声明 没起作用 !!
 .RECIPEPREFIX = >
-.PHONY: all usage help clean
+.PHONY: all usage help clean test
 
 # 需要注意的是，每行命令在一个单独的shell中执行。这些Shell之间没有继承关系。
 # - 解决办法是将两行命令写在一行，中间用分号分隔。
@@ -14,6 +14,7 @@
 
 # 定义变量
 #SHELL := /bin/bash
+PHPUNIT =$(which phpunit)
 
 # Full build flags used when building binaries. Not used for test compilation/execution.
 #BUILDFLAGS :=  -ldflags \
@@ -32,6 +33,12 @@ help:
 
 clean:  ## Clean all created artifacts
 	git clean --exclude=.idea/ -fdx
+
+test:  ## run phpunit tests with --debug
+	phpunit --debug
+
+cover-test:  ## run phpunit tests with --coverage-text
+	phpdbg -qrr $(PHPUNIT) --coverage-text
 
 csfix:  ## Fix code style for all files
 	php-cs-fixer fix ./
