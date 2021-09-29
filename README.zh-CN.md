@@ -6,7 +6,7 @@
 [![Php Version Support](https://img.shields.io/packagist/php-v/toolkit/pflag)](https://packagist.org/packages/toolkit/pflag)
 [![Latest Stable Version](http://img.shields.io/packagist/v/toolkit/pflag.svg)](https://packagist.org/packages/toolkit/pflag)
 
-通用 PHP 命令行标志(选项和参数)解析库
+`pflag` - PHP编写的，通用的命令行标志(选项和参数)解析库
 
 > Github: [php-toolkit/pflag](https://github.com/php-toolkit/pflag)
 
@@ -14,7 +14,7 @@
 
 ## 功能说明
 
-- 通用命令行选项和参数解析器
+- 通用的命令行选项和参数解析器
 - 支持设置值数据类型(`int,string,bool,array`)，将自动格式化输入值
 - 支持为选项/参数设置默认值
 - 支持为一个选项设置多个短名称
@@ -27,7 +27,7 @@
 
 - 选项以 `-` 或者 `--` 开头的，且首字符必须是字母
 - 以 `--` 开头的为长选项. eg: `--long` `--long value`
-- 以 `--` 开头的为短选项 `-s -a value`
+- 以 `-` 开头的为短选项 `-s -a value`
 - 支持定义数组选项
     - eg: `--tag php --tag go` 将会得到 `$tag = [php, go]`
 
@@ -259,7 +259,7 @@ array(1) {
 
 ### 解析命令行输入
 
-将代码写入 php 文件(see [example/sflags-demo.php](example/sflags-demo.php))
+将代码写入 php 文件(示例请看 [example/sflags-demo.php](example/sflags-demo.php))
 
 ```php
 use Toolkit\PFlag\SFlags;
