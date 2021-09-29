@@ -32,6 +32,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - uses: actions/cache@v2
+        with:
+          path: ~/.composer/cache/files
+          key: ${{ matrix.php }}
+
       - name: Set ENV vars
         # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
         run: |
@@ -40,11 +45,6 @@ jobs:
 
       - name: Display Env
         run: env
-
-      - uses: actions/cache@v2
-        with:
-          path: ~/.composer/cache/files
-          key: ${{ matrix.php }}
 
       # usage refer https://github.com/shivammathur/setup-php
       - name: Setup PHP
@@ -68,7 +68,7 @@ jobs:
           cat changelog.md
 
       # phpunit -v --debug
-      # phpdbg -dauto_globals_jit=Off -qrr $(which phpunit) --coverage-clover ./test/clover.info
+      # phpdbg -dauto_globals_jit=Off-qrr $(which phpunit) --coverage-clover ./test/clover.info
       - name: Run test suite
         run: |
           php example/flags-demo.php -h
