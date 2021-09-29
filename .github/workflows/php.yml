@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [7.3, 7.4, 8.0] # 7.2,
+        php: [7.3, 7.4, '8.0'] # 7.2,
 #        os: [ubuntu-latest] # , macOS-latest, windows-latest,
         coverage: ['none']
         include:
@@ -75,21 +75,21 @@ jobs:
           php example/sflags-demo.php --help
           phpunit --coverage-clover ./test/clover.info
 
-      - name: Coveralls parallel
-        uses: coverallsapp/github-action@master
-        if: matrix.coverage == 'xdebug'
-        with:
-          github-token: ${{ secrets.github_token }}
-          path-to-lcov: ./test/clover.info
-          flag-name: run-${{ matrix.php }}
-          parallel: true
-
-  finish:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Coveralls Finished
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.github_token }}
-          parallel-finished: true
+#      - name: Coveralls parallel
+#        uses: coverallsapp/github-action@master
+#        if: matrix.coverage == 'xdebug'
+#        with:
+#          github-token: ${{ secrets.github_token }}
+#          path-to-lcov: ./test/clover.info
+#          flag-name: run-${{ matrix.php }}
+#          parallel: true
+#
+#  finish:
+#    needs: test
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Coveralls Finished
+#        uses: coverallsapp/github-action@master
+#        with:
+#          github-token: ${{ secrets.github_token }}
+#          parallel-finished: true
