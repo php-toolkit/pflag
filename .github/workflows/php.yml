@@ -10,14 +10,14 @@ on:
 
 jobs:
   test:
-    name: Test on php ${{ matrix.php}} and ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: Test on php ${{ matrix.php}}
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
       fail-fast: true
       matrix:
         php: [7.3, 7.4, 8.0] # 7.2,
-        os: [ubuntu-latest] # , macOS-latest, windows-latest,
+#        os: [ubuntu-latest] # , macOS-latest, windows-latest,
         coverage: ['none']
         include:
           - description: 'Log Code Coverage'
