@@ -17,7 +17,12 @@ jobs:
       fail-fast: true
       matrix:
         php: [7.3, 7.4, 8.0] # 7.2,
-        os: [ubuntu-latest, macOS-latest] # windows-latest,
+        os: [ubuntu-latest] # , macOS-latest, windows-latest,
+        coverage: ['none']
+        include:
+          - description: 'Log Code Coverage'
+            php: '8.0'
+            coverage: 'xdebug'
 #        include: # will not testing on php 7.2
 #          - os: 'ubuntu-latest'
 #            php: '7.2'
@@ -36,38 +41,43 @@ jobs:
       - name: Display Env
         run: env
 
+      - uses: actions/cache@v2
+        with:
+          path: ~/.composer/cache/files
+          key: ${{ matrix.php }}
+
       # usage refer https://github.com/shivammathur/setup-php
       - name: Setup PHP
         timeout-minutes: 5
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php}}
-          tools: pecl, php-cs-fixer, phpunit:${{ matrix.phpunit }}
-          extensions: mbstring, dom, fileinfo, mysql, openssl, igbinary, redis # , swoole-4.4.19 #optional, setup extensions
-          ini-values: post_max_size=56M, short_open_tag=On #optional, setup php.ini configuration
-          coverage: none #optional, setup coverage driver: xdebug, none
+          tools: php-cs-fixer, phpunit:${{ matrix.phpunit }} # pecl,
+          extensions: mbstring # , swoole-4.4.19 #optional, setup extensions
+          coverage: ${{ matrix.coverage }} #optional, setup coverage driver: xdebug, none
 
       - name: Install dependencies
         run: composer update --no-progress
 
       - name: Generate changelog file
         id: changelog
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.php == '7.4' }}
+        if: ${{ matrix.php == '7.4' }}
         run: |
           wget -c -q https://github.com/inhere/kite/releases/latest/download/kite.phar
           php kite.phar git cl last head --style gh-release --no-merges --fetch-tags --unshallow --file changelog.md
           cat changelog.md
 
       # phpunit -v --debug
+      # phpdbg -dauto_globals_jit=Off -qrr $(which phpunit) --coverage-clover ./test/clover.info
       - name: Run test suite
         run: |
           php example/flags-demo.php -h
           php example/sflags-demo.php --help
-          phpdbg -qrr $(which phpunit) --coverage-clover ./test/clover.info
+          phpunit --coverage-clover ./test/clover.info
 
       - name: Coveralls parallel
         uses: coverallsapp/github-action@master
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: matrix.coverage == 'xdebug'
         with:
           github-token: ${{ secrets.github_token }}
           path-to-lcov: ./test/clover.info

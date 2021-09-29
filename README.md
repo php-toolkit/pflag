@@ -498,8 +498,10 @@ phpunit --debug
 test with coverage:
 
 ```bash
-phpdbg -qrr $(which phpunit) --coverage-text
-phpdbg -qrr $(which phpunit) --coverage-clover ./test/clover.info
+phpdbg -dauto_globals_jit=Off -qrr $(which phpunit) --coverage-text
+phpdbg -dauto_globals_jit=Off -qrr $(which phpunit) --coverage-clover ./test/clover.info
+# use xdebug
+phpunit --coverage-clover ./test/clover.info
 ```
 
 ## Project use
