@@ -48,7 +48,7 @@ jobs:
         id: changelog
         run: |
           wget -c -q https://github.com/inhere/kite/releases/latest/download/kite.phar
-          php kite.phar git cl last head --style gh-release --no-merges --fetch-tags --unshallow --file changelog.md
+          php kite.phar git cl prev last --style gh-release --no-merges --fetch-tags --unshallow --file changelog.md
           cat changelog.md
 
       # https://github.com/softprops/action-gh-release
