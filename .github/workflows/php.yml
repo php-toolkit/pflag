@@ -61,8 +61,8 @@ jobs:
       # phpunit -v --debug
       - name: Run test suite
         run: |
-          php example/flags-demo.php
-          php example/sflags-demo.php
+          php example/flags-demo.php -h
+          php example/sflags-demo.php --help
           phpdbg -qrr $(which phpunit) --coverage-clover ./test/clover.info
 
       - name: Coveralls parallel
