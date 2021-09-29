@@ -44,27 +44,12 @@ jobs:
           echo "release tag: ${tag1}"
           composer update --no-progress
 
-      # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
-      # Docs: https://getcomposer.org/doc/articles/scripts.md
-
-      # https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#steps-context
-      # - name: Generate changelog file
-      #   id: changelog
-      #   run: |
-      #     php bin/kite gh cl prev $RELEASE_TAG --style gh-release --no-merges --fetch-tags --unshallow --file tmp/changelog-${RELEASE_TAG}.md
-      #     cat tmp/changelog-${RELEASE_TAG}.md
-
-      # https://github.com/meeDamian/github-release
-#      - name: Create release and upload assets
-#        uses: meeDamian/github-release@2.0
-#        with:
-#          gzip: false
-#          token: ${{ secrets.GITHUB_TOKEN }}
-#          tag: ${{ env.RELEASE_TAG }}
-#          name: ${{ env.RELEASE_TAG }}
-#          body: |
-#              ${{ steps.changelog.outputs.CHLOGBODY }}
-#          files: kite-${{ env.RELEASE_TAG }}.phar
+      - name: Generate changelog file
+        id: changelog
+        run: |
+          wget -c -q https://github.com/inhere/kite/releases/latest/download/kite.phar
+          php kite.phar git cl last head --style gh-release --no-merges --fetch-tags --unshallow --file changelog.md
+          cat changelog.md
 
       # https://github.com/softprops/action-gh-release
       - name: Create release and upload assets
@@ -73,7 +58,7 @@ jobs:
         with:
           name: ${{ env.RELEASE_TAG }}
           tag_name: ${{ env.RELEASE_TAG }}
-          # body_path: tmp/changelog-${{ env.RELEASE_TAG }}.md
+          body_path: changelog.md
           # files: kite-${{ env.RELEASE_TAG }}.phar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

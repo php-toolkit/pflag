@@ -52,9 +52,9 @@ jobs:
 
       - name: Generate changelog file
         id: changelog
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.php == '7.4' }}
         run: |
-          wget -c https://github.com/inhere/kite/releases/download/v1.1.9/kite-v1.1.9.phar -O kite.phar
+          wget -c -q https://github.com/inhere/kite/releases/latest/download/kite.phar
           php kite.phar git cl last head --style gh-release --no-merges --fetch-tags --unshallow --file changelog.md
           cat changelog.md
 
