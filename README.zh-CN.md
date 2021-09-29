@@ -8,6 +8,8 @@
 
 通用 PHP 命令行标志(选项和参数)解析库
 
+> Github: [php-toolkit/pflag](https://github.com/php-toolkit/pflag)
+
 ## [EN README](README.md)
 
 ## 功能说明
@@ -66,7 +68,7 @@ $scriptFile = array_shift($flags);
 
 $fs = Flags::new();
 
-// （可选的）可以添加一些自定义
+// （可选的）可以添加一些自定义设置
 $fs->setScriptFile($scriptFile);
 /** @see Flags::$settings */
 $fs->setSettings([
@@ -360,15 +362,17 @@ $arrArg = $fs->getArg('arrArg'); // array{"arr0", "arr1"}
 - 支持的类型常量请看 `FlagType::*`
 
 ```php
+use Toolkit\PFlag\FlagType;
+
 $rules = [
-     // v: only value, as name and use default type FlagType::STRING
-     // k-v: key is name, value can be string|array
+     // v: 只有值，作为名称并使用默认类型 FlagType::STRING
+     // k-v: 键是名称，值可以是字符串|数组
      'long,s',
      // name => rule
-     'long,a,b' => 'int', // long is option name, a and b is shorts.
-     'f'      => 'bool',
-     'long'   => FlagType::STRING,
-     'tags'   => 'array', // can also: ints, strings
+     'long,a,b' => 'int;an int option', // long is option name, a and b is shorts.
+     'f'      => FlagType::BOOL,
+     'str1'   => ['type' => 'int', 'desc' => 'an string option'],
+     'tags'   => 'array; an array option', // can also: ints, strings
      'name'   => 'type;the description message;required;default', // with desc, default, required
 ]
 ```
@@ -384,9 +388,9 @@ $rules = [
 - 参数没有别名或者短名称
 - 数组参数只允许定义在最后
 
-**Definition item**
+**数组定义项**
 
-The const `Flags::DEFINE_ITEM`:
+常量 `Flags::DEFINE_ITEM`:
 
 ```php
 public const DEFINE_ITEM = [

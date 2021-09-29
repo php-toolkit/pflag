@@ -8,6 +8,8 @@
 
 Generic PHP command line flags parse library
 
+> Github: [php-toolkit/pflag](https://github.com/php-toolkit/pflag)
+
 ## [中文说明](README.zh-CN.md)
 
 ## Features
@@ -344,14 +346,16 @@ The options/arguments rules. Use rule can quick define an option or argument.
 - supportted type see `FlagType::*`
 
 ```php
+use Toolkit\PFlag\FlagType;
+
 $rules = [
      // v: only value, as name and use default type FlagType::STRING
      // k-v: key is name, value can be string|array
      'long,s',
      // name => rule
      'long,a,b' => 'int', // long is option name, a and b is shorts.
-     'f'      => 'bool',
-     'long'   => FlagType::STRING,
+     'f'      => FlagType::BOOL,
+     'str1'   => ['type' => 'int', 'desc' => 'an string option'],
      'tags'   => 'array', // can also: ints, strings
      'name'   => 'type;the description message;required;default', // with desc, default, required
 ]
