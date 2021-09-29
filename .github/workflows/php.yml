@@ -61,12 +61,13 @@ jobs:
           phpdbg -qrr $(which phpunit) --coverage-clover ./test/clover.info
 
       - name: Coveralls Parallel
-          uses: coverallsapp/github-action@master
-          with:
-            github-token: ${{ secrets.github_token }}
-            path-to-lcov: ./test/clover.info
-            flag-name: run-${{ matrix.php }}
-            parallel: true
+        uses: coverallsapp/github-action@master
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        with:
+          github-token: ${{ secrets.github_token }}
+          path-to-lcov: ./test/clover.info
+          flag-name: run-${{ matrix.php }}
+          parallel: true
 
   finish:
     needs: test
