@@ -130,6 +130,16 @@ interface ParserInterface
     public function getOpt(string $name, $default = null);
 
     /**
+     * Must get an option value by name, will throw exception on not input
+     *
+     * @param string $name
+     * @param string $errMsg
+     *
+     * @return mixed
+     */
+    public function getMustOpt(string $name, string $errMsg = '');
+
+    /**
      * @param string $name
      *
      * @return array
@@ -198,9 +208,10 @@ interface ParserInterface
     public function getArg($nameOrIndex, $default = null);
 
     /**
-     * Get an argument value by name, will throw exception on not input
+     * Must get an argument value by name, will throw exception on not input
      *
      * @param string|int $nameOrIndex
+     * @param string $errMsg
      *
      * @return mixed
      */

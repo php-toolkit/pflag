@@ -807,12 +807,26 @@ class SFlags extends FlagsParser
             return $this->opts[$name];
         }
 
-        $define = $this->optDefines[$name] ?? [];
-        if (!$define) { // not exist option
-            throw new FlagException("flag option '$name' is undefined");
-        }
+        $define = $this->getOptDefine($name);
 
         return $default ?? FlagType::getDefault($define['type']);
+    }
+
+    /**
+     * @param string $name
+     * @param string $errMsg
+     *
+     * @return mixed
+     */
+    public function getMustOpt(string $name, string $errMsg = '')
+    {
+        if (isset($this->opts[$name])) {
+            return $this->opts[$name];
+        }
+
+        $this->getOptDefine($name);
+        $errMsg = $errMsg ?: "The option '$name' is required";
+        throw new InvalidArgumentException($errMsg);
     }
 
     /**

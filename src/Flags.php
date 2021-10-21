@@ -899,10 +899,7 @@ class Flags extends FlagsParser
      */
     public function getOpt(string $name, $default = null)
     {
-        $opt = $this->getOption($name);
-        if (!$opt) { // not exist
-            throw new FlagException("flag option '$name' is undefined");
-        }
+        $opt = $this->mustGetOption($name);
 
         if ($opt->hasValue()) {
             return $opt->getValue();
@@ -913,15 +910,29 @@ class Flags extends FlagsParser
 
     /**
      * @param string $name
+     * @param string $errMsg
+     *
+     * @return mixed
+     */
+    public function getMustOpt(string $name, string $errMsg = '')
+    {
+        $opt = $this->mustGetOption($name);
+
+        if ($opt->hasValue()) {
+            return $opt->getValue();
+        }
+
+        $errMsg = $errMsg ?: "The option '$name' is required";
+        throw new InvalidArgumentException($errMsg);
+    }
+
+    /**
+     * @param string $name
      * @param mixed $value
      */
     public function setOpt(string $name, $value): void
     {
-        $opt = $this->getDefinedOption($name);
-        if (!$opt) { // not exist
-            throw new FlagException("flag option '$name' is undefined");
-        }
-
+        $opt = $this->mustGetOption($name);
         $opt->setValue($value);
     }
 
@@ -931,22 +942,8 @@ class Flags extends FlagsParser
      */
     public function setTrustedOpt(string $name, $value): void
     {
-        $opt = $this->getOption($name);
-        if (!$opt) { // not exist option
-            throw new FlagException("flag option '$name' is undefined");
-        }
-
+        $opt = $this->mustGetOption($name);
         $opt->setTrustedValue($value);
-    }
-
-    /**
-     * @param string $name
-     *
-     * @return Option|null
-     */
-    public function getOption(string $name): ?Option
-    {
-        return $this->options[$name] ?? null;
     }
 
     /**
@@ -956,12 +953,24 @@ class Flags extends FlagsParser
      */
     public function getOptDefine(string $name): array
     {
+        $opt = $this->mustGetOption($name);
+
+        return $opt->toArray();
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return Option
+     */
+    protected function mustGetOption(string $name): Option
+    {
         $opt = $this->getOption($name);
         if (!$opt) { // not exist option
             throw new FlagException("flag option '$name' is undefined");
         }
 
-        return $opt->toArray();
+        return $opt;
     }
 
     /**
@@ -1031,6 +1040,18 @@ class Flags extends FlagsParser
     }
 
     /**
+     * @param string $name
+     *
+     * @return Option|null
+     */
+    public function getOption(string $name): ?Option
+    {
+        return $this->options[$name] ?? null;
+    }
+
+    /**
+     * Alias of the getOption();
+     *
      * @param string $name
      *
      * @return Option|null

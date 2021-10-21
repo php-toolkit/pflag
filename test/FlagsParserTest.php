@@ -68,9 +68,18 @@ class FlagsParserTest extends BaseFlagsTestCase
         $ok = $fs->parse(['--str-opt1', 'val1', '--int-opt', '335', '233']);
         $this->assertTrue($ok);
         $this->assertSame(335, $fs->getOpt('int-opt'));
+        $this->assertSame(335, $fs->getMustOpt('int-opt'));
         $this->assertSame(233, $fs->getArg('int-arg'));
         $this->assertSame(233, $fs->getMustArg('int-arg'));
         $fs->resetResults();
+
+        // getMustOpt
+        $e = $this->runAndGetException(function (FlagsParser $fs) {
+            $fs->getMustOpt('str-opt');
+        }, $fs);
+
+        $this->assertSame(InvalidArgumentException::class, get_class($e));
+        $this->assertSame("The option 'str-opt' is required", $e->getMessage());
 
         // getMustArg
         $e = $this->runAndGetException(function (FlagsParser $fs) {
