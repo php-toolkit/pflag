@@ -9,6 +9,7 @@
 
 namespace Toolkit\PFlag;
 
+use InvalidArgumentException;
 use RuntimeException;
 use Toolkit\PFlag\Contract\ParserInterface;
 use Toolkit\PFlag\Exception\FlagException;
@@ -589,11 +590,7 @@ class Flags extends FlagsParser
      */
     public function setArg($nameOrIndex, $value): void
     {
-        $arg = $this->getArgument($nameOrIndex);
-        if (!$arg) { // not exist
-            throw new FlagException("flag argument '$nameOrIndex' is undefined");
-        }
-
+        $arg = $this->mustGetArgument($nameOrIndex);
         $arg->setValue($value);
     }
 
@@ -603,12 +600,29 @@ class Flags extends FlagsParser
      */
     public function setTrustedArg(string $name, $value): void
     {
-        $arg = $this->getArgument($name);
-        if (!$arg) { // not exist
-            throw new FlagException("flag argument '$name' is undefined");
-        }
+        $arg = $this->mustGetArgument($name);
 
         $arg->setTrustedValue($value);
+    }
+
+    /**
+     * @param string|int $nameOrIndex
+     *
+     * @return mixed
+     */
+    public function getMustArg($nameOrIndex, string $errMsg = '')
+    {
+        $arg = $this->mustGetArgument($nameOrIndex);
+        if ($arg->hasValue()) {
+            return $arg->getValue();
+        }
+
+        if (!$errMsg) {
+            $errName = $arg->getNameMark();
+            $errMsg  = "The argument '$errName' is required";
+        }
+
+        throw new InvalidArgumentException($errMsg);
     }
 
     /**
@@ -619,16 +633,28 @@ class Flags extends FlagsParser
      */
     public function getArg($nameOrIndex, $default = null)
     {
-        $arg = $this->getArgument($nameOrIndex);
-        if (!$arg) { // not exist
-            throw new FlagException("flag argument '$nameOrIndex' is undefined");
-        }
+        $arg = $this->mustGetArgument($nameOrIndex);
 
         if ($arg->hasValue()) {
             return $arg->getValue();
         }
 
         return $default ?? $arg->getTypeDefault();
+    }
+
+    /**
+     * @param string|int $nameOrIndex
+     *
+     * @return Argument
+     */
+    protected function mustGetArgument($nameOrIndex): Argument
+    {
+        $arg = $this->getArgument($nameOrIndex);
+        if (!$arg) { // not exist
+            throw new FlagException("flag argument '$nameOrIndex' is undefined");
+        }
+
+        return $arg;
     }
 
     /**

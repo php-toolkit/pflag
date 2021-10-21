@@ -2,6 +2,7 @@
 
 namespace Toolkit\PFlagTest;
 
+use InvalidArgumentException;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\FlagsParser;
 use function get_class;
@@ -68,7 +69,16 @@ class FlagsParserTest extends BaseFlagsTestCase
         $this->assertTrue($ok);
         $this->assertSame(335, $fs->getOpt('int-opt'));
         $this->assertSame(233, $fs->getArg('int-arg'));
+        $this->assertSame(233, $fs->getMustArg('int-arg'));
         $fs->resetResults();
+
+        // getMustArg
+        $e = $this->runAndGetException(function (FlagsParser $fs) {
+            $fs->getMustArg('str-arg');
+        }, $fs);
+
+        $this->assertSame(InvalidArgumentException::class, get_class($e));
+        $this->assertSame("The argument '#1(str-arg)' is required", $e->getMessage());
     }
 
     public function testParse_specialArg(): void

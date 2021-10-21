@@ -96,7 +96,7 @@ class SFlags extends FlagsParser
     private $name2index = [];
 
     /**
-     * Parsed argument values
+     * Parsed input argument values
      * - key is a self-increasing index
      *
      * ```php
@@ -895,12 +895,9 @@ class SFlags extends FlagsParser
      */
     public function setArg($nameOrIndex, $value): void
     {
-        $index = $this->getArgIndex($nameOrIndex);
-        if ($index < 0) {
-            throw new FlagException("flag argument '$nameOrIndex' is undefined");
-        }
-
+        $index  = $this->mustGetArgIndex($nameOrIndex);
         $define = $this->argDefines[$index];
+
         // set value
         $this->args[$index] = FlagType::fmtBasicTypeValue($define['type'], $value);
     }
@@ -911,10 +908,7 @@ class SFlags extends FlagsParser
      */
     public function setTrustedArg(string $name, $value): void
     {
-        $index = $this->getArgIndex($name);
-        if ($index < 0) {
-            throw new FlagException("flag argument '$name' is undefined");
-        }
+        $index = $this->mustGetArgIndex($name);
 
         $this->args[$index] = $value;
     }
@@ -927,10 +921,7 @@ class SFlags extends FlagsParser
      */
     public function getArg($nameOrIndex, $default = null)
     {
-        $index = $this->getArgIndex($nameOrIndex);
-        if ($index < 0) {
-            throw new FlagException("flag argument '$nameOrIndex' is undefined");
-        }
+        $index = $this->mustGetArgIndex($nameOrIndex);
 
         if (isset($this->args[$index])) {
             return $this->args[$index];
@@ -939,6 +930,42 @@ class SFlags extends FlagsParser
         // get default with type format
         $define = $this->argDefines[$index];
         return $default ?? FlagType::getDefault($define['type']);
+    }
+
+    /**
+     * @param string|int $nameOrIndex
+     *
+     * @return mixed
+     */
+    public function getMustArg($nameOrIndex, string $errMsg = '')
+    {
+        $index = $this->mustGetArgIndex($nameOrIndex);
+        if (isset($this->args[$index])) {
+            return $this->args[$index];
+        }
+
+        if (!$errMsg) {
+            $define  = $this->argDefines[$index];
+            $errName = $define['name'] ? "#$index({$define['name']})" : "#$index";
+            $errMsg  = "The argument '$errName' is required";
+        }
+
+        throw new InvalidArgumentException($errMsg);
+    }
+
+    /**
+     * @param string|int $nameOrIndex
+     *
+     * @return int
+     */
+    protected function mustGetArgIndex($nameOrIndex): int
+    {
+        $index = $this->getArgIndex($nameOrIndex);
+        if ($index < 0) {
+            throw new FlagException("flag argument '$nameOrIndex' is undefined");
+        }
+
+        return $index;
     }
 
     /**

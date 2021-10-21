@@ -198,6 +198,15 @@ interface ParserInterface
     public function getArg($nameOrIndex, $default = null);
 
     /**
+     * Get an argument value by name, will throw exception on not input
+     *
+     * @param string|int $nameOrIndex
+     *
+     * @return mixed
+     */
+    public function getMustArg($nameOrIndex, string $errMsg = '');
+
+    /**
      * Set trusted argument value, will not format and validate value.
      *
      * @param string|int $nameOrIndex
