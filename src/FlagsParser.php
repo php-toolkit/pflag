@@ -61,6 +61,7 @@ abstract class FlagsParser implements ParserInterface
         'envVar'    => '', // support read value from ENV var
         'default'   => null,
         'shorts'    => [], // only for option. ['a', 'b']
+        'hidden'    => false, // only for option
         // value validator
         'validator' => null,
         // 'category' => null

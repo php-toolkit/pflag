@@ -1031,6 +1031,10 @@ class SFlags extends FlagsParser
     {
         $helpData = [];
         foreach ($this->optDefines as $name => $define) {
+            if ($this->showHiddenOpt === false && $define['hidden']) {
+                continue;
+            }
+
             $names   = $define['shorts'];
             $names[] = $name;
 

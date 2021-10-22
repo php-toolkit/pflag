@@ -49,6 +49,11 @@ class Option extends AbstractFlag
     private $shortcut = '';
 
     /**
+     * @var bool
+     */
+    private $hidden = false;
+
+    /**
      * @return bool
      */
     public function isBoolean(): bool
@@ -158,6 +163,22 @@ class Option extends AbstractFlag
         }
 
         return implode(', ', $nodes);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isHidden(): bool
+    {
+        return $this->hidden;
+    }
+
+    /**
+     * @param bool $hidden
+     */
+    public function setHidden(bool $hidden): void
+    {
+        $this->hidden = $hidden;
     }
 
     /**

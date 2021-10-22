@@ -1028,6 +1028,10 @@ class Flags extends FlagsParser
     {
         $helpData = [];
         foreach ($this->options as $name => $opt) {
+            if ($this->showHiddenOpt === false && $opt['hidden']) {
+                continue;
+            }
+
             $names   = $opt['shorts'];
             $names[] = $name;
 

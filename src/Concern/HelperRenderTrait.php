@@ -71,6 +71,11 @@ trait HelperRenderTrait
     protected $showTypeOnHelp = true;
 
     /**
+     * @var bool
+     */
+    protected $showHiddenOpt = false;
+
+    /**
      * Will call it on before print help message
      *
      * @var callable
@@ -287,6 +292,11 @@ trait HelperRenderTrait
 
         /** @var array|Option $opt {@see FlagsParser::DEFINE_ITEM} */
         foreach ($optDefines as $name => $opt) {
+            // hidden option
+            if ($this->showHiddenOpt === false && $opt['hidden']) {
+                continue;
+            }
+
             $names = $opt['shorts'];
             /** @see Option support alias name. */
             if (isset($opt['alias']) && $opt['alias']) {
@@ -437,5 +447,13 @@ trait HelperRenderTrait
     public function setBeforePrintHelp(callable $beforePrintHelp): void
     {
         $this->beforePrintHelp = $beforePrintHelp;
+    }
+
+    /**
+     * @param bool $showHiddenOpt
+     */
+    public function setShowHiddenOpt(bool $showHiddenOpt): void
+    {
+        $this->showHiddenOpt = $showHiddenOpt;
     }
 }
