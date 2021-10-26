@@ -6,6 +6,7 @@ use Toolkit\PFlag\FlagsParser;
 
 /**
  * class ValueCollector
+ * - collect value by start i-shell env.
  */
 class ValueCollector
 {
