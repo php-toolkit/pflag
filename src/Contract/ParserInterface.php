@@ -247,20 +247,32 @@ interface ParserInterface
     public function getArgs(): array;
 
     /**
-     * Get args help data
+     * Get args help lines data
+     *
+     * ```php
+     * [
+     *  helpName => format desc,
+     * ]
+     * ```
      *
      * @return array
      * @psalm-return array<string, string>
      */
-    public function getArgsHelpData(): array;
+    public function getArgsHelpLines(): array;
 
     /**
-     * Get opts help data
+     * Get opts help lines data
+     *
+     * ```php
+     * [
+     *  helpName => format desc,
+     * ]
+     * ```
      *
      * @return array
      * @psalm-return array<string, string>
      */
-    public function getOptsHelpData(): array;
+    public function getOptsHelpLines(): array;
 
     public function lock(): void;
 

@@ -1012,7 +1012,7 @@ class SFlags extends FlagsParser
     /**
      * @return array
      */
-    public function getArgsHelpData(): array
+    public function getArgsHelpLines(): array
     {
         $helpData = [];
         foreach ($this->argDefines as $define) {
@@ -1027,23 +1027,19 @@ class SFlags extends FlagsParser
     /**
      * @return array
      */
-    public function getOptsHelpData(): array
+    public function getOptsHelpLines(): array
     {
-        $helpData = [];
-        foreach ($this->optDefines as $name => $define) {
-            if ($this->showHiddenOpt === false && $define['hidden']) {
+        $helpLines = [];
+        foreach ($this->optDefines as $name => $opt) {
+            if ($this->showHiddenOpt === false && $opt['hidden']) {
                 continue;
             }
 
-            $names   = $define['shorts'];
-            $names[] = $name;
-
-            $helpName = FlagUtil::buildOptHelpName($names);
-
-            $helpData[$helpName] = ucfirst($define['desc']);
+            [$helpName, $fmtDesc] = $this->buildOptHelpLine($name, $opt);
+            $helpLines[$helpName]  = $fmtDesc;
         }
 
-        return $helpData;
+        return $helpLines;
     }
 
     /**

@@ -23,6 +23,7 @@ use function sprintf;
 use function strlen;
 use function strpos;
 use function trim;
+use function ucfirst;
 
 /**
  * trait HelperRenderTrait
@@ -199,8 +200,7 @@ trait HelperRenderTrait
      */
     protected function formatDesc($define): array
     {
-        $desc = $define['desc'];
-
+        $desc = $define['desc'] ?: 'No description';
         if ($define['required']) {
             $desc = '<red1>*</red1>' . $desc;
         }
@@ -335,6 +335,36 @@ trait HelperRenderTrait
         // set opt name len
         $this->settings['optNameLen'] = IntHelper::getMin($nameLen, $maxLen);
         return $fmtOpts;
+    }
+
+    /**
+     * @param string $name
+     * @param array $opt
+     *
+     * @return array<string, string>
+     */
+    protected function buildOptHelpLine(string $name, array $opt): array
+    {
+        $names   = $opt['shorts'];
+        $names[] = $name;
+
+        $helpName = FlagUtil::buildOptHelpName($names);
+
+        // show type name.
+        if ($this->showTypeOnHelp) {
+            $typeName = $opt['helpType'] ?: FlagType::getHelpName($opt['type']);
+            $helpName .= $typeName ? " $typeName" : '';
+        }
+
+        $opt['desc'] = $opt['desc'] ? ucfirst($opt['desc']) : "Option $name";
+
+        // format desc
+        [$desc, $otherLines] = $this->formatDesc($opt);
+        if ($otherLines) {
+            $desc .= "\n" . implode("\n", $otherLines);
+        }
+
+        return [$helpName, $desc];
     }
 
     /****************************************************************

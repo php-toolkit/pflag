@@ -28,6 +28,7 @@ use function sprintf;
 use function str_split;
 use function strlen;
 use function substr;
+use function ucfirst;
 
 /**
  * Class Flags
@@ -1009,7 +1010,7 @@ class Flags extends FlagsParser
     /**
      * @return array
      */
-    public function getArgsHelpData(): array
+    public function getArgsHelpLines(): array
     {
         $helpData = [];
         foreach ($this->arguments as $arg) {
@@ -1024,7 +1025,7 @@ class Flags extends FlagsParser
     /**
      * @return array
      */
-    public function getOptsHelpData(): array
+    public function getOptsHelpLines(): array
     {
         $helpData = [];
         foreach ($this->options as $name => $opt) {
@@ -1032,12 +1033,8 @@ class Flags extends FlagsParser
                 continue;
             }
 
-            $names   = $opt['shorts'];
-            $names[] = $name;
-
-            $helpName = FlagUtil::buildOptHelpName($names);
-            // append
-            $helpData[$helpName] = $opt->getDesc(true);
+            [$helpName, $fmtDesc] = $this->buildOptHelpLine($name, $opt->toArray());
+            $helpData[$helpName]  = $fmtDesc;
         }
 
         return $helpData;
