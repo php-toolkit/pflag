@@ -9,6 +9,7 @@ use Toolkit\PFlag\FlagType;
 use Toolkit\Stdlib\Arr;
 use Toolkit\Stdlib\Str;
 use function array_shift;
+use function array_unshift;
 use function is_array;
 use function is_callable;
 use function is_int;
@@ -205,7 +206,7 @@ trait RuleParserTrait
             $rule = trim((string)$rule, FlagsParser::TRIM_CHARS);
 
             // not found sep char.
-            if (strpos($rule, $sep) === false) {
+            if (!str_contains($rule, $sep)) {
                 // has multi words, is an desc string.
                 if (strpos($rule, ' ') > 1) {
                     $item['desc'] = $rule;
@@ -216,15 +217,21 @@ trait RuleParserTrait
                 $limit = $isOption ? 5 : 4;
                 $nodes = Str::splitTrimmed($rule, $sep, $limit);
 
+                // optimize: has multi words, is an desc. auto padding type: string
+                if (strpos($nodes[0], ' ') > 1) {
+                    array_unshift($nodes, FlagType::STRING);
+                }
+
                 // first is type.
                 $item['type'] = $nodes[0];
-                // second is required
-                $item['required'] = false;
-                if (!empty($nodes[1])) { // desc
+
+                // second is desc
+                if (!empty($nodes[1])) {
                     $item['desc'] = $nodes[1];
                 }
 
                 // required
+                $item['required'] = false;
                 if (isset($nodes[2]) && ($nodes[2] === 'required' || Str::toBool($nodes[2]))) {
                     $item['required'] = true;
                 }
