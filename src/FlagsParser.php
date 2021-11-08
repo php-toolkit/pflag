@@ -11,6 +11,7 @@ use Toolkit\PFlag\Contract\ParserInterface;
 use Toolkit\Stdlib\Obj;
 use Toolkit\Stdlib\Obj\Traits\NameAliasTrait;
 use Toolkit\Stdlib\Obj\Traits\QuickInitTrait;
+use Toolkit\Stdlib\Str;
 use function array_merge;
 use function array_shift;
 use function array_values;
@@ -374,6 +375,32 @@ abstract class FlagsParser implements ParserInterface
      * @return string
      */
     abstract public function buildHelp(bool $withColor = true): string;
+
+    /**
+     * @param string $name
+     * @param string $sep
+     *
+     * @return string[]
+     */
+    public function getOptStrAsArray(string $name, string $sep = ','): array
+    {
+        $str = $this->getOpt($name);
+
+        return $str ? Str::toNoEmptyArray($str, $sep) : [];
+    }
+
+    /**
+     * @param string $name
+     * @param string $sep
+     *
+     * @return int[]
+     */
+    public function getOptStrAsInts(string $name, string $sep = ','): array
+    {
+        $str = $this->getOpt($name);
+
+        return $str ? Str::toInts($str, $sep) : [];
+    }
 
     /****************************************************************
      * getter/setter methods
