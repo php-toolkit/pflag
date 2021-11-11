@@ -4,6 +4,7 @@ namespace Toolkit\PFlagTest\Concern;
 
 use Toolkit\PFlagTest\BaseFlagsTestCase;
 use Toolkit\PFlagTest\RuleParser;
+use function vdump;
 
 /**
  * class RuleParserTest
@@ -40,4 +41,15 @@ class RuleParserTest extends BaseFlagsTestCase
         $this->assertSame(['23', '45'], $define['default']);
     }
 
+
+    public function testParseRule_string_hasAliases(): void
+    {
+        $p = RuleParser::new();
+
+        $define = $p->parseOpt('this is an string', '-t, --tpl, --tpl-file');
+
+        $this->assertEquals('tpl-file', $define['name']);
+        $this->assertEquals(['tpl'], $define['aliases']);
+        $this->assertEquals(['t'], $define['shorts']);
+    }
 }

@@ -23,7 +23,7 @@ use function vdump;
  */
 class FlagsTest extends BaseFlagsTestCase
 {
-    public function testParse(): void
+    public function testAddOptionAndParse(): void
     {
         $fs = Flags::new();
         $fs->addOption(Option::new('name'));

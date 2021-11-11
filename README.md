@@ -17,6 +17,7 @@ Generic PHP command line flags parse library
 
 - Generic command line options and arguments parser.
 - Support set value data type(`int,string,bool,array`), will auto format input value.
+- Support set multi alias names for an option.
 - Support set multi short names for an option.
 - Support set default value for option/argument.
 - Support read flag value from ENV var.

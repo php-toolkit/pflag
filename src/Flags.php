@@ -340,7 +340,7 @@ class Flags extends FlagsParser
     {
         $name = $this->resolveAlias($name);
         if (!isset($this->options[$name])) {
-            throw new FlagException("flag option provided but not defined: $name", 404);
+            throw new FlagException("cannot set value for not defined option: $name", 404);
         }
 
         $this->options[$name]->setValue($value);
@@ -759,7 +759,7 @@ class Flags extends FlagsParser
      * @param mixed  $default
      * @param array  $moreInfo
      *
-     * @psalm-param array{alias: string, helpType: string} $moreInfo
+     * @psalm-param array{aliases: array, helpType: string} $moreInfo
      *
      * @return ParserInterface|self
      */
@@ -774,7 +774,7 @@ class Flags extends FlagsParser
     ): ParserInterface {
         /** @var Option $opt */
         $opt = Option::new($name, $desc, $type, $required, $default);
-        $opt->setAlias($moreInfo['alias'] ?? '');
+        $opt->setAliases($moreInfo['aliases'] ?? []);
         $opt->setShortcut($shortcut);
 
         $this->addOption($opt);
@@ -797,8 +797,8 @@ class Flags extends FlagsParser
         /** @var Option $option */
         $option = Option::newByArray($define['name'], $define);
 
-        if (is_array($rule) && isset($rule['alias'])) {
-            $option->setAlias($rule['alias']);
+        if (is_array($rule) && isset($rule['aliases'])) {
+            $option->setAliases($rule['aliases']);
         }
 
         parent::addOptByRule($name, $rule);
@@ -831,13 +831,15 @@ class Flags extends FlagsParser
             throw new FlagException('cannot repeat add option: ' . $name);
         }
 
-        // has alias
-        if ($alias = $option->getAlias()) {
-            if (isset($this->options[$alias])) {
-                throw new FlagException("cannot assign alias '$alias' to option '$name', '$alias' is exists option");
-            }
+        // has aliases
+        if ($aliases = $option->getAliases()) {
+            foreach ($aliases as $alias) {
+                if (isset($this->options[$alias])) {
+                    throw new FlagException("cannot assign alias '$alias' to option '$name', '$alias' is exists option");
+                }
 
-            $this->setAlias($name, $alias, true);
+                $this->setAlias($name, $alias, true);
+            }
         }
 
         // has shorts

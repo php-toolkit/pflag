@@ -54,6 +54,13 @@ class FlagsParserTest extends BaseFlagsTestCase
         $this->assertSame('http://github.com/inhere', $fs->getArg('github'));
     }
 
+    // public function testOption_aliases(): void
+    // {
+    //     $this->runTestsWithParsers(function (FlagsParser $fs) {
+    //         // $fs->addOptByRule('', $rule)
+    //     });
+    // }
+
     public function testGetOptAndGetArg(): void
     {
         $this->runTestsWithParsers(function (FlagsParser $fs) {
@@ -271,7 +278,7 @@ class FlagsParserTest extends BaseFlagsTestCase
             ]);
         }, $fs);
 
-        $this->assertSame(FlagException::class, get_class($e));
+        $this->assertEquals(FlagException::class, get_class($e));
 
         $e = $this->runAndGetException(function (FlagsParser $fs) {
             $fs->addArgsByRules([

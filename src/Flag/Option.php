@@ -28,18 +28,18 @@ use function strlen;
 class Option extends AbstractFlag
 {
     /**
-     * alias name
-     *
-     * @var string
-     */
-    private $alias = '';
-
-    /**
      * Shortcuts of the option. eg: ['a', 'b']
      *
      * @var array
      */
     private $shorts = [];
+
+    /**
+     * alias names
+     *
+     * @var string[]
+     */
+    private $aliases = [];
 
     /**
      * Shortcuts of the option, string format. eg: 'a|b'
@@ -62,11 +62,21 @@ class Option extends AbstractFlag
     }
 
     /**
-     * @return string
+     * @return string[]
      */
-    public function getAlias(): string
+    public function getAliases(): array
     {
-        return $this->alias;
+        return $this->aliases;
+    }
+
+    /**
+     * @param string[] $aliases
+     */
+    public function setAliases(array $aliases): void
+    {
+        foreach ($aliases as $alias) {
+            $this->setAlias($alias);
+        }
     }
 
     /**
@@ -86,7 +96,7 @@ class Option extends AbstractFlag
             throw new FlagException('flag option alias length cannot be < 2 ');
         }
 
-        $this->alias = $alias;
+        $this->aliases[] = $alias;
     }
 
     /**
@@ -146,11 +156,8 @@ class Option extends AbstractFlag
      */
     public function getHelpName(): string
     {
-        $longs = [];
-        if ($this->alias) {
-            $longs[] = $this->alias;
-        }
-
+        $longs = $this->aliases;
+        // append name
         $longs[] = $this->name;
 
         // prepend '--'
@@ -188,8 +195,9 @@ class Option extends AbstractFlag
     {
         $info = parent::toArray();
 
-        $info['alias']  = $this->alias;
-        $info['shorts'] = $this->shorts;
+        $info['aliases'] = $this->aliases;
+        $info['shorts']  = $this->shorts;
         return $info;
     }
+
 }

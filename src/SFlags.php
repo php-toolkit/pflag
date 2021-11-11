@@ -495,7 +495,7 @@ class SFlags extends FlagsParser
     {
         $option = $this->resolveAlias($option);
         if (!isset($this->optDefines[$option])) {
-            throw new FlagException("flag option provided but not defined: $option", 404);
+            throw new FlagException("cannot set value for not defined option: $option", 404);
         }
 
         $define = $this->optDefines[$option];
@@ -694,6 +694,13 @@ class SFlags extends FlagsParser
         // support read value from ENV var
         if ($define['envVar'] && ($envVal = OS::getEnvVal($define['envVar']))) {
             $this->opts[$name] = FlagType::fmtBasicTypeValue($type, $envVal);
+        }
+
+        // has shorts
+        if ($define['aliases']) {
+            foreach ($define['aliases'] as $alias) {
+                $this->setAlias($name, $alias, true);
+            }
         }
 
         // has shorts

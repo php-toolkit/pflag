@@ -142,7 +142,7 @@ trait RuleParserTrait
     /**
      * Add and argument by rule
      *
-     * @param string|int $name
+     * @param string $name
      * @param string|array $rule please see {@see argRules}
      *
      * @return $this
@@ -251,10 +251,11 @@ trait RuleParserTrait
         $name = $name ?: $item['name'];
         if ($isOption) {
             // parse option name.
-            [$name, $shorts] = $this->parseRuleOptName($name);
+            [$name, $shorts, $aliases] = $this->parseRuleOptName($name);
 
-            // save alias
-            $item['shorts'] = $shorts ?: $shortsFromRule;
+            // save shorts and aliases
+            $item['shorts']  = $shorts ?: $shortsFromRule;
+            $item['aliases'] = $aliases;
         } else {
             $item['index'] = $index;
         }
@@ -268,7 +269,7 @@ trait RuleParserTrait
      *
      * @param string $key 'lang,s' => option name is 'lang', alias 's'
      *
-     * @return array [name, shorts]
+     * @return array{string, array, array} [name, shorts, aliases]
      */
     protected function parseRuleOptName(string $key): array
     {
@@ -278,26 +279,34 @@ trait RuleParserTrait
         }
 
         // only name.
-        if (strpos($key, ',') === false) {
+        if (!str_contains($key, ',')) {
             $name = ltrim($key, '-');
-            return [$name, []];
+            return [$name, [], []];
         }
 
         $name = '';
         $keys = Str::explode($key, ',');
 
-        // TIP: first is the option name. remaining is shorts.
-        $shorts = [];
+        $shorts = $aliases = [];
         foreach ($keys as $k) {
             // support like '--name, -n'
             $k = ltrim($k, '-');
 
-            // long string as option name.
-            if (!$name && strlen($k) > 1) {
-                $name = $k;
+            // max length string as option name.
+            if (($kl = strlen($k)) > 1) {
+                if (!$name ) {
+                    $name = $k;
+                } elseif ($kl > strlen($name)) {
+                    $aliases[] = $name;
+                    // update name
+                    $name = $k;
+                } else {
+                    $aliases[] = $k;
+                }
                 continue;
             }
 
+            // one char, as shorts
             $shorts[] = $k;
         }
 
@@ -306,7 +315,7 @@ trait RuleParserTrait
             $name = array_shift($shorts);
         }
 
-        return [$name, $shorts];
+        return [$name, $shorts, $aliases];
     }
 
     /**

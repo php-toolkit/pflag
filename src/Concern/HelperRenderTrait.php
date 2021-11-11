@@ -11,6 +11,7 @@ use Toolkit\PFlag\FlagUtil;
 use Toolkit\Stdlib\Helper\DataHelper;
 use Toolkit\Stdlib\Helper\IntHelper;
 use Toolkit\Stdlib\Str;
+use function array_push;
 use function array_shift;
 use function count;
 use function explode;
@@ -79,7 +80,7 @@ trait HelperRenderTrait
     /**
      * Will call it on before print help message
      *
-     * @var callable
+     * @var callable(string): string
      */
     private $beforePrintHelp;
 
@@ -298,9 +299,9 @@ trait HelperRenderTrait
             }
 
             $names = $opt['shorts'];
-            /** @see Option support alias name. */
-            if (isset($opt['alias']) && $opt['alias']) {
-                $names[] = $opt['alias'];
+            // support multi alias names.
+            if (isset($opt['aliases']) && $opt['aliases']) {
+                array_push($names, ...$opt['aliases']);
             }
 
             // option name.
@@ -472,7 +473,7 @@ trait HelperRenderTrait
     }
 
     /**
-     * @param callable $beforePrintHelp
+     * @param callable(string): string $beforePrintHelp
      */
     public function setBeforePrintHelp(callable $beforePrintHelp): void
     {

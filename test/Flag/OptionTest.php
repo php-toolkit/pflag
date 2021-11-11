@@ -18,12 +18,12 @@ class OptionTest extends BaseFlagsTestCase
         $this->assertFalse($opt->hasDefault());
         $this->assertFalse($opt->hasValue());
 
-        $opt->setAlias('n1');
-        $this->assertSame('n1', $opt->getAlias());
-        $this->assertSame('--n1, --name', $opt->getHelpName());
+        $opt->setAliases(['n1', 'n2']);
+        $this->assertSame(['n1', 'n2'], $opt->getAliases());
+        $this->assertSame('--n1, --n2, --name', $opt->getHelpName());
 
         $opt->setShortcut('n');
-        $this->assertSame('-n, --n1, --name', $opt->getHelpName());
+        $this->assertEquals('-n, --n1, --n2, --name', $opt->getHelpName());
 
         $opt->setDefault(89);
         $this->assertTrue($opt->hasDefault());
