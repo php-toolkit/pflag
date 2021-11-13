@@ -14,10 +14,15 @@
     repo: 'php-toolkit/pflag',
     maxLevel: 4,
     // 加载 _navbar.md
-    // loadNavbar: true,
-    loadNavbar: 'https://raw.githubusercontent.com/inhere/conf/master/docsify/php-projects.md',
+    loadNavbar: true,
+    // loadNavbar: 'https://raw.githubusercontent.com/inhere/conf/master/docsify/php-projects.md',
     // 加载 _sidebar.md
     // loadSidebar: true,
+    alias: {
+      // '/_navbar.md': 'https://raw.githubusercontent.com/inhere/conf/master/docsify/php-projects.md',
+      '/.*/_sidebar.md': 'https://raw.githubusercontent.com/inhere/conf/master/docsify/php-projects.md',
+      // '/.*/_sidebar.md': '/_sidebar.md', // See #301
+    }
   }
 </script>
 <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
