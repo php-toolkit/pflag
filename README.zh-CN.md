@@ -6,12 +6,11 @@
 [![Php Version Support](https://img.shields.io/packagist/php-v/toolkit/pflag)](https://packagist.org/packages/toolkit/pflag)
 [![Latest Stable Version](http://img.shields.io/packagist/v/toolkit/pflag.svg)](https://packagist.org/packages/toolkit/pflag)
 [![Coverage Status](https://coveralls.io/repos/github/php-toolkit/pflag/badge.svg?branch=main)](https://coveralls.io/github/php-toolkit/pflag?branch=main)
+[![English readme](https://img.shields.io/badge/English-Readme-brightgreen.svg?style=for-the-badge&maxAge=2592000)](README.md)
 
 `pflag` - PHP编写的，通用的命令行标志(选项和参数)解析库
 
 > Github: [php-toolkit/pflag](https://github.com/php-toolkit/pflag)
-
-## [EN README](README.md)
 
 ## 功能说明
 
