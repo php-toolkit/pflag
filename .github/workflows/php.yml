@@ -61,7 +61,7 @@ jobs:
 
       - name: Generate changelog file
         id: changelog
-        if: ${{ matrix.php == '7.4' }}
+        if: ${{ matrix.php == '8.0' }}
         run: |
           wget -c -q https://github.com/inhere/kite/releases/latest/download/kite.phar
           php kite.phar git cl last head --style gh-release --no-merges --fetch-tags --unshallow --file example/changelog.md
