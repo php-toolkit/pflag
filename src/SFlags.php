@@ -375,12 +375,12 @@ class SFlags extends FlagsParser
                 $isShort = true;
                 $option  = substr($p, 1);
                 // long-opt: (--<opt>)
-                if (strpos($option, '-') === 0) {
+                if (str_starts_with($option, '-')) {
                     $isShort = false;
                     $option  = substr($option, 1);
 
                     // long-opt: value specified inline (--<opt>=<value>)
-                    if (strpos($option, '=') !== false) {
+                    if (str_contains($option, '=')) {
                         [$option, $value] = explode('=', $option, 2);
                         $hasVal = $value !== '';
                     }

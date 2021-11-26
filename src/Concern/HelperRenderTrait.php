@@ -11,6 +11,7 @@ use Toolkit\PFlag\FlagUtil;
 use Toolkit\Stdlib\Helper\DataHelper;
 use Toolkit\Stdlib\Helper\IntHelper;
 use Toolkit\Stdlib\Str;
+use function array_merge;
 use function array_push;
 use function array_shift;
 use function count;
@@ -25,6 +26,7 @@ use function strlen;
 use function strpos;
 use function trim;
 use function ucfirst;
+use function vdump;
 
 /**
  * trait HelperRenderTrait
@@ -346,9 +348,13 @@ trait HelperRenderTrait
      */
     protected function buildOptHelpLine(string $name, array $opt): array
     {
-        $names   = $opt['shorts'];
-        $names[] = $name;
+        $names = $opt['shorts'];
+        // has aliases
+        if ($opt['aliases']) {
+            $names = array_merge($names, $opt['aliases']);
+        }
 
+        $names[]  = $name;
         $helpName = FlagUtil::buildOptHelpName($names);
 
         // show type name.
