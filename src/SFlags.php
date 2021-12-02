@@ -420,7 +420,7 @@ class SFlags extends FlagsParser
                 // check if next element is a descriptor or a value
                 $next = current($flags);
                 if ($hasVal === false && $isBool === false) {
-                    if (false === FlagHelper::isOptionValue($next)) {
+                    if (false === FlagUtil::isOptionValue($next)) {
                         throw new FlagParseException("must provide value for the option: $p", 404);
                     }
 
@@ -655,7 +655,7 @@ class SFlags extends FlagsParser
         }
 
         // check name.
-        if ((self::KIND_OPT === $kind || $name) && !FlagHelper::isValidName($name)) {
+        if ((self::KIND_OPT === $kind || $name) && !FlagUtil::isValidName($name)) {
             throw new FlagException("invalid flag $kind name: $mark");
         }
 

@@ -299,7 +299,7 @@ abstract class FlagsParser implements ParserInterface
                 [$name, $value] = explode('=', $arg, 2);
 
                 // ensure is valid name.
-                if (FlagHelper::isValidName($name)) {
+                if (FlagUtil::isValidName($name)) {
                     $args[$name] = $value;
                 } else {
                     $args[] = $arg;

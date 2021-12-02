@@ -172,7 +172,8 @@ class FlagType
                 break;
             case self::BOOL:
                 if (is_string($value)) {
-                    $value = FlagHelper::str2bool($value);
+                    // $value = FlagHelper::str2bool($value);
+                    $value = Str::toBool2($value);
                 } else {
                     $value = (bool)$value;
                 }

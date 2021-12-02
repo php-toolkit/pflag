@@ -12,6 +12,7 @@ namespace Toolkit\PFlag\Flag;
 use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\FlagType;
+use Toolkit\PFlag\FlagUtil;
 use Toolkit\Stdlib\Str;
 use function array_filter;
 use function array_map;
@@ -88,7 +89,7 @@ class Option extends AbstractFlag
             return;
         }
 
-        if (!FlagHelper::isValidName($alias)) {
+        if (!FlagUtil::isValidName($alias)) {
             throw new FlagException('invalid option alias: ' . $alias);
         }
 

@@ -9,9 +9,9 @@
 
 namespace Toolkit\PFlag\Flag;
 
-use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\FlagsParser;
+use Toolkit\PFlag\FlagUtil;
 use Toolkit\Stdlib\Str;
 use function sprintf;
 
@@ -36,7 +36,7 @@ class Argument extends AbstractFlag
     public function setName(string $name): void
     {
         if ($name) {
-            if (!FlagHelper::isValidName($name)) {
+            if (!FlagUtil::isValidName($name)) {
                 $mark = sprintf('#%d(%s)', $this->index, $name);
                 throw new FlagException("invalid flag argument name: $mark");
             }

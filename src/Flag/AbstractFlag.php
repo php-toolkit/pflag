@@ -16,6 +16,7 @@ use Toolkit\PFlag\Contract\ValidatorInterface;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\FlagsParser;
 use Toolkit\PFlag\FlagType;
+use Toolkit\PFlag\FlagUtil;
 use Toolkit\Stdlib\Obj;
 use Toolkit\Stdlib\OS;
 use function is_array;
@@ -303,7 +304,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
      */
     public function setName(string $name): void
     {
-        if (!FlagHelper::isValidName($name)) {
+        if (!FlagUtil::isValidName($name)) {
             throw new FlagException("invalid flag option name: $name");
         }
 
