@@ -90,7 +90,7 @@ trait RuleParserTrait
      ***************************************************************/
 
     /**
-     * @param array $rules
+     * @param array $rules see {@see optRules} for each rule.
      */
     public function addOptsByRules(array $rules): void
     {

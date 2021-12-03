@@ -10,7 +10,6 @@
 namespace Toolkit\PFlag;
 
 use InvalidArgumentException;
-use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\PFlag\Contract\ParserInterface;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\Exception\FlagParseException;
@@ -22,15 +21,11 @@ use function explode;
 use function implode;
 use function is_callable;
 use function is_string;
-use function ltrim;
 use function next;
 use function sprintf;
 use function str_split;
 use function strlen;
-use function strpos;
 use function substr;
-use function trim;
-use function ucfirst;
 
 /**
  * Class SFlags
@@ -460,6 +455,8 @@ class SFlags extends FlagsParser
                 }
             }
         }
+
+        $this->remainArgs = $this->rawArgs;
 
         // parse defined arguments
         if ($this->isAutoBindArgs()) {

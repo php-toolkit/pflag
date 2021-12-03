@@ -145,11 +145,12 @@ class Flags extends FlagsParser
             }
         }
 
+        $this->remainArgs = $this->rawArgs;
+
         // binding remaining args.
         if ($this->isAutoBindArgs()) {
             $this->bindingArguments();
         }
-
         return true;
     }
 

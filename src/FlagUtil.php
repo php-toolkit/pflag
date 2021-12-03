@@ -18,7 +18,8 @@ use function strlen;
  */
 class FlagUtil
 {
-    private static ?string $scriptName = null;
+    // private static ?string $scriptName = null;
+    private static $scriptName;
 
     /**
      * @param array $names
@@ -106,7 +107,7 @@ class FlagUtil
      *
      * @return bool
      */
-    public static function isOptionValue(mixed $val): bool
+    public static function isOptionValue($val): bool
     {
         if ($val === false) {
             return false;

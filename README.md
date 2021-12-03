@@ -226,13 +226,132 @@ $arrArg = $fs->getArg('arrArg'); // array{"arr0", "arr1"}
 
 -----------
 
-## Flag Rule
+## Create simple cmd or app
+
+In the pflag, built in `CliApp` and `CliCmd` for quick create and run an simple console application.
+
+### Create simple alone command
+
+Build and run a simple command handler. see example file [example/clicmd.php](example/clicmd.php)
+
+```php
+use Toolkit\Cli\Cli;
+use Toolkit\PFlag\CliCmd;
+use Toolkit\PFlag\FlagsParser;
+
+CliCmd::new()
+    ->config(function (CliCmd $cmd) {
+        $cmd->name = 'demo';
+        $cmd->desc = 'description for demo command';
+
+        // config flags
+        $cmd->options = [
+            'age, a'  => 'int;the option age, is int',
+            'name, n' => 'the option name, is string and required;true',
+            'tags, t' => 'array;the option tags, is array',
+        ];
+        // or use property
+        // $cmd->arguments = [...];
+    })
+    ->withArguments([
+        'arg1' => 'this is arg1, is string'
+    ])
+    ->setHandler(function (FlagsParser $fs) {
+        Cli::info('options:');
+        vdump($fs->getOpts());
+        Cli::info('arguments:');
+        vdump($fs->getArgs());
+    })
+    ->run();
+```
+
+**Usage:**
+
+```php
+# show help
+php example/clicmd.php -h
+# run command
+php example/clicmd.php --age 23 --name inhere value1
+```
+
+- Display help:
+
+![cmd-demo-help](example/images/cli-cmd-help.png)
+
+- Run command:
+
+![cmd-demo-run](example/images/cli-cmd-run.png)
+
+### Create an multi commands app
+
+Build and run a simple command handler. see example file [example/cliapp.php](example/cliapp.php)
+
+```php
+use Toolkit\Cli\Cli;
+use Toolkit\PFlag\CliApp;
+use Toolkit\PFlag\FlagsParser;
+
+$app = new CliApp();
+
+$app->add('test1', fn(FlagsParser $fs) => vdump($fs->getOpts()), [
+    'desc'    => 'the test 1 command',
+    'options' => [
+        'opt1' => 'opt1 for command test1',
+        'opt2' => 'int;opt2 for command test1',
+    ],
+]);
+
+$app->add('test2', function (FlagsParser $fs) {
+    Cli::info('options:');
+    vdump($fs->getOpts());
+    Cli::info('arguments:');
+    vdump($fs->getArgs());
+}, [
+    // 'desc'    => 'the test2 command',
+    'options' => [
+        'opt1' => 'a string opt1 for command test2',
+        'opt2' => 'int;a int opt2 for command test2',
+    ],
+    'arguments' => [
+        'arg1' => 'required arg1 for command test2;true',
+    ]
+]);
+
+$app->add('show-err', fn() => throw new RuntimeException('test show exception'));
+
+$app->run();
+```
+
+**Usage:**
+
+```php
+# show help
+php example/cliapp.php -h
+# run command
+php example/cliapp.php test2 --opt1 val1 --opt2 23 value1
+```
+
+- Display commands:
+
+![cli-app-help](example/images/cli-app-help.png)
+
+- Command help:
+
+![cli-app-cmd-help](example/images/cli-app-cmd-help.png)
+
+- Run command:
+
+![cli-app-cmd-run](example/images/cli-app-cmd-run.png)
+
+-----------
+
+## Flag rule
 
 The options/arguments rules. Use rule can quick define an option or argument.
 
 - string value is rule(`type;desc;required;default;shorts`).
 - array is define item `SFlags::DEFINE_ITEM`
-- supportted type see `FlagType::*`
+- supported type see `FlagType::*`
 
 ```php
 use Toolkit\PFlag\FlagType;
@@ -258,7 +377,7 @@ $rules = [
 
 **For arguments**
 
-- arguemnt no alias/shorts
+- argument no alias/shorts
 - array value only allow defined at last
 
 **Definition item**
@@ -283,7 +402,7 @@ public const DEFINE_ITEM = [
 
 -----------
 
-## Costom settings
+## Custom settings
 
 ### Settings for parse
 

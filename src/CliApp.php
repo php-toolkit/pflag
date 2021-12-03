@@ -8,27 +8,27 @@ use RuntimeException;
 use Throwable;
 use Toolkit\Cli\Cli;
 use Toolkit\Cli\Color;
+use Toolkit\Stdlib\Arr;
+use Toolkit\Stdlib\Str;
 use function array_merge;
 use function array_shift;
-use function array_values;
 use function basename;
 use function class_exists;
 use function function_exists;
 use function getcwd;
 use function implode;
 use function is_array;
-use function is_int;
+use function is_callable;
 use function is_object;
 use function is_string;
 use function ksort;
 use function method_exists;
-use function printf;
 use function rtrim;
 use function str_pad;
 use function strlen;
 use function strpos;
-use function trim;
 use function ucfirst;
+use function vdump;
 
 /**
  * class CliApp
@@ -38,60 +38,82 @@ use function ucfirst;
 class CliApp
 {
     /** @var self|null */
-    public static ?self $global = null;
+    public static $global;
 
     private const COMMAND_CONFIG = [
-        'desc'  => '',
-        'usage' => '',
-        'help'  => '',
+        'desc'      => '',
+        'usage'     => '',
+        'help'      => '',
+        'options'   => [],
+        'arguments' => [],
     ];
 
     /** @var string Current dir */
-    private string $pwd;
+    private $pwd;
 
     /**
      * @var array
      */
-    protected array $params = [
+    protected $params = [
         'name'    => 'My application',
         'desc'    => 'My command line application',
         'version' => '0.2.1'
     ];
 
     /**
-     * @var array Parsed from `arg0 name=val var2=val2`
+     * @var FlagsParser
      */
-    private array $args = [];
+    protected $flags;
 
     /**
-     * @var array Parsed from `--name=val --var2=val2 -d`
+     * @var FlagsParser|null
      */
-    private mixed $opts;
-
-    /**
-     * @var string
-     */
-    private string $scriptFile = '';
+    protected $cmdFlags;
 
     /**
      * @var string
      */
-    private string $command = '';
+    private $scriptFile = '';
 
     /**
-     * @var array User add commands
+     * @var string
      */
-    private array $commands = [];
+    private $scriptName = '';
 
     /**
-     * @var array Command messages for the commands
+     * Current run command
+     *
+     * @var string
      */
-    private array $messages = [];
+    private $command = '';
+
+    /**
+     * User add commands handlers
+     *
+     * @var array<string, callable>
+     */
+    private $commands = [];
+
+    /**
+     * Command messages for the commands
+     *
+     * ```php
+     * [
+     *  command1 => [
+     *     see COMMAND_CONFIG
+     *  ],
+     * ]
+     * ```
+     *
+     * @var array
+     * @see COMMAND_CONFIG
+     */
+    private $metadata = [];
 
     /**
      * @var int
      */
-    private int $keyWidth = 12;
+    private $keyWidth = 10;
 
     /**
      * @return static
@@ -116,107 +138,104 @@ class CliApp
     /**
      * Class constructor.
      *
-     * @param array      $config
+     * @param array{flags: array} $config
      */
     public function __construct(array $config = [])
     {
         // get current dir
         $this->pwd = (string)getcwd();
 
+        $fsConf = [];
         if ($config) {
+            $fsConf = Arr::remove($config, 'flags', []);
             $this->setParams($config);
         }
+
+        $this->flags = new SFlags($fsConf);
+        $this->flags->setAutoBindArgs(false);
     }
 
     /**
-     * @param array|null $args
-     * @param bool $exit
+     * @param FlagsParser $fs
      */
-    public function run(array $args = null, bool $exit = false): void
+    protected function beforeRun(FlagsParser $fs): void
     {
-        // parse cli args
-        if ($args === null) {
-            $args = $_SERVER['argv'];
-
-            // get script file
-            $this->scriptFile = array_shift($args);
+        $desc = ucfirst($this->params['desc']);
+        if ($ver = $this->params['version']) {
+            $desc .= "(<red>v$ver</red>)";
         }
 
-        // parse flags
-        [
-            $this->args,
-            $this->opts
-        ] = Flags::parseArgv(array_values($args), ['mergeOpts' => true]);
-
-        $this->findCommand();
-
-        $this->dispatch($exit);
+        $fs->setDesc($desc);
+        // $fs->setStopOnFistArg(true);
+        $fs->addOptsByRules([
+            'h, help' => 'bool;display application help'
+        ]);
     }
 
     /**
-     * find command name. it is first argument.
+     * @param bool $exit
      */
-    protected function findCommand(): void
+    public function run(bool $exit = false): void
     {
-        if (!isset($this->args[0])) {
+        // parse cli args
+        $args = $_SERVER['argv'];
+
+        // get script file
+        $scriptFile = array_shift($args);
+        $this->setScriptFile($scriptFile);
+
+        $this->runByArgs($args, $exit);
+    }
+
+    /**
+     * @param string[] $args
+     * @param bool $exit
+     */
+    public function runByArgs(array $args, bool $exit = false): void
+    {
+        $this->beforeRun($this->flags);
+
+        // parse global flags
+        if (!$this->flags->parse($args)) {
+            $this->displayCommands();
             return;
         }
 
-        $newArgs = [];
-        foreach ($this->args as $key => $value) {
-            if ($key === 0) {
-                $this->command = trim($value);
-            } elseif (is_int($key)) {
-                $newArgs[] = $value;
-            } else {
-                $newArgs[$key] = $value;
+        $args = $this->flags->getRemainArgs();
+
+        // find command.
+        if (isset($args[0]) && $args[0]) {
+            $fArg = $args[0]; // check first argument.
+            if ($fArg[0] !== '-') {
+                $this->command = array_shift($args);
             }
         }
 
-        $this->args = $newArgs;
+        $this->dispatch($args, $exit);
     }
 
     /**
+     * @param array $args
      * @param bool $exit
-     *
-     * @throws InvalidArgumentException
      */
-    public function dispatch(bool $exit = true): void
+    public function dispatch(array $args, bool $exit = true): void
     {
-        $status = $this->doHandle();
+        if (!$command = $this->command) {
+            $this->flags->displayHelp();
+            $this->displayCommands();
+            return;
+        }
+
+        if (!isset($this->commands[$command])) {
+            $this->displayCommands("The command '$command' is not exists!");
+            return;
+        }
+
+        $status = $this->doHandle($args);
 
         if ($exit) {
             $this->stop($status);
         }
-    }
-
-    /**
-     * @return int
-     */
-    protected function doHandle(): int
-    {
-        if (!$command = $this->command) {
-            $this->displayHelp();
-            return 0;
-        }
-
-        if (!isset($this->commands[$command])) {
-            $this->displayHelp("The command '$command' is not exists!");
-            return 0;
-        }
-
-        if (isset($this->opts['h']) || isset($this->opts['help'])) {
-            $this->displayCommandHelp($command);
-            return 0;
-        }
-
-        try {
-            $status = $this->runHandler($command, $this->commands[$command]);
-        } catch (Throwable $e) {
-            $status = $this->handleException($e);
-        }
-
-        return (int)$status;
     }
 
     /**
@@ -229,36 +248,83 @@ class CliApp
     }
 
     /**
+     * @param array $args
+     *
+     * @return int
+     */
+    protected function doHandle(array $args): int
+    {
+        $command = $this->command;
+        $handler = $this->commands[$command];
+        $cFlags  = $this->initCommandFlags($command, $handler);
+
+        try {
+            // false - on render help.
+            if (!$cFlags->parse($args)) {
+                return 0;
+            }
+
+            $status = $this->runHandler($handler, $cFlags);
+        } catch (Throwable $e) {
+            $status = static::handleException($e);
+        }
+
+        return (int)$status;
+    }
+
+    /**
      * @param string $command
-     * @param mixed  $handler
+     * @param $handler
+     *
+     * @return FlagsParser
+     */
+    protected function initCommandFlags(string $command, $handler): FlagsParser
+    {
+        $cFlags = SFlags::new();
+        $config = $this->metadata[$command] ?? [];
+
+        $cFlags->setDesc($config['desc']);
+        if (!empty($config['help'])) {
+            $cFlags->setHelp($config['help']);
+        }
+
+        $cFlags->addOptsByRules($config['options'] ?? []);
+        $cFlags->addArgsByRules($config['arguments'] ?? []);
+
+        // has config method
+        if (is_object($handler) && method_exists($handler, 'configure')) {
+            $handler->configure($cFlags);
+        }
+
+        return $cFlags;
+    }
+
+    /**
+     * @param mixed $handler
+     * @param FlagsParser $cFlags
      *
      * @return mixed
-     * @throws InvalidArgumentException
      */
-    public function runHandler(string $command, mixed $handler): mixed
+    public function runHandler(mixed $handler, FlagsParser $cFlags): mixed
     {
-        if (is_string($handler)) {
-            // function name
-            if (function_exists($handler)) {
-                return $handler($this);
+        // function name
+        if (is_string($handler) && function_exists($handler)) {
+            return $handler($cFlags, $this);
+        }
+
+        if (is_object($handler)) {
+            // call $handler->execute()
+            if (method_exists($handler, 'execute')) {
+                return $handler->execute($cFlags, $this);
             }
 
-            if (class_exists($handler)) {
-                $handler = new $handler;
-
-                // $handler->execute()
-                if (method_exists($handler, 'execute')) {
-                    return $handler->execute($this);
-                }
+            // call \Closure OR $handler->__invoke()
+            if (method_exists($handler, '__invoke')) {
+                return $handler($cFlags, $this);
             }
         }
 
-        // a \Closure OR $handler->__invoke()
-        if (is_object($handler) && method_exists($handler, '__invoke')) {
-            return $handler($this);
-        }
-
-        throw new RuntimeException("Invalid handler of the command: $command");
+        throw new RuntimeException("Invalid handler of the command: $this->command");
     }
 
     /**
@@ -266,7 +332,7 @@ class CliApp
      *
      * @return int
      */
-    protected function handleException(Throwable $e): int
+    public static function handleException(Throwable $e): int
     {
         if ($e instanceof InvalidArgumentException) {
             Color::println('ERROR: ' . $e->getMessage(), 'error');
@@ -274,90 +340,59 @@ class CliApp
         }
 
         $code = $e->getCode() !== 0 ? $e->getCode() : -1;
-        $eTpl = "Exception(%d): %s\nFile: %s(Line %d)\nTrace:\n%s\n";
+        $eTpl = "Exception(%d): <red>%s</red>\nFile: %s(Line %d)\n\nError Trace:\n%s\n";
 
         // print exception message
-        printf($eTpl, $code, $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTraceAsString());
+        Color::printf($eTpl, $code, $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTraceAsString());
 
         return $code;
     }
 
     /**
+     * alias of addCommand()
+     *
+     * @param string $command
      * @param callable $handler
-     * @param array    $config
+     * @param array{desc:string,options:array,arguments:array} $config
      */
-    public function addObject(callable $handler, array $config = []): void
-    {
-        if (is_object($handler) && method_exists($handler, '__invoke')) {
-            // has config method
-            if (method_exists($handler, 'getHelpConfig')) {
-                $config = $handler->getHelpConfig();
-            }
-
-            $this->addByConfig($handler, $config);
-            return;
-        }
-
-        throw new InvalidArgumentException('Command handler must be an object and has method: __invoke');
-    }
-
-    /**
-     * @param callable $handler
-     * @param array    $config
-     */
-    public function addByConfig(callable $handler, array $config): void
-    {
-        if (empty($config['name'])) {
-            throw new InvalidArgumentException('Invalid arguments for add command');
-        }
-
-        $this->addCommand($config['name'], $handler, $config);
-    }
-
-    /**
-     * @param string            $command
-     * @param callable          $handler
-     * @param array|string|null $config
-     */
-    public function add(string $command, callable $handler, array|string $config = null): void
+    public function add(string $command, callable $handler, array $config = []): void
     {
         $this->addCommand($command, $handler, $config);
     }
 
     /**
-     * @param string            $command
-     * @param callable          $handler
-     * @param array|string|null $config
+     * @param string $command
+     * @param callable|class-string|object $handler
+     * @param array{desc:string,options:array,arguments:array} $config
      */
-    public function addCommand(string $command, callable $handler, array|string $config = null): void
+    public function addCommand(string $command, $handler, array $config = []): void
     {
         if (!$command) {
-            throw new InvalidArgumentException('Invalid arguments for add command');
+            throw new InvalidArgumentException('command name can not be empty');
         }
 
         if (($len = strlen($command)) > $this->keyWidth) {
             $this->keyWidth = $len;
         }
 
-        $this->commands[$command] = $handler;
+        // class string.
+        if (is_string($handler) && class_exists($handler)) {
+            $handler = new $handler;
+        }
 
-        // no config
+        if (is_callable($handler)) {
+            $this->commands[$command] = $handler;
+        } elseif (is_object($handler) && method_exists($handler, 'configure')) {
+            $this->commands[$command] = $handler;
+        } else {
+            throw new InvalidArgumentException("invalid command handler of '$command'");
+        }
+
         if (!$config) {
-            return;
+            $config = ['desc' => "no config for command '$command'"];
         }
 
-        if (is_string($config)) {
-            $desc   = trim($config);
-            $config = self::COMMAND_CONFIG;
-
-            // append desc
-            $config['desc'] = $desc;
-
-            // save
-            $this->messages[$command] = $config;
-        } elseif (is_array($config)) {
-            $this->messages[$command] = array_merge(self::COMMAND_CONFIG, $config);
-        }
+        $this->metadata[$command] = array_merge(self::COMMAND_CONFIG, $config);
     }
 
     /**
@@ -388,26 +423,24 @@ class CliApp
      ****************************************************************************/
 
     /**
+     * display commands list
+     *
      * @param string $err
      */
-    public function displayHelp(string $err = ''): void
+    public function displayCommands(string $err = ''): void
     {
         if ($err) {
             Cli::println("<red>ERROR</red>: $err\n");
         }
 
-        // help
-        $desc = ucfirst($this->params['desc']);
-        if ($ver = $this->params['version']) {
-            $desc .= "(<red>v$ver</red>)";
-        }
+        $script = $this->scriptName;
 
-        $script = $this->scriptFile;
-        $usage  = "<cyan>$script COMMAND -h</cyan>";
-
-        $help = "$desc\n\n<comment>Usage:</comment> $usage\n<comment>Commands:</comment>\n";
-        $data = $this->messages;
+        $help = "<comment>Commands:</comment>\n";
+        $data = $this->metadata;
         ksort($data);
+
+        // $globalOptions = $this->flags->getOptsHelpLines();
+        // Cli::println($globalOptions);
 
         foreach ($data as $command => $item) {
             $command = str_pad($command, $this->keyWidth);
@@ -429,7 +462,7 @@ class CliApp
         $checkVar = false;
         $fullCmd  = $this->scriptFile . " $name";
 
-        $config = $this->messages[$name] ?? [];
+        $config = $this->metadata[$name] ?? [];
         $usage  = "$fullCmd [args ...] [--opts ...]";
 
         if (!$config) {
@@ -452,130 +485,23 @@ class CliApp
         $help = implode("\n", $nodes);
 
         if ($checkVar && strpos($help, '{{')) {
-            $help = strtr($help, [
-                '{{command}}' => $name,
-                '{{fullCmd}}' => $fullCmd,
-                '{{workDir}}' => $this->pwd,
-                '{{pwdDir}}'  => $this->pwd,
-                '{{script}}'  => $this->scriptFile,
-            ]);
+            $vars = [
+                'command' => $name,
+                'fullCmd' => $fullCmd,
+                'workDir' => $this->pwd,
+                'pwdDir'  => $this->pwd,
+                'script'  => $this->scriptFile,
+            ];
+
+            $help = Str::renderTemplate($help, $vars, '${%s}');
         }
 
         Cli::println($help);
     }
 
-    /**
-     * @param int|string $name
-     * @param mixed|null $default
-     *
-     * @return mixed|null
-     */
-    public function getArg(int|string $name, mixed $default = null): mixed
-    {
-        return $this->args[$name] ?? $default;
-    }
-
-    /**
-     * @param int|string $name
-     * @param int        $default
-     *
-     * @return int
-     */
-    public function getIntArg(int|string $name, int $default = 0): int
-    {
-        return (int)$this->getArg($name, $default);
-    }
-
-    /**
-     * @param int|string $name
-     * @param string     $default
-     *
-     * @return string
-     */
-    public function getStrArg(int|string $name, string $default = ''): string
-    {
-        return (string)$this->getArg($name, $default);
-    }
-
-    /**
-     * @param string $name
-     * @param mixed|null $default
-     *
-     * @return mixed|null
-     */
-    public function getOpt(string $name, mixed $default = null): mixed
-    {
-        return $this->opts[$name] ?? $default;
-    }
-
-    /**
-     * @param string $name
-     * @param int    $default
-     *
-     * @return int
-     */
-    public function getIntOpt(string $name, int $default = 0): int
-    {
-        return (int)$this->getOpt($name, $default);
-    }
-
-    /**
-     * @param string $name
-     * @param string $default
-     *
-     * @return string
-     */
-    public function getStrOpt(string $name, string $default = ''): string
-    {
-        return (string)$this->getOpt($name, $default);
-    }
-
-    /**
-     * @param string $name
-     * @param bool   $default
-     *
-     * @return bool
-     */
-    public function getBoolOpt(string $name, bool $default = false): bool
-    {
-        return (bool)$this->getOpt($name, $default);
-    }
-
     /****************************************************************************
      * getter/setter methods
      ****************************************************************************/
-
-    /**
-     * @return array
-     */
-    public function getArgs(): array
-    {
-        return $this->args;
-    }
-
-    /**
-     * @param array $args
-     */
-    public function setArgs(array $args): void
-    {
-        $this->args = $args;
-    }
-
-    /**
-     * @return array
-     */
-    public function getOpts(): array
-    {
-        return $this->opts;
-    }
-
-    /**
-     * @param array $opts
-     */
-    public function setOpts(array $opts): void
-    {
-        $this->opts = $opts;
-    }
 
     /**
      * @return string
@@ -598,7 +524,10 @@ class CliApp
      */
     public function setScriptFile(string $scriptFile): void
     {
-        $this->scriptFile = $scriptFile;
+        if ($scriptFile) {
+            $this->scriptFile = $scriptFile;
+            $this->scriptName = basename($scriptFile);
+        }
     }
 
     /**
@@ -636,17 +565,9 @@ class CliApp
     /**
      * @return array
      */
-    public function getMessages(): array
+    public function getMetadata(): array
     {
-        return $this->messages;
-    }
-
-    /**
-     * @return int
-     */
-    public function getKeyWidth(): int
-    {
-        return $this->keyWidth;
+        return $this->metadata;
     }
 
     /**
@@ -666,15 +587,6 @@ class CliApp
     }
 
     /**
-     * @return array
-     * @deprecated please use getParams();
-     */
-    public function getMetas(): array
-    {
-        return $this->getParams();
-    }
-
-    /**
      * @param array $params
      *
      * @deprecated please use setParams()
@@ -688,7 +600,7 @@ class CliApp
      * @param string $key
      * @param null   $default
      *
-     * @return mixed|string|null
+     * @return mixed
      */
     public function getParam(string $key, $default = null): mixed
     {
@@ -718,5 +630,13 @@ class CliApp
     public function setParams(array $params): void
     {
         $this->params = array_merge($this->params, $params);
+    }
+
+    /**
+     * @return FlagsParser
+     */
+    public function getFlags(): FlagsParser
+    {
+        return $this->flags;
     }
 }
