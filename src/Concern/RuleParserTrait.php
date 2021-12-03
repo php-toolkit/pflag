@@ -2,7 +2,6 @@
 
 namespace Toolkit\PFlag\Concern;
 
-use InvalidArgumentException;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\FlagsParser;
 use Toolkit\PFlag\FlagType;
@@ -11,7 +10,6 @@ use Toolkit\Stdlib\Str;
 use function array_shift;
 use function array_unshift;
 use function is_array;
-use function is_callable;
 use function is_int;
 use function is_numeric;
 use function ltrim;
@@ -208,7 +206,7 @@ trait RuleParserTrait
             // not found sep char.
             if (!str_contains($rule, $sep)) {
                 // has multi words, is an desc string.
-                if (strpos($rule, ' ') > 1) {
+                if (strpos($rule, ' ') > 0) {
                     $item['desc'] = $rule;
                 } else { // only type name.
                     $item['type'] = $rule;
