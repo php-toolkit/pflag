@@ -354,6 +354,125 @@ $arrArg = $fs->getArg('arrArg'); // array{"arr0", "arr1"}
 
 -----------
 
+## 创建简单的独立命令或应用程序
+
+在 pflag 中，内置了 `CliApp` 和 `CliCmd` 两个独立类，用于快速创建和运行一个简单的控制台应用程序。
+
+### 创建简单的单独命令
+
+使用 `CliCmd` 可以方便的构建并运行一个简单的命令处理程序。查看示例文件 [example/clicmd.php](example/clicmd.php)
+
+```php
+use Toolkit\Cli\Cli;
+use Toolkit\PFlag\CliCmd;
+use Toolkit\PFlag\FlagsParser;
+
+CliCmd::new()
+    ->config(function (CliCmd $cmd) {
+        $cmd->name = 'demo';
+        $cmd->desc = 'description for demo command';
+
+        // config flags
+        $cmd->options = [
+            'age, a'  => 'int;the option age, is int',
+            'name, n' => 'the option name, is string and required;true',
+            'tags, t' => 'array;the option tags, is array',
+        ];
+        // or use property
+        // $cmd->arguments = [...];
+    })
+    ->withArguments([
+        'arg1' => 'this is arg1, is string'
+    ])
+    ->setHandler(function (FlagsParser $fs) {
+        Cli::info('options:');
+        vdump($fs->getOpts());
+        Cli::info('arguments:');
+        vdump($fs->getArgs());
+    })
+    ->run();
+```
+
+**使用:**
+
+```php
+# show help
+php example/clicmd.php -h
+# run command
+php example/clicmd.php --age 23 --name inhere value1
+```
+
+- 显示帮助:
+
+![cmd-demo-help](example/images/cli-cmd-help.png)
+
+- 运行命令:
+
+![cmd-demo-run](example/images/cli-cmd-run.png)
+
+### Create an multi commands app
+
+Create an multi commands application, run subcommand. see example file [example/cliapp.php](example/cliapp.php)
+
+```php
+use Toolkit\Cli\Cli;
+use Toolkit\PFlag\CliApp;
+use Toolkit\PFlag\FlagsParser;
+
+$app = new CliApp();
+
+$app->add('test1', fn(FlagsParser $fs) => vdump($fs->getOpts()), [
+    'desc'    => 'the test 1 command',
+    'options' => [
+        'opt1' => 'opt1 for command test1',
+        'opt2' => 'int;opt2 for command test1',
+    ],
+]);
+
+$app->add('test2', function (FlagsParser $fs) {
+    Cli::info('options:');
+    vdump($fs->getOpts());
+    Cli::info('arguments:');
+    vdump($fs->getArgs());
+}, [
+    // 'desc'    => 'the test2 command',
+    'options' => [
+        'opt1' => 'a string opt1 for command test2',
+        'opt2' => 'int;a int opt2 for command test2',
+    ],
+    'arguments' => [
+        'arg1' => 'required arg1 for command test2;true',
+    ]
+]);
+
+$app->add('show-err', fn() => throw new RuntimeException('test show exception'));
+
+$app->run();
+```
+
+**使用:**
+
+```php
+# show help
+php example/cliapp.php -h
+# run command
+php example/cliapp.php test2 --opt1 val1 --opt2 23 value1
+```
+
+- 显示帮助，命令列表:
+
+![cli-app-help](example/images/cli-app-help.png)
+
+- 显示子命令帮助:
+
+![cli-app-cmd-help](example/images/cli-app-cmd-help.png)
+
+- 运行一个命令:
+
+![cli-app-cmd-run](example/images/cli-app-cmd-run.png)
+
+-----------
+
 ## 扩展：规则定义 
 
 选项参数规则。使用规则可以快速定义一个选项或参数。

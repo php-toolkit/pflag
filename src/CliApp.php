@@ -433,15 +433,10 @@ class CliApp
             Cli::println("<red>ERROR</red>: $err\n");
         }
 
-        $script = $this->scriptName;
-
-        $help = "<comment>Commands:</comment>\n";
+        $help = "<ylw>Commands:</ylw>\n";
         $data = $this->metadata;
+
         ksort($data);
-
-        // $globalOptions = $this->flags->getOptsHelpLines();
-        // Cli::println($globalOptions);
-
         foreach ($data as $command => $item) {
             $command = str_pad($command, $this->keyWidth);
 
@@ -449,52 +444,8 @@ class CliApp
             $help .= "  <green>$command</green>   $desc\n";
         }
 
-        $help .= "\nFor command usage please run: <cyan>$script COMMAND -h</cyan>";
-
-        Cli::println($help);
-    }
-
-    /**
-     * @param string $name
-     */
-    public function displayCommandHelp(string $name): void
-    {
-        $checkVar = false;
-        $fullCmd  = $this->scriptFile . " $name";
-
-        $config = $this->metadata[$name] ?? [];
-        $usage  = "$fullCmd [args ...] [--opts ...]";
-
-        if (!$config) {
-            $nodes = [
-                'No description for the command',
-                "<comment>Usage:</comment> \n  $usage"
-            ];
-        } else {
-            $checkVar = true;
-            $userHelp = rtrim($config['help'], "\n");
-
-            $usage = $config['usage'] ?: $usage;
-            $nodes = [
-                ucfirst($config['desc']),
-                "<comment>Usage:</comment> \n  $usage\n",
-                $userHelp ? $userHelp . "\n" : ''
-            ];
-        }
-
-        $help = implode("\n", $nodes);
-
-        if ($checkVar && strpos($help, '{{')) {
-            $vars = [
-                'command' => $name,
-                'fullCmd' => $fullCmd,
-                'workDir' => $this->pwd,
-                'pwdDir'  => $this->pwd,
-                'script'  => $this->scriptFile,
-            ];
-
-            $help = Str::renderTemplate($help, $vars, '${%s}');
-        }
+        $script = $this->scriptName;
+        $help  .= "\nFor command usage please run: <cyan>$script COMMAND -h</cyan>";
 
         Cli::println($help);
     }
@@ -629,7 +580,9 @@ class CliApp
      */
     public function setParams(array $params): void
     {
-        $this->params = array_merge($this->params, $params);
+        if ($params) {
+            $this->params = array_merge($this->params, $params);
+        }
     }
 
     /**

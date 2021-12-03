@@ -23,10 +23,10 @@ jobs:
           - description: 'Log Code Coverage'
             php: '8.0'
             coverage: 'xdebug'
-#        include: # will not testing on php 7.2
-#          - os: 'ubuntu-latest'
-#            php: '7.2'
-#            phpunit: '8.5.13'
+          # will not testing on php 7.2
+          - os: 'ubuntu-latest'
+            php: '7.2'
+            phpunit: '8.5.13'
 
     steps:
       - name: Checkout

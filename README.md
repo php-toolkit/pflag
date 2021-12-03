@@ -284,7 +284,7 @@ php example/clicmd.php --age 23 --name inhere value1
 
 ### Create an multi commands app
 
-Build and run a simple command handler. see example file [example/cliapp.php](example/cliapp.php)
+Create an multi commands application, run subcommand. see example file [example/cliapp.php](example/cliapp.php)
 
 ```php
 use Toolkit\Cli\Cli;
