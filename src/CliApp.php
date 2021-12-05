@@ -9,26 +9,21 @@ use Throwable;
 use Toolkit\Cli\Cli;
 use Toolkit\Cli\Color;
 use Toolkit\Stdlib\Arr;
-use Toolkit\Stdlib\Str;
 use function array_merge;
 use function array_shift;
 use function basename;
 use function class_exists;
 use function function_exists;
 use function getcwd;
-use function implode;
 use function is_array;
 use function is_callable;
 use function is_object;
 use function is_string;
 use function ksort;
 use function method_exists;
-use function rtrim;
 use function str_pad;
 use function strlen;
-use function strpos;
 use function ucfirst;
-use function vdump;
 
 /**
  * class CliApp
@@ -37,8 +32,10 @@ use function vdump;
  */
 class CliApp
 {
+    // use AutoConfigTrait;
+
     /** @var self|null */
-    public static $global;
+    private static $global;
 
     private const COMMAND_CONFIG = [
         'desc'      => '',
@@ -396,7 +393,7 @@ class CliApp
     }
 
     /**
-     * @param array $commands
+     * @param array<string, array{desc: string, handler:callable, options:array, arguments:array}> $commands
      *
      * @throws InvalidArgumentException
      */
@@ -450,6 +447,16 @@ class CliApp
         Cli::println($help);
     }
 
+    /**
+     * @param string $command
+     *
+     * @return bool
+     */
+    public function hasCommand(string $command): bool
+    {
+        return isset($this->commands[$command]);
+    }
+
     /****************************************************************************
      * getter/setter methods
      ****************************************************************************/
@@ -465,9 +472,17 @@ class CliApp
     /**
      * @return string
      */
+    public function getBinName(): string
+    {
+        return $this->scriptName;
+    }
+
+    /**
+     * @return string
+     */
     public function getScriptName(): string
     {
-        return basename($this->scriptFile);
+        return $this->scriptName;
     }
 
     /**

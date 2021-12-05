@@ -226,7 +226,7 @@ $arrArg = $fs->getArg('arrArg'); // array{"arr0", "arr1"}
 
 -----------
 
-## Create simple cmd or app
+## Build simple cli app
 
 In the pflag, built in `CliApp` and `CliCmd` for quick create and run an simple console application.
 
