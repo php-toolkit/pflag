@@ -2,6 +2,7 @@
 
 namespace Toolkit\PFlag;
 
+use function array_keys;
 use function array_map;
 use function array_shift;
 use function basename;
@@ -11,7 +12,9 @@ use function implode;
 use function is_numeric;
 use function ltrim;
 use function preg_match;
+use function str_replace;
 use function strlen;
+use function trim;
 
 /**
  * class FlagUtil
@@ -156,5 +159,43 @@ class FlagUtil
     public static function escapeToken(string $token): string
     {
         return preg_match('{^[\w-]+$}', $token) ? $token : escapeshellarg($token);
+    }
+
+    /**
+     * Align command option names.
+     *
+     * @param array $options
+     *
+     * @return array
+     */
+    public static function alignOptions(array $options): array
+    {
+        if (!$options) {
+            return [];
+        }
+
+        // check has short option. e.g '-h, --help'
+        $nameString = implode('|', array_keys($options));
+        if (preg_match('/\|-\w/', $nameString) !== 1) {
+            return $options;
+        }
+
+        $formatted = [];
+        foreach ($options as $name => $des) {
+            if (!$name = trim($name, ', ')) {
+                continue;
+            }
+
+            // start with '--', padding length equals to '-h, '
+            if (isset($name[1]) && $name[1] === '-') {
+                $name = '    ' . $name;
+            } else {
+                $name = str_replace([',-'], [', -'], $name);
+            }
+
+            $formatted[$name] = $des;
+        }
+
+        return $formatted;
     }
 }

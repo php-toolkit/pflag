@@ -351,7 +351,6 @@ $arrArg = $fs->getArg(1); // array{"arr0", "arr1"}
 // get value by name
 $arrArg = $fs->getArg('arrArg'); // array{"arr0", "arr1"}
 ```
-
 -----------
 
 ## 创建简单的独立命令或应用程序
@@ -445,6 +444,7 @@ $app->add('test2', function (FlagsParser $fs) {
     ]
 ]);
 
+// fn - required php 7.4+
 $app->add('show-err', fn() => throw new RuntimeException('test show exception'));
 
 $app->run();
