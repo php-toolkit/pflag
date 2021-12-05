@@ -4,7 +4,6 @@ namespace Toolkit\PFlagTest;
 
 use Toolkit\PFlag\CliApp;
 use Toolkit\Stdlib\Obj\DataObject;
-use const PHP_VERSION_ID;
 
 /**
  * class CliAppTest
@@ -17,18 +16,16 @@ class CliAppTest extends BaseFlagsTestCase
     {
         $buf = DataObject::new();
 
-        if (PHP_VERSION_ID > 70400) {
-            $app->add('test1', fn() => $buf->set('key', 'in test1'));
-        } else {
-            $app->add('test1', function() use($buf) {
-                $buf->set('key', 'in test2');
-            });
-        }
+        // php 7.4+
+        // $app->add('test1', fn() => $buf->set('key', 'in test1'));
+        $app->add('test1', function () use ($buf) {
+            $buf->set('key', 'in test1');
+        });
 
         $app->addCommands([
             'test2' => [
-                'desc'   => 'desc for test2 command',
-                'handler' => function() use($buf) {
+                'desc'    => 'desc for test2 command',
+                'handler' => function () use ($buf) {
                     $buf->set('key', 'in test2');
                 },
                 'options' => [
