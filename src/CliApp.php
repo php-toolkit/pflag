@@ -302,7 +302,7 @@ class CliApp
      *
      * @return mixed
      */
-    public function runHandler(mixed $handler, FlagsParser $cFlags): mixed
+    public function runHandler($handler, FlagsParser $cFlags): mixed
     {
         // function name
         if (is_string($handler) && function_exists($handler)) {
