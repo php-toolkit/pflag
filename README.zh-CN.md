@@ -40,6 +40,8 @@
 
 ## 安装
 
+- Require PHP 8.0+
+
 **composer 安装**
 
 ```bash

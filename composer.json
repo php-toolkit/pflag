@@ -3,7 +3,7 @@
   "description": "Command line flag parse library of the php",
   "type": "library",
   "license": "MIT",
-  "homepage": "https://github.com/php-toolkit/pflag.git",
+  "homepage": "https://github.com/php-toolkit/pflag",
   "authors": [
     {
       "name": "inhere",
@@ -11,10 +11,10 @@
     }
   ],
   "require": {
-    "php": ">7.2.0",
+    "php": ">8.0.0",
     "ext-mbstring": "*",
-    "toolkit/cli-utils":"~1.0",
-    "toolkit/stdlib":"~1.0"
+    "toolkit/cli-utils":"~2.0",
+    "toolkit/stdlib":"~2.0"
   },
   "autoload": {
     "psr-4": {

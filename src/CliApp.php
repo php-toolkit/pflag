@@ -9,6 +9,7 @@ use Throwable;
 use Toolkit\Cli\Cli;
 use Toolkit\Cli\Color;
 use Toolkit\Stdlib\Arr;
+use Toolkit\Stdlib\Obj\Traits\AutoConfigTrait;
 use function array_merge;
 use function array_shift;
 use function basename;
@@ -32,10 +33,10 @@ use function ucfirst;
  */
 class CliApp
 {
-    // use AutoConfigTrait;
+    use AutoConfigTrait;
 
     /** @var self|null */
-    private static $global;
+    private static self|null $global = null;
 
     private const COMMAND_CONFIG = [
         'desc'      => '',

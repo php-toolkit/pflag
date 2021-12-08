@@ -39,6 +39,8 @@ Generic PHP command line flags parse library
 
 ## Install
 
+- Require PHP 8.0+
+
 **composer**
 
 ```bash
