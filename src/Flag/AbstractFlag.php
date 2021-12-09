@@ -10,7 +10,6 @@
 namespace Toolkit\PFlag\Flag;
 
 use ArrayAccess;
-use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\PFlag\Contract\FlagInterface;
 use Toolkit\PFlag\Contract\ValidatorInterface;
 use Toolkit\PFlag\Exception\FlagException;
@@ -70,16 +69,16 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
     /**
      * The default value
      *
-     * @var mixed
+     * @var mixed|null
      */
-    protected mixed $default;
+    protected mixed $default = null;
 
     /**
      * The flag value
      *
-     * @var mixed
+     * @var mixed|null
      */
-    protected mixed $value;
+    protected mixed $value = null;
 
     // TODO category
     // protected $category = '';
@@ -105,7 +104,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
      * @param bool   $required
      * @param mixed|null $default
      *
-     * @return static|Argument|Option
+     * @return static
      */
     public static function new(
         string $name,
@@ -113,7 +112,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
         string $type = 'string',
         bool $required = false,
         mixed $default = null
-    ): self {
+    ): static {
         return new static($name, $desc, $type, $required, $default);
     }
 
@@ -123,9 +122,9 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
      * @param string $name
      * @param array  $define
      *
-     * @return static|Argument|Option
+     * @return static
      */
-    public static function newByArray(string $name, array $define): self
+    public static function newByArray(string $name, array $define): static
     {
         $flag = new static($name);
         if (isset($define['name'])) {

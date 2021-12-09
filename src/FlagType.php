@@ -124,31 +124,14 @@ class FlagType
      */
     public static function getDefault(string $type): float|bool|int|array|string|null
     {
-        $value = null;
-        switch ($type) {
-            case self::INT:
-                $value = 0;
-                break;
-            case self::BOOL:
-                $value = false;
-                break;
-            case self::FLOAT:
-                $value = (float)0;
-                break;
-            case self::STRING:
-                $value = '';
-                break;
-            case self::INTS:
-            case self::ARRAY:
-            case self::STRINGS:
-                $value = [];
-                break;
-            default:
-                // nothing
-                break;
-        }
-
-        return $value;
+        return match ($type) {
+            self::INT => 0,
+            self::BOOL => false,
+            self::FLOAT => (float)0,
+            self::STRING => '',
+            self::INTS, self::ARRAY, self::STRINGS => [],
+            default => null,
+        };
     }
 
     /**
@@ -164,32 +147,13 @@ class FlagType
         }
 
         // format value by type
-        switch ($type) {
-            case self::INT:
-            case self::INTS:
-                $value = (int)$value;
-                break;
-            case self::BOOL:
-                if (is_string($value)) {
-                    // $value = FlagHelper::str2bool($value);
-                    $value = Str::toBool2($value);
-                } else {
-                    $value = (bool)$value;
-                }
-                break;
-            case self::FLOAT:
-                $value = (float)$value;
-                break;
-            case self::STRING:
-            case self::STRINGS:
-                $value = (string)$value;
-                break;
-            default:
-                // nothing
-                break;
-        }
-
-        return $value;
+        return match ($type) {
+            self::INT, self::INTS => (int)$value,
+            self::BOOL => is_string($value) ? Str::toBool2($value) : (bool)$value,
+            self::FLOAT => (float)$value,
+            self::STRING, self::STRINGS => (string)$value,
+            default => $value,
+        };
     }
 
     /**
