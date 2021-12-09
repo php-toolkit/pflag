@@ -45,17 +45,17 @@ interface FlagInterface
      *
      * @return mixed
      */
-    public function getValue();
+    public function getValue(): mixed;
 
     /**
      * @param mixed $value
      */
-    public function setValue($value): void;
+    public function setValue(mixed $value): void;
 
     /**
      * @param mixed $value
      */
-    public function setTrustedValue($value): void;
+    public function setTrustedValue(mixed $value): void;
 
     /**
      * @return bool

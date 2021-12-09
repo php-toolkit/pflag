@@ -9,7 +9,6 @@
 
 namespace Toolkit\PFlag;
 
-use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\Stdlib\Str;
 use function is_scalar;
 use function is_string;
@@ -123,7 +122,7 @@ class FlagType
      *
      * @return array|false|float|int|string|null
      */
-    public static function getDefault(string $type)
+    public static function getDefault(string $type): float|bool|int|array|string|null
     {
         $value = null;
         switch ($type) {
@@ -156,9 +155,9 @@ class FlagType
      * @param string $type
      * @param mixed  $value
      *
-     * @return bool|float|int|mixed|string
+     * @return mixed
      */
-    public static function fmtBasicTypeValue(string $type, $value)
+    public static function fmtBasicTypeValue(string $type, mixed $value): mixed
     {
         if (!is_scalar($value)) {
             return $value;
@@ -205,21 +204,12 @@ class FlagType
      *
      * @return array|string
      */
-    public static function str2ArrValue(string $type, string $str)
+    public static function str2ArrValue(string $type, string $str): array|string
     {
-        switch ($type) {
-            case self::INTS:
-                $value = Str::toInts(trim($str, '[] '));
-                break;
-            case self::ARRAY:
-            case self::STRINGS:
-                $value = Str::toArray(trim($str, '[] '));
-                break;
-            default:
-                $value = $str;
-                break;
-        }
-
-        return $value;
+        return match ($type) {
+            self::INTS => Str::toInts(trim($str, '[] ')),
+            self::ARRAY, self::STRINGS => Str::toArray(trim($str, '[] ')),
+            default => $str,
+        };
     }
 }

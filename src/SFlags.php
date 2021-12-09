@@ -10,7 +10,6 @@
 namespace Toolkit\PFlag;
 
 use InvalidArgumentException;
-use Toolkit\PFlag\Contract\ParserInterface;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\Exception\FlagParseException;
 use Toolkit\Stdlib\OS;
@@ -35,9 +34,9 @@ use function substr;
 class SFlags extends FlagsParser
 {
     /**
-     * @var self
+     * @var self|null
      */
-    private static $std;
+    private static ?self $std = null;
 
     // ------------------------ opts ------------------------
 
@@ -53,7 +52,7 @@ class SFlags extends FlagsParser
      *
      * @var array
      */
-    private $optDefines = [];
+    private array $optDefines = [];
 
     /**
      * Parsed option values
@@ -64,7 +63,7 @@ class SFlags extends FlagsParser
      *
      * @var array
      */
-    private $opts = [];
+    private array $opts = [];
 
     // ------------------------ args ------------------------
 
@@ -81,14 +80,14 @@ class SFlags extends FlagsParser
      *
      * @var array[]
      */
-    private $argDefines = [];
+    private array $argDefines = [];
 
     /**
      * The mapping argument name to index
      *
      * @var array
      */
-    private $name2index = [];
+    private array $name2index = [];
 
     /**
      * Parsed input argument values
@@ -104,7 +103,7 @@ class SFlags extends FlagsParser
      *
      * @var array
      */
-    private $args = [];
+    private array $args = [];
 
     /**
      * @return self
@@ -146,7 +145,7 @@ class SFlags extends FlagsParser
      * @param string $desc
      * @param string $type The argument data type. default is: string. {@see FlagType}
      * @param bool $required
-     * @param mixed $default
+     * @param mixed|null $default
      * @param array $moreInfo
      *
      * @psalm-param array{alias: string, helpType: string} $moreInfo
@@ -159,9 +158,9 @@ class SFlags extends FlagsParser
         string $desc,
         string $type = '',
         bool $required = false,
-        $default = null,
+        mixed $default = null,
         array $moreInfo = []
-    ): ParserInterface {
+    ): static {
         $define = self::DEFINE_ITEM;
 
         $define['name'] = $name;
@@ -185,7 +184,7 @@ class SFlags extends FlagsParser
      * @param string $desc
      * @param string $type The argument data type. default is: string. {@see FlagType}
      * @param bool $required
-     * @param mixed $default
+     * @param mixed|null $default
      * @param array $moreInfo
      *
      * @psalm-param array{alias: string, helpType: string} $moreInfo
@@ -197,9 +196,9 @@ class SFlags extends FlagsParser
         string $desc,
         string $type = '',
         bool $required = false,
-        $default = null,
+        mixed $default = null,
         array $moreInfo = []
-    ): ParserInterface {
+    ): static {
         $define = self::DEFINE_ITEM;
 
         $define['name']  = $name;
@@ -222,9 +221,9 @@ class SFlags extends FlagsParser
      * @param string $name
      * @param array|string $rule
      *
-     * @return FlagsParser
+     * @return static
      */
-    public function addArgByRule(string $name, $rule): FlagsParser
+    public function addArgByRule(string $name, array|string $rule): static
     {
         // parse rule
         $index  = count($this->argDefines);
@@ -241,9 +240,9 @@ class SFlags extends FlagsParser
      * @param string $name
      * @param array|string $rule
      *
-     * @return FlagsParser
+     * @return static
      */
-    public function addOptByRule(string $name, $rule): FlagsParser
+    public function addOptByRule(string $name, array|string $rule): static
     {
         // parse rule
         $define = $this->parseRule($rule, $name);
@@ -488,7 +487,7 @@ class SFlags extends FlagsParser
      * @param string $option
      * @param mixed $value
      */
-    protected function setOptValue(string $option, $value): void
+    protected function setOptValue(string $option, mixed $value): void
     {
         $option = $this->resolveAlias($option);
         if (!isset($this->optDefines[$option])) {
@@ -504,7 +503,7 @@ class SFlags extends FlagsParser
      * @param mixed $value
      * @param array $define {@see DEFINE_ITEM}
      */
-    protected function setRealOptValue(string $name, $value, array $define): void
+    protected function setRealOptValue(string $name, mixed $value, array $define): void
     {
         $type  = $define['type'];
         $value = FlagType::fmtBasicTypeValue($type, $value);
@@ -581,7 +580,7 @@ class SFlags extends FlagsParser
      * @param bool $isArray
      * @param array $define
      */
-    protected function collectArgValue($value, int $index, bool $isArray, array $define): void
+    protected function collectArgValue(mixed $value, int $index, bool $isArray, array $define): void
     {
         $value = FlagType::fmtBasicTypeValue($define['type'], $value);
 
@@ -790,22 +789,22 @@ class SFlags extends FlagsParser
 
     /**
      * @param string $name
-     * @param null|mixed $default
+     * @param mixed|null $default
      *
      * @return mixed
      */
-    public function getOption(string $name, $default = null)
+    public function getOption(string $name, mixed $default = null): mixed
     {
         return $this->getOpt($name, $default);
     }
 
     /**
      * @param string $name
-     * @param null|mixed $default
+     * @param mixed|null $default
      *
      * @return mixed
      */
-    public function getOpt(string $name, $default = null)
+    public function getOpt(string $name, mixed $default = null): mixed
     {
         if (isset($this->opts[$name])) {
             return $this->opts[$name];
@@ -822,7 +821,7 @@ class SFlags extends FlagsParser
      *
      * @return mixed
      */
-    public function getMustOpt(string $name, string $errMsg = '')
+    public function getMustOpt(string $name, string $errMsg = ''): mixed
     {
         if (isset($this->opts[$name])) {
             return $this->opts[$name];
@@ -852,7 +851,7 @@ class SFlags extends FlagsParser
      * @param string $name
      * @param mixed $value
      */
-    public function setOpt(string $name, $value): void
+    public function setOpt(string $name, mixed $value): void
     {
         $define = $this->optDefines[$name] ?? [];
         if (!$define) { // not exist option
@@ -866,7 +865,7 @@ class SFlags extends FlagsParser
      * @param string $name
      * @param mixed $value
      */
-    public function setTrustedOpt(string $name, $value): void
+    public function setTrustedOpt(string $name, mixed $value): void
     {
         $define = $this->optDefines[$name] ?? [];
         if (!$define) { // not exist
@@ -889,7 +888,7 @@ class SFlags extends FlagsParser
      *
      * @return bool
      */
-    public function hasArg($nameOrIndex): bool
+    public function hasArg(int|string $nameOrIndex): bool
     {
         $index = $this->getArgIndex($nameOrIndex);
 
@@ -898,11 +897,11 @@ class SFlags extends FlagsParser
 
     /**
      * @param int|string $nameOrIndex
-     * @param null|mixed $default
+     * @param mixed|null $default
      *
      * @return mixed
      */
-    public function getArgument($nameOrIndex, $default = null)
+    public function getArgument(int|string $nameOrIndex, mixed $default = null): mixed
     {
         return $this->getArg($nameOrIndex, $default);
     }
@@ -911,7 +910,7 @@ class SFlags extends FlagsParser
      * @param int|string $nameOrIndex
      * @param mixed $value
      */
-    public function setArg($nameOrIndex, $value): void
+    public function setArg(int|string $nameOrIndex, mixed $value): void
     {
         $index  = $this->mustGetArgIndex($nameOrIndex);
         $define = $this->argDefines[$index];
@@ -924,7 +923,7 @@ class SFlags extends FlagsParser
      * @param string $name
      * @param mixed $value
      */
-    public function setTrustedArg(string $name, $value): void
+    public function setTrustedArg(string $name, mixed $value): void
     {
         $index = $this->mustGetArgIndex($name);
 
@@ -935,9 +934,9 @@ class SFlags extends FlagsParser
      * @param int|string $nameOrIndex
      * @param mixed|null $default
      *
-     * @return mixed|null
+     * @return mixed
      */
-    public function getArg($nameOrIndex, $default = null)
+    public function getArg(int|string $nameOrIndex, mixed $default = null): mixed
     {
         $index = $this->mustGetArgIndex($nameOrIndex);
 
@@ -951,11 +950,11 @@ class SFlags extends FlagsParser
     }
 
     /**
-     * @param string|int $nameOrIndex
+     * @param int|string $nameOrIndex
      *
      * @return mixed
      */
-    public function getMustArg($nameOrIndex, string $errMsg = '')
+    public function getMustArg(int|string $nameOrIndex, string $errMsg = ''): mixed
     {
         $index = $this->mustGetArgIndex($nameOrIndex);
         if (isset($this->args[$index])) {
@@ -972,11 +971,11 @@ class SFlags extends FlagsParser
     }
 
     /**
-     * @param string|int $nameOrIndex
+     * @param int|string $nameOrIndex
      *
      * @return int
      */
-    protected function mustGetArgIndex($nameOrIndex): int
+    protected function mustGetArgIndex(int|string $nameOrIndex): int
     {
         $index = $this->getArgIndex($nameOrIndex);
         if ($index < 0) {
@@ -987,11 +986,11 @@ class SFlags extends FlagsParser
     }
 
     /**
-     * @param string|int $nameOrIndex
+     * @param int|string $nameOrIndex
      *
      * @return int Will return -1 if arg not exists
      */
-    public function getArgIndex($nameOrIndex): int
+    public function getArgIndex(int|string $nameOrIndex): int
     {
         if (!is_string($nameOrIndex)) {
             $index = (int)$nameOrIndex;
@@ -1049,11 +1048,11 @@ class SFlags extends FlagsParser
     /**
      * Whether input argument
      *
-     * @param string|int $nameOrIndex
+     * @param int|string $nameOrIndex
      *
      * @return bool
      */
-    public function hasInputArg($nameOrIndex): bool
+    public function hasInputArg(int|string $nameOrIndex): bool
     {
         $index = $this->getArgIndex($nameOrIndex);
 
@@ -1061,11 +1060,11 @@ class SFlags extends FlagsParser
     }
 
     /**
-     * @param string|int $nameOrIndex
+     * @param int|string $nameOrIndex
      *
      * @return bool
      */
-    public function hasDefineArg($nameOrIndex): bool
+    public function hasDefineArg(int|string $nameOrIndex): bool
     {
         $index = $this->getArgIndex($nameOrIndex);
 
@@ -1073,10 +1072,11 @@ class SFlags extends FlagsParser
     }
 
     /**
-     * @param string|int $nameOrIndex
+     * @param int|string $nameOrIndex
+     *
      * @return array
      */
-    public function getArgDefine($nameOrIndex): array
+    public function getArgDefine(int|string $nameOrIndex): array
     {
         $index = $this->getArgIndex($nameOrIndex);
         if ($index < 0) {

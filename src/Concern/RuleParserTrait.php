@@ -56,7 +56,7 @@ trait RuleParserTrait
      *
      * @var array
      */
-    protected $optRules = [];
+    protected array $optRules = [];
 
     /**
      * The arguments rules
@@ -83,7 +83,7 @@ trait RuleParserTrait
      *
      * @var array
      */
-    protected $argRules = [];
+    protected array $argRules = [];
 
     /****************************************************************
      * add rule methods
@@ -110,11 +110,11 @@ trait RuleParserTrait
      * Add and option by rule
      *
      * @param string $name
-     * @param string|array $rule {@see optRules}
+     * @param array|string $rule {@see optRules}
      *
-     * @return $this
+     * @return static
      */
-    public function addOptByRule(string $name, $rule): self
+    public function addOptByRule(string $name, array|string $rule): static
     {
         $this->optRules[$name] = $rule;
 
@@ -141,11 +141,11 @@ trait RuleParserTrait
      * Add and argument by rule
      *
      * @param string $name
-     * @param string|array $rule please see {@see argRules}
+     * @param array|string $rule please see {@see argRules}
      *
-     * @return $this
+     * @return static
      */
-    public function addArgByRule(string $name, $rule): self
+    public function addArgByRule(string $name, array|string $rule): static
     {
         if ($name && !is_numeric($name)) {
             $this->argRules[$name] = $rule;
@@ -178,7 +178,7 @@ trait RuleParserTrait
      * - 'type;desc;;' - not set required,default
      * - 'type;;;default' - not set required,desc
      *
-     * @param string|array $rule
+     * @param array|string $rule
      * @param string $name
      * @param int $index
      * @param bool $isOption
@@ -187,7 +187,7 @@ trait RuleParserTrait
      * @see argRules
      * @see optRules
      */
-    protected function parseRule($rule, string $name = '', int $index = 0, bool $isOption = true): array
+    protected function parseRule(array|string $rule, string $name = '', int $index = 0, bool $isOption = true): array
     {
         if (!$rule) {
             $rule = FlagType::STRING;
@@ -351,5 +351,4 @@ trait RuleParserTrait
     {
         $this->addArgsByRules($argRules);
     }
-
 }

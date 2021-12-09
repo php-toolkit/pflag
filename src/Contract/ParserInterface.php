@@ -54,7 +54,7 @@ interface ParserInterface
      * @param string $desc
      * @param string $type The argument data type. default is: string. {@see FlagType}
      * @param bool   $required
-     * @param mixed  $default
+     * @param mixed|null $default
      * @param array  $moreInfo
      *
      * @psalm-param array{alias: string, helpType: string} $moreInfo
@@ -67,9 +67,9 @@ interface ParserInterface
         string $desc,
         string $type = '',
         bool $required = false,
-        $default = null,
+        mixed $default = null,
         array $moreInfo = []
-    ): self;
+    ): static;
 
     /**
      * Add an argument
@@ -78,7 +78,7 @@ interface ParserInterface
      * @param string $desc
      * @param string $type The argument data type. default is: string. {@see FlagType}
      * @param bool   $required
-     * @param mixed  $default
+     * @param mixed|null $default
      * @param array  $moreInfo
      *
      * @psalm-param array{helpType: string} $moreInfo
@@ -90,9 +90,9 @@ interface ParserInterface
         string $desc,
         string $type = '',
         bool $required = false,
-        $default = null,
+        mixed $default = null,
         array $moreInfo = []
-    ): self;
+    ): static;
 
     /**
      * @param array|null $flags If NULL, will parse the $_SERVER['argv]
@@ -123,11 +123,11 @@ interface ParserInterface
      * Get an option value by name
      *
      * @param string     $name
-     * @param null|mixed $default
+     * @param mixed|null $default
      *
      * @return mixed
      */
-    public function getOpt(string $name, $default = null);
+    public function getOpt(string $name, mixed $default = null): mixed;
 
     /**
      * Must get an option value by name, will throw exception on not input
@@ -137,7 +137,7 @@ interface ParserInterface
      *
      * @return mixed
      */
-    public function getMustOpt(string $name, string $errMsg = '');
+    public function getMustOpt(string $name, string $errMsg = ''): mixed;
 
     /**
      * @param string $name
@@ -155,77 +155,77 @@ interface ParserInterface
      *
      * @return mixed
      */
-    public function setOpt(string $name, $value): void;
+    public function setOpt(string $name, mixed $value): void;
 
     /**
      * Set trusted option value, will not format and validate value.
      *
      * @param mixed $value
      */
-    public function setTrustedOpt(string $name, $value): void;
+    public function setTrustedOpt(string $name, mixed $value): void;
 
     /**
      * Whether defined the argument
      *
-     * @param string|int $nameOrIndex
+     * @param int|string $nameOrIndex
      *
      * @return bool
      */
-    public function hasArg($nameOrIndex): bool;
+    public function hasArg(int|string $nameOrIndex): bool;
 
     /**
      * Whether input argument
      *
-     * @param string|int $nameOrIndex
+     * @param int|string $nameOrIndex
      *
      * @return bool
      */
-    public function hasInputArg($nameOrIndex): bool;
+    public function hasInputArg(int|string $nameOrIndex): bool;
 
     /**
-     * @param string|int $nameOrIndex
+     * @param int|string $nameOrIndex
      *
      * @return int Will return -1 if arg not exists
      */
-    public function getArgIndex($nameOrIndex): int;
+    public function getArgIndex(int|string $nameOrIndex): int;
 
     /**
-     * @param string|int $nameOrIndex
+     * @param int|string $nameOrIndex
      *
      * @return array
      * @see FlagsParser::DEFINE_ITEM
      */
-    public function getArgDefine($nameOrIndex): array;
+    public function getArgDefine(int|string $nameOrIndex): array;
 
     /**
      * Get an argument value by name
      *
-     * @param string|int $nameOrIndex
-     * @param null|mixed $default
+     * @param int|string $nameOrIndex
+     * @param mixed|null $default
      *
      * @return mixed
      */
-    public function getArg($nameOrIndex, $default = null);
+    public function getArg(int|string $nameOrIndex, mixed $default = null): mixed;
 
     /**
      * Must get an argument value by name, will throw exception on not input
      *
-     * @param string|int $nameOrIndex
+     * @param int|string $nameOrIndex
      * @param string $errMsg
      *
      * @return mixed
      */
-    public function getMustArg($nameOrIndex, string $errMsg = '');
+    public function getMustArg(int|string $nameOrIndex, string $errMsg = ''): mixed;
 
     /**
      * Set trusted argument value, will not format and validate value.
      *
-     * @param string|int $nameOrIndex
+     * @param int|string $nameOrIndex
      * @param mixed $value
      *
      * @return mixed
      */
-    public function setArg($nameOrIndex, $value): void;
+    public function setArg(int|string $nameOrIndex, mixed $value): void;
 
     /**
      * Set trusted argument value, will not format and validate value.
@@ -233,7 +233,7 @@ interface ParserInterface
      * @param string $name
      * @param mixed $value
      */
-    public function setTrustedArg(string $name, $value): void;
+    public function setTrustedArg(string $name, mixed $value): void;
 
     /**
      * @return array

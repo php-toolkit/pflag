@@ -12,7 +12,7 @@ class NameValidator extends RegexValidator
     /**
      * @var string
      */
-    protected $regex = self::DEFAULT_REGEX;
+    protected string $regex = self::DEFAULT_REGEX;
 
     /**
      * @param string $regex

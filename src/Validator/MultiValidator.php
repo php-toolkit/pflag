@@ -12,7 +12,7 @@ class MultiValidator extends AbstractValidator
     /**
      * @var ValidatorInterface[]
      */
-    private $validators;
+    private array $validators;
 
     /**
      * @param array $validators
@@ -40,7 +40,7 @@ class MultiValidator extends AbstractValidator
      *
      * @return bool
      */
-    public function checkInput($value, string $name): bool
+    public function checkInput(mixed $value, string $name): bool
     {
         foreach ($this->validators as $validator) {
             $ok = $validator($value, $name);

@@ -22,7 +22,7 @@ interface ValidatorInterface
      *
      * @return bool|array
      */
-    public function __invoke($value, string $name);
+    public function __invoke(mixed $value, string $name): bool|array;
 
     /**
      * @return string

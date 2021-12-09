@@ -3,7 +3,6 @@
 namespace Toolkit\PFlag;
 
 use Toolkit\Cli\Cli;
-use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\Cli\Util\LineParser;
 use Toolkit\PFlag\Concern\HelperRenderTrait;
 use Toolkit\PFlag\Concern\RuleParserTrait;
@@ -74,45 +73,45 @@ abstract class FlagsParser implements ParserInterface
      *
      * @var bool
      */
-    protected $locked = false;
+    protected bool $locked = false;
 
     /**
      * @var bool Mark option is parsed
      */
-    protected $parsed = false;
+    protected bool $parsed = false;
 
     /**
      * @var int
      */
-    protected $parseStatus = self::STATUS_OK;
+    protected int $parseStatus = self::STATUS_OK;
 
     /**
      * The input flags
      *
      * @var string[]
      */
-    protected $flags = [];
+    protected array $flags = [];
 
     /**
      * The remaining raw args, after option parsed from {@see $flags}
      *
      * @var string[]
      */
-    protected $rawArgs = [];
+    protected array $rawArgs = [];
 
     /**
      * The overage raw args, after argument parsed from {@see $rawArgs}
      *
      * @var string[]
      */
-    protected $remainArgs = [];
+    protected array $remainArgs = [];
 
     /**
      * The required option names.
      *
      * @var string[]
      */
-    protected $requiredOpts = [];
+    protected array $requiredOpts = [];
 
     // -------------------- settings for show help --------------------
 
@@ -121,28 +120,28 @@ abstract class FlagsParser implements ParserInterface
      *
      * @var string
      */
-    protected $desc = '';
+    protected string $desc = '';
 
     /**
      * The bin script name. use for show help
      *
      * @var string
      */
-    protected $scriptName = '';
+    protected string $scriptName = '';
 
     /**
      * The bin script file. use for show help
      *
      * @var string
      */
-    protected $scriptFile = '';
+    protected string $scriptFile = '';
 
     /**
      * settings and metadata information
      *
      * @var array
      */
-    protected $settings = [
+    protected array $settings = [
         'hasShorts'      => false,
         // some setting for render help
         'argNameLen'     => 12,
@@ -170,7 +169,7 @@ abstract class FlagsParser implements ParserInterface
      *
      * @var string
      */
-    protected $shortStyle = self::SHORT_STYLE_GUN;
+    protected string $shortStyle = self::SHORT_STYLE_GUN;
 
     /**
      * Stop parse option on found first argument.
@@ -179,7 +178,7 @@ abstract class FlagsParser implements ParserInterface
      *
      * @var bool
      */
-    protected $stopOnFistArg = true;
+    protected bool $stopOnFistArg = true;
 
     /**
      * Skip on found undefined option.
@@ -189,7 +188,7 @@ abstract class FlagsParser implements ParserInterface
      *
      * @var bool
      */
-    protected $skipOnUndefined = false;
+    protected bool $skipOnUndefined = false;
 
     // -------------------- settings for parse argument --------------------
 
@@ -198,7 +197,7 @@ abstract class FlagsParser implements ParserInterface
      *
      * @var bool
      */
-    protected $autoBindArgs = true;
+    protected bool $autoBindArgs = true;
 
     /**
      * Strict match args number.
@@ -206,21 +205,21 @@ abstract class FlagsParser implements ParserInterface
      *
      * @var bool
      */
-    protected $strictMatchArgs = false;
+    protected bool $strictMatchArgs = false;
 
     /**
      * Has array argument
      *
      * @var bool
      */
-    protected $arrayArg = false;
+    protected bool $arrayArg = false;
 
     /**
      * Has optional argument
      *
      * @var bool
      */
-    protected $optionalArg = false;
+    protected bool $optionalArg = false;
 
     /**
      * Class constructor.
@@ -315,9 +314,9 @@ abstract class FlagsParser implements ParserInterface
     /**
      * @param mixed|null $default
      *
-     * @return mixed|null
+     * @return mixed
      */
-    public function getFirstArg($default = null)
+    public function getFirstArg(mixed $default = null): mixed
     {
         return $this->getArg(0, $default);
     }
@@ -626,6 +625,15 @@ abstract class FlagsParser implements ParserInterface
             $this->scriptFile = $scriptFile;
             $this->scriptName = basename($scriptFile);
         }
+    }
+
+    /**
+     * @param string $key
+     * @param mixed $value
+     */
+    public function set(string $key, mixed $value): void
+    {
+        $this->settings[$key] = $value;
     }
 
     /**

@@ -39,47 +39,47 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
      *
      * @var string
      */
-    protected $name = '';
+    protected string $name = '';
 
     /**
      * Flag description
      *
      * @var string
      */
-    protected $desc = '';
+    protected string $desc = '';
 
     /**
      * The flag data type. (eg: 'int', 'bool', 'string', 'array', 'mixed')
      *
      * @var string
      */
-    protected $type = FlagType::STRING;
+    protected string $type = FlagType::STRING;
 
     /**
      * @var string
      */
-    protected $helpType = '';
+    protected string $helpType = '';
 
     /**
      * ENV var name. support read value from ENV var
      *
      * @var string
      */
-    protected $envVar = '';
+    protected string $envVar = '';
 
     /**
      * The default value
      *
      * @var mixed
      */
-    protected $default;
+    protected mixed $default;
 
     /**
      * The flag value
      *
      * @var mixed
      */
-    protected $value;
+    protected mixed $value;
 
     // TODO category
     // protected $category = '';
@@ -87,7 +87,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
     /**
      * @var bool
      */
-    protected $required = false;
+    protected bool $required = false;
 
     /**
      * The flag value validator
@@ -103,7 +103,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
      * @param string $desc
      * @param string $type
      * @param bool   $required
-     * @param mixed  $default
+     * @param mixed|null $default
      *
      * @return static|Argument|Option
      */
@@ -112,7 +112,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
         string $desc = '',
         string $type = 'string',
         bool $required = false,
-        $default = null
+        mixed $default = null
     ): self {
         return new static($name, $desc, $type, $required, $default);
     }
@@ -143,7 +143,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
      * @param string $desc
      * @param string $type
      * @param bool   $required
-     * @param mixed  $default The default value
+     * @param mixed|null $default The default value
      *                          - for Flag::ARG_OPTIONAL mode only
      *                          - must be null for Flag::OPT_BOOLEAN
      */
@@ -152,7 +152,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
         string $desc = '',
         string $type = 'string',
         bool $required = false,
-        $default = null
+        mixed $default = null
     ) {
         $this->default  = $default;
         $this->required = $required;
@@ -179,7 +179,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
     /**
      * @return mixed
      */
-    public function getValue()
+    public function getValue(): mixed
     {
         return $this->value;
     }
@@ -187,7 +187,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
     /**
      * @param mixed $value
      */
-    public function setTrustedValue($value): void
+    public function setTrustedValue(mixed $value): void
     {
         $this->value = $value;
     }
@@ -195,7 +195,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
     /**
      * @param mixed $value
      */
-    public function setValue($value): void
+    public function setValue(mixed $value): void
     {
         // format value by type
         $value = FlagType::fmtBasicTypeValue($this->type, $value);
@@ -314,7 +314,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
     /**
      * @return array|false|float|int|string|null
      */
-    public function getTypeDefault()
+    public function getTypeDefault(): float|bool|int|array|string|null
     {
         return FlagType::getDefault($this->type);
     }
@@ -322,7 +322,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
     /**
      * @return mixed
      */
-    public function getDefault()
+    public function getDefault(): mixed
     {
         return $this->default;
     }
@@ -330,7 +330,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
     /**
      * @param mixed $default
      */
-    public function setDefault($default): void
+    public function setDefault(mixed $default): void
     {
         $this->default = $default;
     }

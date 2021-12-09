@@ -86,7 +86,7 @@ try {
         // on render help
         return;
     }
-} catch (\Throwable $e) {
+} catch (Throwable $e) {
     if ($e instanceof FlagException) {
         Cli::colored('ERROR: ' . $e->getMessage(), 'error');
     } else {

@@ -21,8 +21,7 @@ use function trim;
  */
 class FlagUtil
 {
-    // private static ?string $scriptName = null;
-    private static $scriptName;
+    private static ?string $scriptName = null;
 
     /**
      * @param array $names
@@ -110,7 +109,7 @@ class FlagUtil
      *
      * @return bool
      */
-    public static function isOptionValue($val): bool
+    public static function isOptionValue(mixed $val): bool
     {
         if ($val === false) {
             return false;

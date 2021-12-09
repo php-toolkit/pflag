@@ -24,7 +24,7 @@ class RuleParser
      *
      * @return array
      */
-    public function parse($rule, string $name = '', int $index = 0, bool $isOption = true): array
+    public function parse(array|string $rule, string $name = '', int $index = 0, bool $isOption = true): array
     {
         return $this->parseRule($rule, $name, $index, $isOption);
     }
@@ -36,7 +36,7 @@ class RuleParser
      *
      * @return array
      */
-    public function parseArg($rule, string $name = '', int $index = 0): array
+    public function parseArg(array|string $rule, string $name = '', int $index = 0): array
     {
         return $this->parseRule($rule, $name, $index, false);
     }
@@ -47,7 +47,7 @@ class RuleParser
      *
      * @return array
      */
-    public function parseOpt($rule, string $name): array
+    public function parseOpt(array|string $rule, string $name): array
     {
         return $this->parseRule($rule, $name, 0, true);
     }

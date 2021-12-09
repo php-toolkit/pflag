@@ -47,12 +47,12 @@ class CliApp
     ];
 
     /** @var string Current dir */
-    private $pwd;
+    private string $pwd;
 
     /**
      * @var array
      */
-    protected $params = [
+    protected array $params = [
         'name'    => 'My application',
         'desc'    => 'My command line application',
         'version' => '0.2.1'
@@ -61,36 +61,36 @@ class CliApp
     /**
      * @var FlagsParser
      */
-    protected $flags;
+    protected FlagsParser|SFlags $flags;
 
     /**
      * @var FlagsParser|null
      */
-    protected $cmdFlags;
+    protected ?FlagsParser $cmdFlags;
 
     /**
      * @var string
      */
-    private $scriptFile = '';
+    private string $scriptFile = '';
 
     /**
      * @var string
      */
-    private $scriptName = '';
+    private string $scriptName = '';
 
     /**
      * Current run command
      *
      * @var string
      */
-    private $command = '';
+    private string $command = '';
 
     /**
      * User add commands handlers
      *
      * @var array<string, callable>
      */
-    private $commands = [];
+    private array $commands = [];
 
     /**
      * Command messages for the commands
@@ -106,12 +106,12 @@ class CliApp
      * @var array
      * @see COMMAND_CONFIG
      */
-    private $metadata = [];
+    private array $metadata = [];
 
     /**
      * @var int
      */
-    private $keyWidth = 10;
+    private int $keyWidth = 10;
 
     /**
      * @return static
@@ -303,7 +303,7 @@ class CliApp
      *
      * @return mixed
      */
-    public function runHandler($handler, FlagsParser $cFlags)
+    public function runHandler(mixed $handler, FlagsParser $cFlags): mixed
     {
         // function name
         if (is_string($handler) && function_exists($handler)) {
@@ -360,10 +360,10 @@ class CliApp
 
     /**
      * @param string $command
-     * @param callable|class-string|object $handler
+     * @param callable|object|class-string $handler
      * @param array{desc:string,options:array,arguments:array} $config
      */
-    public function addCommand(string $command, $handler, array $config = []): void
+    public function addCommand(string $command, callable|object|string $handler, array $config = []): void
     {
         if (!$command) {
             throw new InvalidArgumentException('command name can not be empty');

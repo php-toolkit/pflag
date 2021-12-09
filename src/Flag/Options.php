@@ -9,8 +9,6 @@
 
 namespace Toolkit\PFlag\Flag;
 
-use Toolkit\PFlag\Traits\FlagOptionsTrait;
-
 /**
  * Class Options
  * - input options builder
@@ -19,5 +17,5 @@ use Toolkit\PFlag\Traits\FlagOptionsTrait;
  */
 class Options
 {
-    use FlagOptionsTrait;
+    // use FlagOptionsTrait;
 }

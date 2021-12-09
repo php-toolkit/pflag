@@ -33,26 +33,26 @@ class Option extends AbstractFlag
      *
      * @var array
      */
-    private $shorts = [];
+    private array $shorts = [];
 
     /**
      * alias names
      *
      * @var string[]
      */
-    private $aliases = [];
+    private array $aliases = [];
 
     /**
      * Shortcuts of the option, string format. eg: 'a|b'
      *
      * @var string
      */
-    private $shortcut = '';
+    private string $shortcut = '';
 
     /**
      * @var bool
      */
-    private $hidden = false;
+    private bool $hidden = false;
 
     /**
      * @return bool

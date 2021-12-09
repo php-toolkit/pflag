@@ -28,7 +28,7 @@ class Argument extends AbstractFlag
      *
      * @var int
      */
-    private $index = 0;
+    private int $index = 0;
 
     /**
      * @param string $name

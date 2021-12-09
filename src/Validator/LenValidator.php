@@ -18,12 +18,12 @@ class LenValidator extends AbstractValidator
     /**
      * @var int|null
      */
-    protected $min;
+    protected ?int $min;
 
     /**
      * @var int|null
      */
-    protected $max;
+    protected ?int $max;
 
     /**
      * @param int|null $min
@@ -54,7 +54,7 @@ class LenValidator extends AbstractValidator
      *
      * @return bool
      */
-    public function checkInput($value, string $name): bool
+    public function checkInput(mixed $value, string $name): bool
     {
         if (is_string($value)) {
             $len = strlen(trim($value));

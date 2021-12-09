@@ -18,7 +18,7 @@ class RegexValidator extends AbstractValidator
      *
      * @var string
      */
-    protected $regex = '';
+    protected string $regex = '';
 
     /**
      * @param string $regex
@@ -48,7 +48,7 @@ class RegexValidator extends AbstractValidator
      *
      * @return bool
      */
-    public function checkInput($value, string $name): bool
+    public function checkInput(mixed $value, string $name): bool
     {
         $regex = $this->regex;
         if (is_string($value) && preg_match("/$regex/", $value)) {

@@ -9,8 +9,6 @@
 
 namespace Toolkit\PFlag\Flag;
 
-use Toolkit\PFlag\Traits\FlagArgumentsTrait;
-
 /**
  * Class Arguments
  * - input arguments builder
@@ -19,5 +17,5 @@ use Toolkit\PFlag\Traits\FlagArgumentsTrait;
  */
 class Arguments
 {
-    use FlagArgumentsTrait;
+    // use FlagArgumentsTrait;
 }

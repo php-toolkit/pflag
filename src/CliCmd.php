@@ -18,16 +18,16 @@ class CliCmd
         __construct as supper;
     }
 
-    public $name = '';
-    public $desc = 'command description';
+    public string $name = '';
+    public string $desc = 'command description';
 
-    public $options = [];
-    public $arguments = [];
+    public array $options = [];
+    public array $arguments = [];
 
     /**
      * @var FlagsParser
      */
-    private $flags;
+    private FlagsParser|SFlags $flags;
 
     /**
      * @var callable(FlagsParser): mixed
@@ -104,7 +104,7 @@ class CliCmd
     /**
      * @return int|mixed
      */
-    public function run()
+    public function run(): mixed
     {
         $handler = $this->handler;
         if (!$handler) {

@@ -13,7 +13,7 @@ class FlagParseException extends FlagException
     /**
      * @var string
      */
-    public $flagType = FlagsParser::KIND_OPT;
+    public string $flagType = FlagsParser::KIND_OPT;
 
     public function __construct(string $message, int $code = 0, string $flagType = FlagsParser::KIND_OPT)
     {

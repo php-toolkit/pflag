@@ -15,7 +15,7 @@ abstract class AbstractValidator implements ValidatorInterface
      *
      * @return bool
      */
-    public function __invoke($value, string $name): bool
+    public function __invoke(mixed $value, string $name): bool
     {
         return $this->checkInput($value, $name);
     }
@@ -26,5 +26,5 @@ abstract class AbstractValidator implements ValidatorInterface
      *
      * @return bool
      */
-    abstract public function checkInput($value, string $name): bool;
+    abstract public function checkInput(mixed $value, string $name): bool;
 }

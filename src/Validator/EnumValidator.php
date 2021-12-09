@@ -15,7 +15,7 @@ class EnumValidator extends AbstractValidator
     /**
      * @var array
      */
-    protected $enums = [];
+    protected array $enums = [];
 
     /**
      * @param array $enums
@@ -54,7 +54,7 @@ class EnumValidator extends AbstractValidator
      *
      * @return bool
      */
-    public function checkInput($value, string $name): bool
+    public function checkInput(mixed $value, string $name): bool
     {
         if (in_array($value, $this->enums, true)) {
             return true;

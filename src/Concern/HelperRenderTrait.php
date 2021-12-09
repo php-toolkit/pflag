@@ -26,7 +26,6 @@ use function strlen;
 use function strpos;
 use function trim;
 use function ucfirst;
-use function vdump;
 
 /**
  * trait HelperRenderTrait
@@ -43,12 +42,12 @@ trait HelperRenderTrait
     /**
      * @var string|array|null
      */
-    protected $moreHelp = '';
+    protected string|array|null $moreHelp = '';
 
     /**
      * @var string|array|null
      */
-    protected $exampleHelp = '';
+    protected string|array|null $exampleHelp = '';
 
     // -------------------- settings for built-in render help --------------------
 
@@ -57,7 +56,7 @@ trait HelperRenderTrait
      *
      * @var bool
      */
-    protected $autoRenderHelp = true;
+    protected bool $autoRenderHelp = true;
 
     /**
      * Show flag data type on render help.
@@ -72,12 +71,12 @@ trait HelperRenderTrait
      *
      * @var bool
      */
-    protected $showTypeOnHelp = true;
+    protected bool $showTypeOnHelp = true;
 
     /**
      * @var bool
      */
-    protected $showHiddenOpt = false;
+    protected bool $showHiddenOpt = false;
 
     /**
      * Will call it on before print help message
@@ -196,12 +195,12 @@ trait HelperRenderTrait
     }
 
     /**
-     * @param array|Option|Argument $define
+     * @param array|Argument|Option $define
      *
      * @return array
      * @see FlagsParser::DEFINE_ITEM for array $define
      */
-    protected function formatDesc($define): array
+    protected function formatDesc(Argument|Option|array $define): array
     {
         $desc = $define['desc'] ?: 'No description';
         if ($define['required']) {
@@ -270,7 +269,8 @@ trait HelperRenderTrait
             $fmtArgs[$helpName] = $arg;
         }
 
-        $this->settings['argNameLen'] = $maxLen;
+        // $this->settings['argNameLen'] = $maxLen;
+        $this->set('argNameLen', $maxLen);
         return $fmtArgs;
     }
 
@@ -334,9 +334,11 @@ trait HelperRenderTrait
         // limit option name width
         $maxLen = IntHelper::getMax($this->settings['descNlOnOptLen'], self::OPT_MAX_WIDTH);
 
-        $this->settings['descNlOnOptLen'] = $maxLen;
+        // $this->settings['descNlOnOptLen'] = $maxLen;
+        $this->set('descNlOnOptLen', $maxLen);
         // set opt name len
-        $this->settings['optNameLen'] = IntHelper::getMin($nameLen, $maxLen);
+        // $this->settings['optNameLen'] = IntHelper::getMin($nameLen, $maxLen);
+        $this->set('optNameLen', IntHelper::getMin($nameLen, $maxLen));
         return $fmtOpts;
     }
 
@@ -429,7 +431,7 @@ trait HelperRenderTrait
     /**
      * @return array|string|null
      */
-    public function getMoreHelp()
+    public function getMoreHelp(): array|string|null
     {
         return $this->moreHelp;
     }
@@ -437,7 +439,7 @@ trait HelperRenderTrait
     /**
      * @param array|string|null $moreHelp
      */
-    public function setHelp($moreHelp): void
+    public function setHelp(array|string|null $moreHelp): void
     {
         $this->setMoreHelp($moreHelp);
     }
@@ -445,7 +447,7 @@ trait HelperRenderTrait
     /**
      * @param array|string|null $moreHelp
      */
-    public function setMoreHelp($moreHelp): void
+    public function setMoreHelp(array|string|null $moreHelp): void
     {
         if ($moreHelp) {
             $this->moreHelp = $moreHelp;
@@ -455,7 +457,7 @@ trait HelperRenderTrait
     /**
      * @return array|string|null
      */
-    public function getExampleHelp()
+    public function getExampleHelp(): array|string|null
     {
         return $this->exampleHelp;
     }
@@ -463,7 +465,7 @@ trait HelperRenderTrait
     /**
      * @param array|string|null $example
      */
-    public function setExample($example): void
+    public function setExample(array|string|null $example): void
     {
         $this->setExampleHelp($example);
     }
@@ -471,7 +473,7 @@ trait HelperRenderTrait
     /**
      * @param array|string|null $exampleHelp
      */
-    public function setExampleHelp($exampleHelp): void
+    public function setExampleHelp(array|string|null $exampleHelp): void
     {
         if ($exampleHelp) {
             $this->exampleHelp = $exampleHelp;

@@ -25,7 +25,7 @@ class EmptyValidator extends AbstractValidator
      *
      * @return bool
      */
-    public function checkInput($value, string $name): bool
+    public function checkInput(mixed $value, string $name): bool
     {
         if (is_string($value)) {
             $value = trim($value);

@@ -12,7 +12,7 @@ interface ValueInterface
      *
      * @return mixed
      */
-    public function setValue($value);
+    public function setValue(mixed $value): mixed;
 
     public function getValue();
 }

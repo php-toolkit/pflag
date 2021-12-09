@@ -16,7 +16,7 @@ class FuncValidator extends AbstractValidator
     /**
      * @var string
      */
-    protected $tipMsg = '';
+    protected string $tipMsg = '';
 
     /**
      * @param mixed $value
@@ -24,7 +24,7 @@ class FuncValidator extends AbstractValidator
      *
      * @return bool
      */
-    public function checkInput($value, string $name): bool
+    public function checkInput(mixed $value, string $name): bool
     {
         $fn = $this->func;
 

@@ -11,16 +11,15 @@ use Toolkit\PFlag\FlagsParser;
 abstract class CondValidator extends AbstractValidator
 {
     /**
-     * @var FlagsParser
+     * @var FlagsParser|null
      */
-    protected $fs;
+    protected ?FlagsParser $fs = null;
 
     /**
      * Before condition check.
      * if return false, will skip call checkInput();
      *
-     * @var callable
-     * @psalm-param Closure($fs FlagsParser):bool
+     * @var callable(FlagsParser):bool
      */
     protected $cond;
 
@@ -30,7 +29,7 @@ abstract class CondValidator extends AbstractValidator
      *
      * @return bool
      */
-    public function __invoke($value, string $name): bool
+    public function __invoke(mixed $value, string $name): bool
     {
         $condFn = $this->cond;
         if ($condFn && !$condFn($this->fs)) {
@@ -59,9 +58,9 @@ abstract class CondValidator extends AbstractValidator
     /**
      * @param mixed $cond
      *
-     * @return AbstractValidator|static
+     * @return static
      */
-    public function setCond($cond): self
+    public function setCond(mixed $cond): self
     {
         $this->cond = $cond;
         return $this;
