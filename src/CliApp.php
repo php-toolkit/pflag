@@ -8,7 +8,10 @@ use RuntimeException;
 use Throwable;
 use Toolkit\Cli\Cli;
 use Toolkit\Cli\Color;
+use Toolkit\PFlag\Contract\CmdHandlerInterface;
 use Toolkit\Stdlib\Arr;
+use Toolkit\Stdlib\Helper\Assert;
+use Toolkit\Stdlib\Helper\Valid;
 use Toolkit\Stdlib\Obj\Traits\AutoConfigTrait;
 use function array_merge;
 use function array_shift;
@@ -61,12 +64,14 @@ class CliApp
     /**
      * @var FlagsParser
      */
-    protected FlagsParser|SFlags $flags;
+    protected FlagsParser $flags;
 
     /**
+     * Flags for current run command
+     *
      * @var FlagsParser|null
      */
-    protected ?FlagsParser $cmdFlags;
+    protected ?FlagsParser $cmdFlags = null;
 
     /**
      * @var string
@@ -355,6 +360,27 @@ class CliApp
      */
     public function add(string $command, callable $handler, array $config = []): void
     {
+        $this->addCommand($command, $handler, $config);
+    }
+
+    /**
+     * @param class-string|CmdHandlerInterface $handler
+     */
+    public function addHandler(string|CmdHandlerInterface $handler): void
+    {
+        if (is_string($handler)) {
+            // class string.
+            if (class_exists($handler)) {
+                $handler = new $handler;
+                Assert::isTrue($handler instanceof CmdHandlerInterface, 'must be an class and instance of CmdHandlerInterface');
+            } else {
+                throw new InvalidArgumentException('must be an class string');
+            }
+        }
+
+        $config  = $handler->metadata();
+        $command = Valid::arrayHasNoEmptyKey($config, 'name');
+
         $this->addCommand($command, $handler, $config);
     }
 

@@ -2,7 +2,6 @@
 
 namespace Toolkit\PFlag;
 
-use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 use Toolkit\Stdlib\Obj\Traits\AutoConfigTrait;
@@ -27,7 +26,7 @@ class CliCmd
     /**
      * @var FlagsParser
      */
-    private FlagsParser|SFlags $flags;
+    private FlagsParser $flags;
 
     /**
      * @var callable(FlagsParser): mixed
@@ -102,7 +101,7 @@ class CliCmd
     }
 
     /**
-     * @return int|mixed
+     * @return mixed
      */
     public function run(): mixed
     {

@@ -292,6 +292,7 @@ Create an multi commands application, run subcommand. see example file [example/
 use Toolkit\Cli\Cli;
 use Toolkit\PFlag\CliApp;
 use Toolkit\PFlag\FlagsParser;
+use Toolkit\PFlagTest\Cases\DemoCmdHandler;
 
 $app = new CliApp();
 
@@ -321,6 +322,8 @@ $app->add('test2', function (FlagsParser $fs) {
 
 // fn - required php 7.4+
 $app->add('show-err', fn() => throw new RuntimeException('test show exception'));
+
+$app->addHandler(DemoCmdHandler::class);
 
 $app->run();
 ```

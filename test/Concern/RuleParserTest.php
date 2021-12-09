@@ -3,8 +3,7 @@
 namespace Toolkit\PFlagTest\Concern;
 
 use Toolkit\PFlagTest\BaseFlagsTestCase;
-use Toolkit\PFlagTest\RuleParser;
-use function vdump;
+use Toolkit\PFlagTest\Cases\RuleParser;
 
 /**
  * class RuleParserTest

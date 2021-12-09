@@ -3,6 +3,7 @@
 use Toolkit\Cli\Cli;
 use Toolkit\PFlag\CliApp;
 use Toolkit\PFlag\FlagsParser;
+use Toolkit\PFlagTest\Cases\DemoCmdHandler;
 
 require dirname(__DIR__) . '/test/bootstrap.php';
 
@@ -36,6 +37,8 @@ $app->add('test2', function (FlagsParser $fs) {
 ]);
 
 $app->add('show-err', fn() => throw new RuntimeException('test show exception'));
+
+$app->addHandler(DemoCmdHandler::class);
 
 $app->run();
 

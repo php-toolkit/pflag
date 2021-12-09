@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Toolkit\PFlagTest;
+namespace Toolkit\PFlagTest\Cases;
 
 use Toolkit\PFlag\Concern\RuleParserTrait;
 

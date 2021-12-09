@@ -3,6 +3,7 @@
 namespace Toolkit\PFlagTest;
 
 use Toolkit\PFlag\CliApp;
+use Toolkit\PFlagTest\Cases\DemoCmdHandler;
 use Toolkit\Stdlib\Obj\DataObject;
 
 /**
@@ -17,10 +18,7 @@ class CliAppTest extends BaseFlagsTestCase
         $buf = DataObject::new();
 
         // php 7.4+
-        // $app->add('test1', fn() => $buf->set('key', 'in test1'));
-        $app->add('test1', function () use ($buf) {
-            $buf->set('key', 'in test1');
-        });
+        $app->add('test1', fn() => $buf->set('key', 'in test1'));
 
         $app->addCommands([
             'test2' => [
@@ -34,6 +32,8 @@ class CliAppTest extends BaseFlagsTestCase
                 ],
             ],
         ]);
+
+        $app->addHandler(DemoCmdHandler::class);
 
         return $buf;
     }
@@ -52,6 +52,7 @@ class CliAppTest extends BaseFlagsTestCase
 
         $this->assertTrue($app->hasCommand('test1'));
         $this->assertTrue($app->hasCommand('test2'));
+        $this->assertTrue($app->hasCommand('demo'));
 
         $app->runByArgs(['test1']);
         $this->assertEquals('in test1', $buf->get('key'));
