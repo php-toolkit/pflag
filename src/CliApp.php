@@ -210,7 +210,8 @@ class CliApp
         if (isset($args[0]) && $args[0]) {
             $fArg = $args[0]; // check first argument.
             if ($fArg[0] !== '-') {
-                $this->command = array_shift($args);
+                $this->command = $fArg;
+                array_shift($args);
             }
         }
 
