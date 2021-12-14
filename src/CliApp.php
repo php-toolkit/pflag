@@ -139,6 +139,16 @@ class CliApp
     }
 
     /**
+     * @param callable(self): void $fn
+     *
+     * @return $this
+     */
+    public static function newWith(callable $fn): self
+    {
+        return (new self)->config($fn);
+    }
+
+    /**
      * Class constructor.
      *
      * @param array{flags: array} $config
@@ -156,6 +166,17 @@ class CliApp
 
         $this->flags = new SFlags($fsConf);
         $this->flags->setAutoBindArgs(false);
+    }
+
+    /**
+     * @param callable(self): void $fn
+     *
+     * @return $this
+     */
+    public function config(callable $fn): self
+    {
+        $fn($this);
+        return $this;
     }
 
     /**
@@ -358,16 +379,20 @@ class CliApp
      * @param string $command
      * @param callable $handler
      * @param array{desc:string,options:array,arguments:array} $config
+     *
+     * @return self
      */
-    public function add(string $command, callable $handler, array $config = []): void
+    public function add(string $command, callable $handler, array $config = []): self
     {
-        $this->addCommand($command, $handler, $config);
+        return $this->addCommand($command, $handler, $config);
     }
 
     /**
      * @param class-string|CmdHandlerInterface $handler
+     *
+     * @return self
      */
-    public function addHandler(string|CmdHandlerInterface $handler): void
+    public function addHandler(string|CmdHandlerInterface $handler): self
     {
         if (is_string($handler)) {
             // class string.
@@ -382,15 +407,19 @@ class CliApp
         $config  = $handler->metadata();
         $command = Valid::arrayHasNoEmptyKey($config, 'name');
 
-        $this->addCommand($command, $handler, $config);
+        return $this->addCommand($command, $handler, $config);
     }
 
     /**
+     * Add a command
+     *
      * @param string $command
      * @param callable|object|class-string $handler
      * @param array{desc:string,options:array,arguments:array} $config
+     *
+     * @return self
      */
-    public function addCommand(string $command, callable|object|string $handler, array $config = []): void
+    public function addCommand(string $command, callable|object|string $handler, array $config = []): self
     {
         if (!$command) {
             throw new InvalidArgumentException('command name can not be empty');
@@ -418,6 +447,7 @@ class CliApp
         }
 
         $this->metadata[$command] = array_merge(self::COMMAND_CONFIG, $config);
+        return $this;
     }
 
     /**
@@ -626,6 +656,16 @@ class CliApp
         if ($params) {
             $this->params = array_merge($this->params, $params);
         }
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return void
+     */
+    public function setName(string $name): void
+    {
+        $this->params['name'] = $name;
     }
 
     /**

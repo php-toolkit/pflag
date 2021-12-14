@@ -11,20 +11,20 @@ require dirname(__DIR__) . '/test/bootstrap.php';
 // php example/clicmd.php --name inhere value1
 // php example/clicmd.php --age 23 --name inhere value1
 
-CliCmd::new()
-    ->config(function (CliCmd $cmd) {
-        $cmd->name = 'demo';
-        $cmd->desc = 'description for demo command';
+CliCmd::newWith(function (CliCmd $cmd) {
+    $cmd->name = 'demo';
+    $cmd->desc = 'description for demo command';
 
-        // config flags
-        $cmd->options = [
-            'age, a'  => 'int;the option age, is int',
-            'name, n' => 'the option name, is string and required;true',
-            'tags, t' => 'array;the option tags, is array',
-        ];
-        // or use property
-        // $cmd->arguments = [...];
-    })
+    // config flags
+    $cmd->options = [
+        'age, a'  => 'int;the option age, is int',
+        'name, n' => 'the option name, is string and required;true',
+        'tags, t' => 'array;the option tags, is array',
+    ];
+
+    // or use property
+    // $cmd->arguments = [...];
+})
     ->withArguments([
         'arg1' => 'this is arg1, is string'
     ])

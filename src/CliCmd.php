@@ -20,7 +20,14 @@ class CliCmd
     public string $name = '';
     public string $desc = 'command description';
 
+    /**
+     * @var array<string, string|array>
+     */
     public array $options = [];
+
+    /**
+     * @var array<string, string|array>
+     */
     public array $arguments = [];
 
     /**
@@ -33,6 +40,21 @@ class CliCmd
      */
     private $handler;
 
+    /**
+     * @param callable(self): void $fn
+     *
+     * @return $this
+     */
+    public static function newWith(callable $fn): self
+    {
+        return (new self)->config($fn);
+    }
+
+    /**
+     * Class constructor.
+     *
+     * @param array $config
+     */
     public function __construct(array $config = [])
     {
         $this->supper($config);
