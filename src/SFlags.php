@@ -14,6 +14,7 @@ use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\Exception\FlagParseException;
 use Toolkit\Stdlib\OS;
 use Toolkit\Stdlib\Str;
+use function array_values;
 use function count;
 use function current;
 use function explode;
@@ -567,11 +568,13 @@ class SFlags extends FlagsParser
             }
         }
 
-        if ($this->strictMatchArgs && $args) {
-            throw new FlagException(sprintf('unknown arguments (error: "%s").', implode(', ', $args)));
-        }
+        if ($args) {
+            if ($this->strictMatchArgs) {
+                throw new FlagException(sprintf('unknown arguments (error: "%s").', implode(', ', $args)));
+            }
 
-        $this->remainArgs = $args;
+            $this->remainArgs = array_values($args);
+        }
     }
 
     /**
@@ -951,6 +954,7 @@ class SFlags extends FlagsParser
 
     /**
      * @param int|string $nameOrIndex
+     * @param string $errMsg
      *
      * @return mixed
      */
@@ -993,7 +997,7 @@ class SFlags extends FlagsParser
     public function getArgIndex(int|string $nameOrIndex): int
     {
         if (!is_string($nameOrIndex)) {
-            $index = (int)$nameOrIndex;
+            $index = $nameOrIndex;
             return isset($this->argDefines[$index]) ? $index : -1;
         }
 

@@ -17,12 +17,11 @@ use Toolkit\PFlag\Flag\Argument;
 use Toolkit\PFlag\Flag\Option;
 use Toolkit\Stdlib\Str;
 use function array_shift;
+use function array_values;
 use function count;
 use function implode;
 use function is_array;
-use function is_numeric;
 use function is_string;
-use function ltrim;
 use function sprintf;
 use function str_split;
 use function strlen;
@@ -283,33 +282,6 @@ class Flags extends FlagsParser
     }
 
     /**
-     * check and get option Name
-     *
-     * invalid:
-     * - empty string
-     * - no prefix '-' (is argument)
-     * - invalid option name as argument. eg: '- '
-     *
-     * @param string $val
-     *
-     * @return string
-     */
-    private function filterOptionName(string $val): string
-    {
-        // is not an option.
-        if ('' === $val || $val[0] !== '-') {
-            return '';
-        }
-
-        $name = ltrim($val, '-');
-        if (is_numeric($name)) {
-            return '';
-        }
-
-        return $name;
-    }
-
-    /**
      * @param string $shorts eg: 'abc' from '-abc'
      */
     protected function parseMergedShorts(string $shorts): bool
@@ -413,11 +385,14 @@ class Flags extends FlagsParser
             }
         }
 
-        if ($this->strictMatchArgs && $args) {
-            throw new FlagException(sprintf('unknown arguments (error: "%s").', implode(' ', $args)));
+        if ($args) {
+            if ($this->strictMatchArgs) {
+                throw new FlagException(sprintf('unknown arguments (error: "%s").', implode(' ', $args)));
+            }
+
+            $this->remainArgs = array_values($args);
         }
 
-        $this->remainArgs = $args;
         return $this;
     }
 
@@ -474,7 +449,6 @@ class Flags extends FlagsParser
         mixed $default = null,
         array $moreInfo = []
     ): static {
-        /** @var Argument $arg */
         $arg = Argument::new($name, $desc, $type, $required, $default);
 
         $this->addArgument($arg);
@@ -489,13 +463,12 @@ class Flags extends FlagsParser
      *
      * @return self
      * @see argRules for an rule
-     *
      */
     public function addArgByRule(string $name, array|string $rule): static
     {
         $index  = count($this->arguments);
         $define = $this->parseRule($rule, $name, $index, false);
-        /** @var Argument $arg */
+
         $arg = Argument::newByArray($name, $define);
 
         parent::addArgByRule($name, $rule);
@@ -578,7 +551,7 @@ class Flags extends FlagsParser
 
             $index = $this->name2index[$nameOrIndex];
         } else {
-            $index = (int)$nameOrIndex;
+            $index = $nameOrIndex;
         }
 
         return isset($this->arguments[$index]);
@@ -696,7 +669,7 @@ class Flags extends FlagsParser
             return $this->name2index[$nameOrIndex] ?? -1;
         }
 
-        $index = (int)$nameOrIndex;
+        $index = $nameOrIndex;
         return isset($this->arguments[$index]) ? $index : -1;
     }
 
@@ -772,7 +745,6 @@ class Flags extends FlagsParser
         mixed $default = null,
         array $moreInfo = []
     ): static {
-        /** @var Option $opt */
         $opt = Option::new($name, $desc, $type, $required, $default);
         $opt->setAliases($moreInfo['aliases'] ?? []);
         $opt->setShortcut($shortcut);
@@ -793,7 +765,6 @@ class Flags extends FlagsParser
     public function addOptByRule(string $name, array|string $rule): static
     {
         $define = $this->parseRule($rule, $name);
-        /** @var Option $option */
         $option = Option::newByArray($define['name'], $define);
 
         if (is_array($rule) && isset($rule['aliases'])) {
@@ -955,9 +926,7 @@ class Flags extends FlagsParser
      */
     public function getOptDefine(string $name): array
     {
-        $opt = $this->mustGetOption($name);
-
-        return $opt->toArray();
+        return $this->mustGetOption($name)->toArray();
     }
 
     /**
