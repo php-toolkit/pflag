@@ -1,4 +1,11 @@
 <?php declare(strict_types=1);
+/**
+ * This file is part of toolkit/pflag.
+ *
+ * @link     https://github.com/php-toolkit
+ * @author   https://github.com/inhere
+ * @license  MIT
+ */
 
 namespace Toolkit\PFlag;
 
@@ -660,10 +667,16 @@ class CliApp
 
     /**
      * @param string $name
-     *
-     * @return void
      */
     public function setName(string $name): void
+    {
+        $this->params['name'] = $name;
+    }
+
+    /**
+     * @param string $name
+     */
+    public function setDesc(string $name): void
     {
         $this->params['name'] = $name;
     }

@@ -40,7 +40,7 @@ class FlagsTest extends BaseFlagsTestCase
         $fs->parse($flags);
 
         self::assertTrue($fs->hasMatched('name'));
-        $this->assertNotEmpty( $fs->getOption('name'));
+        $this->assertNotEmpty($fs->getOption('name'));
         $this->assertSame('inhere', $fs->getOpt('name'));
         $this->assertSame(0, $fs->getOpt('age', 0));
         $this->assertSame(89, $fs->getOpt('int1'));

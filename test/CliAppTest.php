@@ -1,4 +1,11 @@
 <?php declare(strict_types=1);
+/**
+ * This file is part of toolkit/pflag.
+ *
+ * @link     https://github.com/php-toolkit
+ * @author   https://github.com/inhere
+ * @license  MIT
+ */
 
 namespace Toolkit\PFlagTest;
 
@@ -18,12 +25,12 @@ class CliAppTest extends BaseFlagsTestCase
         $buf = DataObject::new();
 
         // php 7.4+
-        $app->add('test1', fn() => $buf->set('key', 'in test1'));
+        $app->add('test1', fn () => $buf->set('key', 'in test1'));
 
         $app->addCommands([
             'test2' => [
                 'desc'    => 'desc for test2 command',
-                'handler' => function () use ($buf) {
+                'handler' => function () use ($buf): void {
                     $buf->set('key', 'in test2');
                 },
                 'options' => [

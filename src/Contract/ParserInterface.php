@@ -17,6 +17,7 @@ use Toolkit\PFlag\FlagsParser;
 interface ParserInterface
 {
     public const KIND_OPT = 'option';
+
     public const KIND_ARG = 'argument';
 
     /**
@@ -282,5 +283,4 @@ interface ParserInterface
      * @return bool
      */
     public function isLocked(): bool;
-
 }

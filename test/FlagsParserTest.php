@@ -1,4 +1,11 @@
 <?php declare(strict_types=1);
+/**
+ * This file is part of toolkit/pflag.
+ *
+ * @link     https://github.com/php-toolkit
+ * @author   https://github.com/inhere
+ * @license  MIT
+ */
 
 namespace Toolkit\PFlagTest;
 
@@ -14,7 +21,7 @@ class FlagsParserTest extends BaseFlagsTestCase
 {
     public function testParserBasic(): void
     {
-        $this->runTestsWithParsers(function (FlagsParser $fs) {
+        $this->runTestsWithParsers(function (FlagsParser $fs): void {
             $this->doCheckBasic($fs);
         });
     }
@@ -63,7 +70,7 @@ class FlagsParserTest extends BaseFlagsTestCase
 
     public function testGetOptAndGetArg(): void
     {
-        $this->runTestsWithParsers(function (FlagsParser $fs) {
+        $this->runTestsWithParsers(function (FlagsParser $fs): void {
             $this->bindingOptsAndArgs($fs);
             $this->doTestGetOptAndGetArg($fs);
         });
@@ -81,7 +88,7 @@ class FlagsParserTest extends BaseFlagsTestCase
         $fs->resetResults();
 
         // getMustOpt
-        $e = $this->runAndGetException(function (FlagsParser $fs) {
+        $e = $this->runAndGetException(function (FlagsParser $fs): void {
             $fs->getMustOpt('str-opt');
         }, $fs);
 
@@ -89,7 +96,7 @@ class FlagsParserTest extends BaseFlagsTestCase
         $this->assertSame("The option 'str-opt' is required", $e->getMessage());
 
         // getMustArg
-        $e = $this->runAndGetException(function (FlagsParser $fs) {
+        $e = $this->runAndGetException(function (FlagsParser $fs): void {
             $fs->getMustArg('str-arg');
         }, $fs);
 
@@ -99,7 +106,7 @@ class FlagsParserTest extends BaseFlagsTestCase
 
     public function testParse_specialArg(): void
     {
-        $this->runTestsWithParsers(function (FlagsParser $fs) {
+        $this->runTestsWithParsers(function (FlagsParser $fs): void {
             $fs->addOpt('a', '', 'an string opt');
             $fs->addArg('num', 'an int arg', 'int');
 
@@ -117,7 +124,7 @@ class FlagsParserTest extends BaseFlagsTestCase
 
     public function testStopOnTwoHl(): void
     {
-        $this->runTestsWithParsers(function (FlagsParser $fs) {
+        $this->runTestsWithParsers(function (FlagsParser $fs): void {
             $this->doCheckStopOnTwoHl($fs);
         });
     }
@@ -140,7 +147,7 @@ class FlagsParserTest extends BaseFlagsTestCase
 
     public function testStopOnFirstArg(): void
     {
-        $this->runTestsWithParsers(function (FlagsParser $fs) {
+        $this->runTestsWithParsers(function (FlagsParser $fs): void {
             $this->runStopOnFirstArg($fs);
         });
     }
@@ -191,11 +198,11 @@ class FlagsParserTest extends BaseFlagsTestCase
 
     public function testSkipOnUndefined(): void
     {
-        $this->runTestsWithParsers(function (FlagsParser $fs) {
+        $this->runTestsWithParsers(function (FlagsParser $fs): void {
             $this->runSkipOnUndefined_false($fs);
         });
 
-        $this->runTestsWithParsers(function (FlagsParser $fs) {
+        $this->runTestsWithParsers(function (FlagsParser $fs): void {
             $this->runSkipOnUndefined_true($fs);
         });
     }
@@ -240,7 +247,7 @@ class FlagsParserTest extends BaseFlagsTestCase
 
     public function testRenderHelp_showTypeOnHelp(): void
     {
-        $this->runTestsWithParsers(function (FlagsParser $fs) {
+        $this->runTestsWithParsers(function (FlagsParser $fs): void {
             $this->bindingOptsAndArgs($fs);
             $this->renderFlagsHelp($fs);
         });
@@ -248,7 +255,7 @@ class FlagsParserTest extends BaseFlagsTestCase
 
     public function testRenderHelp_showTypeOnHelp_false(): void
     {
-        $this->runTestsWithParsers(function (FlagsParser $fs) {
+        $this->runTestsWithParsers(function (FlagsParser $fs): void {
             $fs->setShowTypeOnHelp(false);
             $this->bindingOptsAndArgs($fs);
             $this->renderFlagsHelp($fs);
@@ -271,7 +278,7 @@ class FlagsParserTest extends BaseFlagsTestCase
 
     protected function doCheckRepeatName(FlagsParser $fs): void
     {
-        $e = $this->runAndGetException(function (FlagsParser $fs) {
+        $e = $this->runAndGetException(function (FlagsParser $fs): void {
             $fs->addOptsByRules([
                 '--name' => 'an string',
                 'name'   => 'an string',
@@ -280,7 +287,7 @@ class FlagsParserTest extends BaseFlagsTestCase
 
         $this->assertEquals(FlagException::class, get_class($e));
 
-        $e = $this->runAndGetException(function (FlagsParser $fs) {
+        $e = $this->runAndGetException(function (FlagsParser $fs): void {
             $fs->addArgsByRules([
                 'name' => 'an string',
             ]);
@@ -300,7 +307,7 @@ class FlagsParserTest extends BaseFlagsTestCase
     private function doCheckErrorOnAddOpt(FlagsParser $fs): void
     {
         // empty name
-        $e = $this->runAndGetException(function (FlagsParser $fs) {
+        $e = $this->runAndGetException(function (FlagsParser $fs): void {
             $fs->addOpt('', '', 'an desc');
         }, $fs);
 
@@ -308,7 +315,7 @@ class FlagsParserTest extends BaseFlagsTestCase
         $this->assertSame('invalid flag option name: ', $e->getMessage());
 
         // invalid name
-        $e = $this->runAndGetException(function (FlagsParser $fs) {
+        $e = $this->runAndGetException(function (FlagsParser $fs): void {
             $fs->addOpt('name=+', '', 'an desc');
         }, $fs);
 
@@ -316,7 +323,7 @@ class FlagsParserTest extends BaseFlagsTestCase
         $this->assertSame('invalid flag option name: name=+', $e->getMessage());
 
         // invalid type
-        $e = $this->runAndGetException(function (FlagsParser $fs) {
+        $e = $this->runAndGetException(function (FlagsParser $fs): void {
             $fs->addOpt('name', '', 'an desc', 'invalid');
         }, $fs);
 
@@ -334,7 +341,7 @@ class FlagsParserTest extends BaseFlagsTestCase
     private function doCheckErrorOnAddArg(FlagsParser $fs): void
     {
         // invalid name
-        $e = $this->runAndGetException(function (FlagsParser $fs) {
+        $e = $this->runAndGetException(function (FlagsParser $fs): void {
             $fs->addArg('name=+', 'an desc');
         }, $fs);
 
@@ -342,7 +349,7 @@ class FlagsParserTest extends BaseFlagsTestCase
         $this->assertSame('invalid flag argument name: #0(name=+)', $e->getMessage());
 
         // invalid type
-        $e = $this->runAndGetException(function (FlagsParser $fs) {
+        $e = $this->runAndGetException(function (FlagsParser $fs): void {
             $fs->addArg('name', 'an desc', 'invalid');
         }, $fs);
 
@@ -383,14 +390,14 @@ class FlagsParserTest extends BaseFlagsTestCase
         $this->assertSame('trust-value1', $fs->getArg('str-arg'));
 
         // test error
-        $e = $this->runAndGetException(function (FlagsParser $fs) {
+        $e = $this->runAndGetException(function (FlagsParser $fs): void {
             $fs->setOpt('not-exist-opt', '22');
         }, $fs);
 
         $this->assertSame(FlagException::class, get_class($e));
         $this->assertSame("flag option 'not-exist-opt' is undefined", $e->getMessage());
 
-        $e = $this->runAndGetException(function (FlagsParser $fs) {
+        $e = $this->runAndGetException(function (FlagsParser $fs): void {
             $fs->setArg('not-exist-arg', '22');
         }, $fs);
 

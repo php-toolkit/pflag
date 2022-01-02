@@ -1,7 +1,14 @@
-<?php
+<?php declare(strict_types=1);
+/**
+ * This file is part of toolkit/pflag.
+ *
+ * @link     https://github.com/php-toolkit
+ * @author   https://github.com/inhere
+ * @license  MIT
+ */
 
 $flags = ['--name', 'inhere', '--tags', 'php', '-t', 'go', '--tags', 'java', '-f', 'arg0'];
-echo "count: ", count($flags), "\n";
+echo 'count: ', count($flags), "\n";
 
 $cur = current($flags);
 $key = key($flags);

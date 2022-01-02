@@ -1,4 +1,11 @@
 <?php declare(strict_types=1);
+/**
+ * This file is part of toolkit/pflag.
+ *
+ * @link     https://github.com/php-toolkit
+ * @author   https://github.com/inhere
+ * @license  MIT
+ */
 
 namespace Toolkit\PFlagTest\Concern;
 
@@ -39,7 +46,6 @@ class RuleParserTest extends BaseFlagsTestCase
         $this->assertEmpty($define['shorts']);
         $this->assertSame(['23', '45'], $define['default']);
     }
-
 
     public function testParseRule_string_hasAliases(): void
     {

@@ -1,4 +1,11 @@
-<?php
+<?php declare(strict_types=1);
+/**
+ * This file is part of toolkit/pflag.
+ *
+ * @link     https://github.com/php-toolkit
+ * @author   https://github.com/inhere
+ * @license  MIT
+ */
 
 use Toolkit\Cli\Cli;
 use Toolkit\PFlag\CliCmd;
@@ -11,7 +18,7 @@ require dirname(__DIR__) . '/test/bootstrap.php';
 // php example/clicmd.php --name inhere value1
 // php example/clicmd.php --age 23 --name inhere value1
 
-CliCmd::newWith(function (CliCmd $cmd) {
+CliCmd::newWith(static function (CliCmd $cmd): void {
     $cmd->name = 'demo';
     $cmd->desc = 'description for demo command';
 
@@ -28,11 +35,10 @@ CliCmd::newWith(function (CliCmd $cmd) {
     ->withArguments([
         'arg1' => 'this is arg1, is string'
     ])
-    ->setHandler(function (FlagsParser $fs) {
+    ->setHandler(function (FlagsParser $fs): void {
         Cli::info('options:');
         vdump($fs->getOpts());
         Cli::info('arguments:');
         vdump($fs->getArgs());
     })
     ->run();
-

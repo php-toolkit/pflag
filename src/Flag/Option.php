@@ -9,7 +9,6 @@
 
 namespace Toolkit\PFlag\Flag;
 
-use Toolkit\Cli\Helper\FlagHelper;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\FlagType;
 use Toolkit\PFlag\FlagUtil;
@@ -200,5 +199,4 @@ class Option extends AbstractFlag
         $info['shorts']  = $this->shorts;
         return $info;
     }
-
 }

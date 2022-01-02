@@ -1,4 +1,11 @@
 <?php declare(strict_types=1);
+/**
+ * This file is part of toolkit/pflag.
+ *
+ * @link     https://github.com/php-toolkit
+ * @author   https://github.com/inhere
+ * @license  MIT
+ */
 
 namespace Toolkit\PFlag;
 
@@ -30,6 +37,7 @@ abstract class FlagsParser implements ParserInterface
     use RuleParserTrait;
 
     public const TRIM_CHARS    = "; \t\n\r\0\x0B";
+
     public const OPT_MAX_WIDTH = 16;
 
     public const RULE_SEP = ';';
@@ -49,6 +57,7 @@ abstract class FlagsParser implements ParserInterface
      *  - posix: `-abc`  will expand: `-a=bc`
      */
     public const SHORT_STYLE_GUN   = 'gnu';
+
     public const SHORT_STYLE_POSIX = 'posix';
 
     public const DEFINE_ITEM = [

@@ -46,11 +46,11 @@ abstract class BaseFlagsTestCase extends TestCase
      */
     protected function runTestsWithParsers(Closure $testFunc): void
     {
-        echo "- tests by use the parser: ", Flags::class, "\n";
+        echo '- tests by use the parser: ', Flags::class, "\n";
         $fs = Flags::new(['name' => 'flags']);
         $testFunc($fs);
 
-        echo "- tests by use the parser: ", SFlags::class, "\n";
+        echo '- tests by use the parser: ', SFlags::class, "\n";
         $sfs = SFlags::new(['name' => 'simple-flags']);
         $testFunc($sfs);
     }
@@ -84,5 +84,4 @@ abstract class BaseFlagsTestCase extends TestCase
         $fs->addOptsByRules($optRules);
         $fs->addArgsByRules($argRules);
     }
-
 }

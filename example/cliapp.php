@@ -1,4 +1,11 @@
-<?php
+<?php declare(strict_types=1);
+/**
+ * This file is part of toolkit/pflag.
+ *
+ * @link     https://github.com/php-toolkit
+ * @author   https://github.com/inhere
+ * @license  MIT
+ */
 
 use Toolkit\Cli\Cli;
 use Toolkit\PFlag\CliApp;
@@ -10,10 +17,11 @@ require dirname(__DIR__) . '/test/bootstrap.php';
 // run demo:
 // php example/cliapp.php
 
-$app = CliApp::newWith(function (CliApp $app) {
+$cli = CliApp::newWith(static function (CliApp $app): void {
     $app->setName('myApp');
+    $app->setDesc('my cli application. v1.0.1');
 })
-    ->add('test1', fn(FlagsParser $fs) => vdump($fs->getOpts()), [
+    ->add('test1', fn (FlagsParser $fs) => vdump($fs->getOpts()), [
         'desc'    => 'the test 1 command',
         'options' => [
             'opt1' => 'opt1 for command test1',
@@ -21,7 +29,7 @@ $app = CliApp::newWith(function (CliApp $app) {
         ],
     ]);
 
-$app->add('test2', function (FlagsParser $fs) {
+$cli->add('test2', function (FlagsParser $fs): void {
     Cli::info('options:');
     vdump($fs->getOpts());
     Cli::info('arguments:');
@@ -37,9 +45,8 @@ $app->add('test2', function (FlagsParser $fs) {
     ]
 ]);
 
-$app->add('show-err', fn() => throw new RuntimeException('test show exception'));
+$cli->add('show-err', fn () => throw new RuntimeException('test show exception'));
 
-$app->addHandler(DemoCmdHandler::class);
+$cli->addHandler(DemoCmdHandler::class);
 
-$app->run();
-
+$cli->run();
