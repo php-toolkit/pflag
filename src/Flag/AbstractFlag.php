@@ -16,6 +16,7 @@ use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\FlagsParser;
 use Toolkit\PFlag\FlagType;
 use Toolkit\PFlag\FlagUtil;
+use Toolkit\PFlag\Validator\CondValidator;
 use Toolkit\Stdlib\Obj;
 use Toolkit\Stdlib\OS;
 use function is_array;
@@ -25,7 +26,7 @@ use function trim;
 
 /**
  * Class Flag
- * - - definition a input flag item(option|argument)
+ * - definition a input flag item(option|argument)
  *
  * @package Toolkit\PFlag\Flag
  */
@@ -202,6 +203,11 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
         // has validator
         $cb = $this->validator;
         if ($cb && is_scalar($value)) {
+            /** @see CondValidator::setFs() */
+            // if (method_exists($cb, 'setFs')) {
+            //     $cb->setFs($this);
+            // }
+
             $ok  = true;
             $ret = $cb($value, $this->name);
 
@@ -410,7 +416,9 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
      */
     public function setHelpType(string $helpType): void
     {
-        $this->helpType = $helpType;
+        if ($helpType) {
+            $this->helpType = $helpType;
+        }
     }
 
     /**
@@ -418,7 +426,9 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
      */
     public function setValidator(?callable $validator): void
     {
-        $this->validator = $validator;
+        if ($validator) {
+            $this->validator = $validator;
+        }
     }
 
     /**

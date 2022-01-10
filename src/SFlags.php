@@ -10,6 +10,7 @@
 namespace Toolkit\PFlag;
 
 use InvalidArgumentException;
+use Toolkit\PFlag\Contract\ValidatorInterface;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\Exception\FlagParseException;
 use Toolkit\Stdlib\OS;
@@ -186,9 +187,7 @@ class SFlags extends FlagsParser
      * @param string $type The argument data type. default is: string. {@see FlagType}
      * @param bool $required
      * @param mixed|null $default
-     * @param array $moreInfo
-     *
-     * @psalm-param array{alias: string, helpType: string} $moreInfo
+     * @param array{helpType: string, validator: callable|ValidatorInterface}  $moreInfo
      *
      * @return SFlags
      */
@@ -212,6 +211,10 @@ class SFlags extends FlagsParser
 
         if (isset($moreInfo['helpType'])) {
             $define['helpType'] = $moreInfo['helpType'];
+        }
+
+        if (isset($moreInfo['validator'])) {
+            $define['validator'] = $moreInfo['validator'];
         }
 
         $this->addArgDefine($define);

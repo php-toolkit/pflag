@@ -27,7 +27,7 @@ abstract class CondValidator extends AbstractValidator
      *
      * @var callable(FlagsParser):bool
      */
-    protected $cond;
+    protected $condFn;
 
     /**
      * @param mixed  $value
@@ -37,7 +37,7 @@ abstract class CondValidator extends AbstractValidator
      */
     public function __invoke(mixed $value, string $name): bool
     {
-        $condFn = $this->cond;
+        $condFn = $this->condFn;
         if ($condFn && !$condFn($this->fs)) {
             return true;
         }
@@ -62,13 +62,13 @@ abstract class CondValidator extends AbstractValidator
     }
 
     /**
-     * @param mixed $cond
+     * @param mixed $condFn
      *
      * @return static
      */
-    public function setCond(mixed $cond): self
+    public function setCondFn(mixed $condFn): self
     {
-        $this->cond = $cond;
+        $this->condFn = $condFn;
         return $this;
     }
 }

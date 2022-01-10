@@ -15,8 +15,7 @@ namespace Toolkit\PFlag\Validator;
 class FuncValidator extends AbstractValidator
 {
     /**
-     * @var callable
-     * @psalm-var callable(mixed, string): bool
+     * @var callable(mixed, string): bool
      */
     protected $func;
 

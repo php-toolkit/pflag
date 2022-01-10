@@ -11,6 +11,7 @@ namespace Toolkit\PFlag;
 
 use InvalidArgumentException;
 use RuntimeException;
+use Toolkit\PFlag\Contract\ValidatorInterface;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\Exception\FlagParseException;
 use Toolkit\PFlag\Flag\Argument;
@@ -437,7 +438,7 @@ class Flags extends FlagsParser
      * @param string     $type The argument data type. default is: string. {@see FlagType}
      * @param bool       $required
      * @param mixed|null $default
-     * @param array      $moreInfo
+     * @param array{helpType: string, validator: callable|ValidatorInterface}  $moreInfo
      *
      * @return static
      */
@@ -450,6 +451,8 @@ class Flags extends FlagsParser
         array $moreInfo = []
     ): static {
         $arg = Argument::new($name, $desc, $type, $required, $default);
+        $arg->setHelpType($moreInfo['helpType'] ?? '');
+        $arg->setValidator($moreInfo['validator'] ?? null);
 
         $this->addArgument($arg);
         return $this;

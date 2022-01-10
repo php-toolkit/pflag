@@ -80,9 +80,7 @@ interface ParserInterface
      * @param string $type The argument data type. default is: string. {@see FlagType}
      * @param bool   $required
      * @param mixed|null $default
-     * @param array  $moreInfo
-     *
-     * @psalm-param array{helpType: string} $moreInfo
+     * @param array{helpType: string, validator: callable|ValidatorInterface}  $moreInfo
      *
      * @return self
      */
