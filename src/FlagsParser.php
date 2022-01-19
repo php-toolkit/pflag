@@ -102,7 +102,7 @@ abstract class FlagsParser implements ParserInterface
     protected array $flags = [];
 
     /**
-     * The remaining raw args, after option parsed from {@see $flags}
+     * The raw args, after option parsed from {@see $flags}
      *
      * @var string[]
      */
@@ -493,6 +493,18 @@ abstract class FlagsParser implements ParserInterface
     public function popFirstRawArg(): string
     {
         return array_shift($this->rawArgs);
+    }
+
+    /**
+     * @return array
+     */
+    public function getInfo(): array
+    {
+        return [
+            'flags'      => $this->flags,
+            'rawArgs'    => $this->rawArgs,
+            'remainArgs' => $this->remainArgs,
+        ];
     }
 
     /**

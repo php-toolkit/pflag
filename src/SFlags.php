@@ -572,12 +572,14 @@ class SFlags extends FlagsParser
         }
 
         if ($args) {
+            $args = array_values($args);
+
             if ($this->strictMatchArgs) {
                 throw new FlagException(sprintf('unknown arguments (error: "%s").', implode(', ', $args)));
             }
-
-            $this->remainArgs = array_values($args);
         }
+
+        $this->remainArgs = $args;
     }
 
     /**
