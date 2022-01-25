@@ -566,6 +566,8 @@ class SFlags extends FlagsParser
 
             // array: collect all remain args
             if ($isArray) {
+                $this->collectArgValue($value, $index, true, $define);
+
                 foreach ($args as $arrValue) {
                     $this->collectArgValue($arrValue, $index, true, $define);
                 }

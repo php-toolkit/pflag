@@ -344,6 +344,9 @@ class Flags extends FlagsParser
         parent::resetResults();
 
         $this->matched = [];
+        foreach ($this->arguments as $arg) {
+            $arg->setTrustedValue(null);
+        }
     }
 
     /**************************************************************************
@@ -384,9 +387,11 @@ class Flags extends FlagsParser
 
             // array: collect all remain args
             if ($arg->isArray()) {
-                foreach ($args as $value) {
-                    $arg->setValue($value);
+                $arg->setValue($value);
+                foreach ($args as $val) {
+                    $arg->setValue($val);
                 }
+
                 $remains = $args = [];
             } else {
                 array_shift($remains);

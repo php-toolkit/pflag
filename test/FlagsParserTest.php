@@ -416,14 +416,48 @@ class FlagsParserTest extends BaseFlagsTestCase
         $this->assertSame("flag argument 'not-exist-arg' is undefined", $e->getMessage());
     }
 
-    public function testParse_opt_isKV(): void
+    public function testParse_arrayArg(): void
     {
         foreach ($this->createParsers() as $fs) {
-            $this->doTestParse_opt_isKV($fs);
+            $this->doTestParse_arrayArg($fs);
         }
     }
 
-    public function doTestParse_opt_isKV(FlagsParser $fs): void
+    public function doTestParse_arrayArg(FlagsParser $fs): void
+    {
+        $fs->addOptsByRules([
+            'env, e'     => [
+                'type'     => FlagType::STRING,
+                'required' => true,
+            ],
+        ]);
+        $fs->addArgByRule('files', 'array;a array arg');
+
+        $flags = ['-e', 'dev', 'abc'];
+        $fs->parse($flags);
+
+        $this->assertNotEmpty($fs->getOpts());
+        $this->assertNotEmpty($fs->getArgs());
+        $this->assertEquals(['abc'], $fs->getArg('files'));
+        $fs->resetResults();
+
+        $flags = ['-e', 'dev', 'abc', 'def'];
+        $fs->parse($flags);
+
+        $this->assertNotEmpty($fs->getOpts());
+        $this->assertNotEmpty($fs->getArgs());
+        $this->assertEquals(['abc', 'def'], $fs->getArg('files'));
+        $fs->resetResults();
+    }
+
+    public function testParse_optValueIsKV(): void
+    {
+        foreach ($this->createParsers() as $fs) {
+            $this->doTestParse_optValueIsKV($fs);
+        }
+    }
+
+    public function doTestParse_optValueIsKV(FlagsParser $fs): void
     {
         $fs->addOptsByRules([
             'env, e'     => [
