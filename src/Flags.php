@@ -362,11 +362,19 @@ class Flags extends FlagsParser
         }
 
         // parse arguments
-        $args = $this->parseRawArgs($this->rawArgs);
+        $args = $this->parseRawArgs($remains = $this->rawArgs);
 
         // collect argument values
         foreach ($this->arguments as $index => $arg) {
-            if (!isset($args[$index])) {
+            $name = $arg->getName();
+
+            if (isset($args[$name])) {
+                $value = $args[$name];
+                unset($args[$name]);
+            } elseif (isset($args[$index])) {
+                $value = $args[$index];
+                unset($args[$index]);
+            } else {
                 if ($arg->isRequired()) {
                     $mark = $arg->getNameMark();
                     throw new FlagException("flag argument $mark is required");
@@ -374,27 +382,26 @@ class Flags extends FlagsParser
                 continue;
             }
 
-            // collect all remain args
+            // array: collect all remain args
             if ($arg->isArray()) {
                 foreach ($args as $value) {
                     $arg->setValue($value);
                 }
-                $args = [];
+                $remains = $args = [];
             } else {
-                $arg->setValue($args[$index]);
-                unset($args[$index]);
+                array_shift($remains);
+                $arg->setValue($value);
             }
         }
 
-        if ($args) {
-            $args = array_values($args);
-
+        if ($remains) {
+            $remains = array_values($remains);
             if ($this->strictMatchArgs) {
-                throw new FlagException(sprintf('unknown arguments (error: "%s").', implode(' ', $args)));
+                throw new FlagException(sprintf('unknown arguments (error: "%s").', implode(' ', $remains)));
             }
         }
 
-        $this->remainArgs = $args;
+        $this->remainArgs = $remains;
         return $this;
     }
 

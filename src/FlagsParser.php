@@ -498,13 +498,23 @@ abstract class FlagsParser implements ParserInterface
     /**
      * @return array
      */
-    public function getInfo(): array
+    public function getInfo(bool $more = false): array
     {
-        return [
+        $info = [
             'flags'      => $this->flags,
             'rawArgs'    => $this->rawArgs,
             'remainArgs' => $this->remainArgs,
+            'opts'       => $this->getOpts(),
+            'args'       => $this->getArgs(),
         ];
+
+        if ($more) {
+            $info['optRules'] = $this->getOptRules();
+            $info['argRules'] = $this->getArgRules();
+            $info['aliases']  = $this->getAliases();
+        }
+
+        return $info;
     }
 
     /**

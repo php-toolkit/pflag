@@ -15,6 +15,7 @@ use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\Exception\FlagParseException;
 use Toolkit\Stdlib\OS;
 use Toolkit\Stdlib\Str;
+use function array_shift;
 use function array_values;
 use function count;
 use function current;
@@ -540,7 +541,7 @@ class SFlags extends FlagsParser
     public function bindingArguments(): void
     {
         // parse arguments
-        $args = $this->parseRawArgs($this->rawArgs);
+        $args = $this->parseRawArgs($remains = $this->rawArgs);
 
         // check and collect argument values
         foreach ($this->argDefines as $index => $define) {
@@ -550,36 +551,39 @@ class SFlags extends FlagsParser
             $required = $define['required'];
             $isArray  = FlagType::isArray($define['type']);
 
-            if (!isset($args[$index])) {
+            if (isset($args[$name])) {
+                $value = $args[$name];
+                unset($args[$name]);
+            } elseif (isset($args[$index])) {
+                $value = $args[$index];
+                unset($args[$index]);
+            } else {
                 if ($required) {
                     throw new FlagException("flag argument $mark is required");
                 }
                 continue;
             }
 
-            // collect value
+            // array: collect all remain args
             if ($isArray) {
-                // remain args
                 foreach ($args as $arrValue) {
                     $this->collectArgValue($arrValue, $index, true, $define);
                 }
-                $args = [];
+                $remains = $args = [];
             } else {
-                $value = $args[$index];
+                array_shift($remains);
                 $this->collectArgValue($value, $index, false, $define);
-                unset($args[$index]);
             }
         }
 
-        if ($args) {
-            $args = array_values($args);
-
+        if ($remains) {
+            $remains = array_values($remains);
             if ($this->strictMatchArgs) {
-                throw new FlagException(sprintf('unknown arguments (error: "%s").', implode(', ', $args)));
+                throw new FlagException(sprintf('unknown arguments (error: "%s").', implode(', ', $remains)));
             }
         }
 
-        $this->remainArgs = $args;
+        $this->remainArgs = $remains;
     }
 
     /**

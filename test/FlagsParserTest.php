@@ -12,6 +12,7 @@ namespace Toolkit\PFlagTest;
 use InvalidArgumentException;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\FlagsParser;
+use Toolkit\PFlag\FlagType;
 use function get_class;
 
 /**
@@ -138,11 +139,21 @@ class FlagsParserTest extends BaseFlagsTestCase
         $ok = $fs->parse(['--name', 'inhere', 'val0']);
         $this->assertTrue($ok);
         $this->assertSame('val0', $fs->getArg('arg0'));
-
         $fs->resetResults();
+
         $ok = $fs->parse(['--name', 'inhere', '--', '--val0']);
         $this->assertTrue($ok);
         $this->assertSame('--val0', $fs->getArg('arg0'));
+        $fs->resetResults();
+
+        $ok = $fs->parse(["--", "-e", "dev", "-v", "port=3455"]);
+        $this->assertTrue($ok);
+        $this->assertNotEmpty($fs->getArgs());
+        $this->assertSame('-e', $fs->getArg('arg0'));
+
+        $otherArgs = $fs->getRemainArgs();
+        $this->assertArrayHasValue('port=3455', $otherArgs);
+        $fs->resetResults();
     }
 
     public function testStopOnFirstArg(): void
@@ -403,5 +414,35 @@ class FlagsParserTest extends BaseFlagsTestCase
 
         $this->assertSame(FlagException::class, get_class($e));
         $this->assertSame("flag argument 'not-exist-arg' is undefined", $e->getMessage());
+    }
+
+    public function testParse_opt_isKV(): void
+    {
+        foreach ($this->createParsers() as $fs) {
+            $this->doTestParse_opt_isKV($fs);
+        }
+    }
+
+    public function doTestParse_opt_isKV(FlagsParser $fs): void
+    {
+        $fs->addOptsByRules([
+            'env, e'     => [
+                'type'     => FlagType::STRING,
+                'required' => true,
+            ],
+            'vars,var,v' => [
+                'type' => FlagType::ARRAY,
+                'desc' => 'can append some extra vars, format: KEY=VALUE',
+            ],
+        ]);
+
+        $flags = ['-e', 'dev', '--var', 'key0=val0', '-v', 'port=3445'];
+        $fs->parse($flags);
+
+        $this->assertNotEmpty($fs->getOpts());
+        $this->assertNotEmpty($fs->getInfo(true));
+        $this->assertEquals('vars', $fs->resolveAlias('v'));
+        $this->assertEquals('vars', $fs->resolveAlias('var'));
+        $this->assertEquals(['key0=val0', 'port=3445'], $fs->getOpt('vars'));
     }
 }

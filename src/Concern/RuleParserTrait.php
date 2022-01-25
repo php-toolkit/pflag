@@ -124,7 +124,6 @@ trait RuleParserTrait
     public function addOptByRule(string $name, array|string $rule): static
     {
         $this->optRules[$name] = $rule;
-
         return $this;
     }
 

@@ -122,27 +122,21 @@ class FlagUtil
             return false;
         }
 
-        // if is: '', 0
-        if (!$val) {
+        // if is: '', 0 || is not option name
+        if (!$val || $val[0] !== '-') {
             return true;
         }
 
-        // is not option name.
-        if ($val[0] !== '-') {
-            // ensure is option value.
-            if (!str_contains($val, '=')) {
-                return true;
-            }
-
-            // is string value, but contains '='
-            [$name,] = explode('=', $val, 2);
-
-            // named argument OR invalid: 'some = string'
-            return false === self::isValidName($name);
+        // ensure is option value.
+        if (!str_contains($val, '=')) {
+            return true;
         }
 
-        // is option name.
-        return false;
+        // is string value, but contains '='
+        [$name,] = explode('=', $val, 2);
+
+        // named argument OR invalid: 'some = string'
+        return false === self::isValidName($name);
     }
 
     /**

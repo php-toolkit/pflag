@@ -16,6 +16,8 @@ use Throwable;
 use Toolkit\PFlag\Flags;
 use Toolkit\PFlag\FlagsParser;
 use Toolkit\PFlag\SFlags;
+use Toolkit\Stdlib\Php;
+use function in_array;
 
 /**
  * Class BaseTestCase
@@ -39,6 +41,14 @@ abstract class BaseFlagsTestCase extends TestCase
         }
 
         return new RuntimeException('NO ERROR');
+    }
+
+    public function assertArrayHasValue($needle, array $arr, string $message = ''): void
+    {
+        $has = in_array($needle, $arr, true);
+        $msg = 'The array ' . Php::toString($arr) . ' should contains: ' .  $needle;
+
+        $this->assertTrue($has, $message ?: $msg);
     }
 
     /**
