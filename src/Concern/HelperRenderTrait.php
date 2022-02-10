@@ -216,12 +216,12 @@ trait HelperRenderTrait
 
         // validator limit
         if (!empty($define['validator'])) {
+            /** @see ValidatorInterface */
             $v = $define['validator'];
 
-            /** @see ValidatorInterface */
             if (is_object($v) && method_exists($v, '__toString')) {
                 $limit = (string)$v;
-                $desc  .= $limit ? ' ' . $limit : '';
+                $desc  .= $limit ? "\n" . $limit : '';
             }
         }
 

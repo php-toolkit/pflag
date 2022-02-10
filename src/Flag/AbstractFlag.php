@@ -102,7 +102,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
      * @param string $name
      * @param string $desc
      * @param string $type
-     * @param bool   $required
+     * @param bool $required
      * @param mixed|null $default
      *
      * @return static
@@ -121,7 +121,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
      * Create by array define
      *
      * @param string $name
-     * @param array  $define
+     * @param array $define
      *
      * @return static
      */
@@ -142,7 +142,7 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
      * @param string $name
      * @param string $desc
      * @param string $type
-     * @param bool   $required
+     * @param bool $required
      * @param mixed|null $default The default value
      *                          - for Flag::ARG_OPTIONAL mode only
      *                          - must be null for Flag::OPT_BOOLEAN
@@ -354,14 +354,15 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
     public function toArray(): array
     {
         return [
-            'name'     => $this->name,
-            'desc'     => $this->desc,
-            'type'     => $this->type,
-            'default'  => $this->default,
-            'envVar'   => $this->envVar,
-            'required' => $this->required,
-            'isArray'  => $this->isArray(),
-            'helpType' => $this->getHelpType(),
+            'name'      => $this->name,
+            'desc'      => $this->desc,
+            'type'      => $this->type,
+            'default'   => $this->default,
+            'envVar'    => $this->envVar,
+            'required'  => $this->required,
+            'validator' => $this->validator,
+            'isArray'   => $this->isArray(),
+            'helpType'  => $this->getHelpType(),
         ];
     }
 
@@ -429,6 +430,14 @@ abstract class AbstractFlag implements ArrayAccess, FlagInterface
         if ($validator) {
             $this->validator = $validator;
         }
+    }
+
+    /**
+     * @return callable|ValidatorInterface|null
+     */
+    public function getValidator(): callable|ValidatorInterface|null
+    {
+        return $this->validator;
     }
 
     /**

@@ -50,6 +50,6 @@ class EmptyValidator extends AbstractValidator
      */
     public function __toString(): string
     {
-        return 'Not empty';
+        return '';
     }
 }

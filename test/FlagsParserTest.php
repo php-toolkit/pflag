@@ -13,6 +13,7 @@ use InvalidArgumentException;
 use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\PFlag\FlagsParser;
 use Toolkit\PFlag\FlagType;
+use Toolkit\PFlag\Validator\EnumValidator;
 use function get_class;
 
 /**
@@ -478,5 +479,28 @@ class FlagsParserTest extends BaseFlagsTestCase
         $this->assertEquals('vars', $fs->resolveAlias('v'));
         $this->assertEquals('vars', $fs->resolveAlias('var'));
         $this->assertEquals(['key0=val0', 'port=3445'], $fs->getOpt('vars'));
+    }
+
+    public function testRenderHelp_withValidator(): void
+    {
+        foreach ($this->createParsers() as $fs) {
+            $this->doTestRenderHelp_withValidator($fs);
+        }
+    }
+
+    public function doTestRenderHelp_withValidator(FlagsParser $fs): void
+    {
+        $fs->addOptsByRules([
+            'env, e'     => [
+                'type'     => FlagType::STRING,
+                'required' => true,
+                'desc'      => 'the env name, eg: qa',
+                'validator' => $v1 = new EnumValidator(['testing', 'qa']),
+            ],
+        ]);
+
+        $str = $fs->toString();
+        $this->assertStringContainsString('Allow: testing,qa', $str);
+        $this->assertStringContainsString((string)$v1, $str);
     }
 }

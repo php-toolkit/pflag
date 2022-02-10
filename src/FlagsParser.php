@@ -373,6 +373,14 @@ abstract class FlagsParser implements ParserInterface
     /**
      * @return string
      */
+    public function toString(): string
+    {
+        return $this->buildHelp();
+    }
+
+    /**
+     * @return string
+     */
     public function __toString(): string
     {
         return $this->buildHelp();
