@@ -9,6 +9,7 @@
 
 namespace Toolkit\PFlag;
 
+use Toolkit\PFlag\Exception\FlagException;
 use Toolkit\Stdlib\Str;
 use function is_scalar;
 use function is_string;
@@ -127,7 +128,7 @@ class FlagType
         return match ($type) {
             self::INT => 0,
             self::BOOL => false,
-            self::FLOAT => (float)0,
+            self::FLOAT => 0.0,
             self::STRING => '',
             self::INTS, self::ARRAY, self::STRINGS => [],
             default => null,
@@ -146,10 +147,20 @@ class FlagType
             return $value;
         }
 
+        // convert to bool
+        if ($type === self::BOOL) {
+            $value = is_string($value) ? Str::tryToBool($value) : (bool)$value;
+
+            if (is_string($value)) {
+                throw new FlagException("convert value '$value' to bool failed");
+            }
+            return $value;
+        }
+
         // format value by type
         return match ($type) {
             self::INT, self::INTS => (int)$value,
-            self::BOOL => is_string($value) ? Str::toBool2($value) : (bool)$value,
+            // self::BOOL => is_string($value) ? Str::toBool2($value) : (bool)$value,
             self::FLOAT => (float)$value,
             self::STRING, self::STRINGS => (string)$value,
             default => $value,

@@ -504,11 +504,14 @@ abstract class FlagsParser implements ParserInterface
     }
 
     /**
+     * @param bool $more
+     *
      * @return array
      */
     public function getInfo(bool $more = false): array
     {
         $info = [
+            'driver'     => static::class,
             'flags'      => $this->flags,
             'rawArgs'    => $this->rawArgs,
             'remainArgs' => $this->remainArgs,
