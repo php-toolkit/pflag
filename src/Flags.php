@@ -23,6 +23,7 @@ use function count;
 use function implode;
 use function is_array;
 use function is_string;
+use function ksort;
 use function sprintf;
 use function str_split;
 use function strlen;
@@ -746,9 +747,7 @@ class Flags extends FlagsParser
      * @param string $type The argument data type. default is: string. {@see FlagType}
      * @param bool   $required
      * @param mixed|null $default
-     * @param array  $moreInfo
-     *
-     * @psalm-param array{aliases: array, helpType: string} $moreInfo
+     * @param array{aliases: array, helpType: string} $moreInfo
      *
      * @return static
      */
@@ -1023,6 +1022,7 @@ class Flags extends FlagsParser
             $helpData[$helpName]  = $fmtDesc;
         }
 
+        ksort($helpData);
         return $helpData;
     }
 

@@ -23,6 +23,7 @@ use function explode;
 use function implode;
 use function is_callable;
 use function is_string;
+use function ksort;
 use function next;
 use function sprintf;
 use function str_split;
@@ -149,9 +150,7 @@ class SFlags extends FlagsParser
      * @param string $type The argument data type. default is: string. {@see FlagType}
      * @param bool $required
      * @param mixed|null $default
-     * @param array $moreInfo
-     *
-     * @psalm-param array{alias: string, helpType: string} $moreInfo
+     * @param array{aliases: array<string>, helpType: string} $moreInfo
      *
      * @return SFlags
      */
@@ -176,6 +175,9 @@ class SFlags extends FlagsParser
 
         if (isset($moreInfo['helpType'])) {
             $define['helpType'] = $moreInfo['helpType'];
+        }
+        if (isset($moreInfo['aliases'])) {
+            $define['aliases'] = $moreInfo['aliases'];
         }
 
         $this->addOptDefine($define);
@@ -706,7 +708,7 @@ class SFlags extends FlagsParser
             $this->opts[$name] = FlagType::fmtBasicTypeValue($type, $envVal);
         }
 
-        // has shorts
+        // has aliases
         if ($define['aliases']) {
             foreach ($define['aliases'] as $alias) {
                 $this->setAlias($name, $alias, true);
@@ -1057,6 +1059,7 @@ class SFlags extends FlagsParser
             $helpLines[$helpName]  = $fmtDesc;
         }
 
+        ksort($helpLines);
         return $helpLines;
     }
 

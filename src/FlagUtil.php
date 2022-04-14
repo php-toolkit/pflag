@@ -175,7 +175,7 @@ class FlagUtil
         }
 
         // check has short option. e.g '-h, --help'
-        $nameString = implode('|', array_keys($options));
+        $nameString = '|' . implode('|', array_keys($options));
         if (preg_match('/\|-\w/', $nameString) !== 1) {
             return $options;
         }

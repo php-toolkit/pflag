@@ -56,9 +56,7 @@ interface ParserInterface
      * @param string $type The argument data type. default is: string. {@see FlagType}
      * @param bool   $required
      * @param mixed|null $default
-     * @param array  $moreInfo
-     *
-     * @psalm-param array{alias: string, helpType: string} $moreInfo
+     * @param array{aliases: array, helpType: string} $moreInfo
      *
      * @return self
      */
