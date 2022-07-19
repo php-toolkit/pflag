@@ -37,6 +37,11 @@ Generic PHP command line flags parse library
 - Support binding named arguemnt
 - Support define array argument
 
+### Quick build command
+
+- Use `Toolkit\PFlag\CliCmd` to quickly build a simple command application
+- Use `Toolkit\PFlag\CliApp` to quickly build a command application that supports subcommands
+
 ## Install
 
 - Require PHP 8.0+

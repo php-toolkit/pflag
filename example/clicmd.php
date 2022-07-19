@@ -14,7 +14,7 @@ use Toolkit\PFlag\FlagsParser;
 require dirname(__DIR__) . '/test/bootstrap.php';
 
 // run demo:
-// php example/clicmd.php
+// php example/clicmd.php -h
 // php example/clicmd.php --name inhere value1
 // php example/clicmd.php --age 23 --name inhere value1
 

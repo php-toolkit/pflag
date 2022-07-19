@@ -15,6 +15,7 @@ use Toolkit\PFlag\SFlags;
 require dirname(__DIR__) . '/test/bootstrap.php';
 
 // run demo:
+// php example/sflags-demo.php -h
 // php example/sflags-demo.php --name inhere --age 99 --tag go -t php -t java -f arg0 arr0 arr1
 $flags = $_SERVER['argv'];
 // NOTICE: must shift first element.

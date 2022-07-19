@@ -19,8 +19,8 @@ use Toolkit\PFlag\Validator\EnumValidator;
 require dirname(__DIR__) . '/test/bootstrap.php';
 
 // run demo:
-// php example/flag-demo.php -h
-// php example/sflags-demo.php --name inhere --age 99 --tag go -t php -t java -f arg0 arr0 arr1
+// php example/flags-demo.php -h
+// php example/flags-demo.php --name inhere --age 99 --tag go -t php -t java -f arg0 arr0 arr1
 $flags = $_SERVER['argv'];
 // NOTICE: must shift first element.
 $scriptFile = array_shift($flags);

@@ -38,6 +38,11 @@
 - 支持绑定命名参数
 - 支持定义数组参数
 
+### 快速构建命令
+
+- 使用 `Toolkit\PFlag\CliCmd` 可以快速的构建一个简单的命令应用
+- 使用 `Toolkit\PFlag\CliApp` 可以快速的构建一个支持子命令的命令应用
+
 ## 安装
 
 - Require PHP 8.0+

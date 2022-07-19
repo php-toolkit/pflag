@@ -16,7 +16,7 @@ require dirname(__DIR__) . '/test/bootstrap.php';
 
 // run demo:
 // php example/cliapp.php
-
+// php example/cliapp.php test2 -h
 $cli = CliApp::newWith(static function (CliApp $app): void {
     $app->setName('myApp');
     $app->setDesc('my cli application. v1.0.1');
