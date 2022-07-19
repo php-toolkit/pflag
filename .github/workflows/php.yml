@@ -61,11 +61,12 @@ jobs:
 
       - name: Generate changelog file
         id: changelog
-        if: ${{ matrix.php == '8.0' }}
+        if: ${{ matrix.php == '8.1' }}
         run: |
-          wget -c -q https://github.com/inhere/kite/releases/latest/download/kite.phar
-          php kite.phar git cl last head --style gh-release --no-merges --fetch-tags --unshallow --file example/changelog.md
-          cat example/changelog.md
+          curl https://github.com/gookit/gitw/releases/latest/download/chlog-linux-amd64 -L -o /usr/local/bin/chlog
+          chmod a+x /usr/local/bin/chlog
+          chlog -c .github/changelog.yml -o changelog.md prev last 
+          cat changelog.md
 
       # phpunit -v --debug
       # phpdbg -dauto_globals_jit=Off-qrr $(which phpunit) --coverage-clover ./test/clover.info

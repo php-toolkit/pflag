@@ -7,13 +7,9 @@ on:
 
 jobs:
   release:
-    name: Test on php ${{ matrix.php}}
+    name: Tag release
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    strategy:
-      fail-fast: true
-      matrix:
-        php: [8.1]
 
     steps:
       - name: Checkout
@@ -27,31 +23,11 @@ jobs:
           echo "RELEASE_TAG=${GITHUB_REF:10}" >> $GITHUB_ENV
           echo "RELEASE_NAME=$GITHUB_WORKFLOW" >> $GITHUB_ENV
 
-      # usage refer https://github.com/shivammathur/setup-php
-      - name: Setup PHP
-        timeout-minutes: 5
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php}}
-          tools: pecl, php-cs-fixer, phpunit
-          extensions: mbstring, fileinfo, openssl # , swoole-4.4.19 #optional, setup extensions
-          ini-values: post_max_size=56M, short_open_tag=On #optional, setup php.ini configuration
-          coverage: none #optional, setup coverage driver: xdebug, none
-
-      - name: Install dependencies # eg: v1.0.3
+      - name: Generate changelog
         run: |
-          echo $RELEASE_TAG
-          echo $RELEASE_NAME
-          tag1=${GITHUB_REF#refs/*/}
-          echo "release tag: ${tag1}"
-          composer update --no-progress
-
-      - name: Generate changelog file
-        id: changelog
-        run: |
-          wget -c -q https://github.com/inhere/kite/releases/latest/download/kite.phar
-          php kite.phar git cl prev last --style gh-release --no-merges --fetch-tags --file changelog.md
-          cat changelog.md
+          curl https://github.com/gookit/gitw/releases/latest/download/chlog-linux-amd64 -L -o /usr/local/bin/chlog
+          chmod a+x /usr/local/bin/chlog
+          chlog -c .github/changelog.yml -o changelog.md prev last 
 
       # https://github.com/softprops/action-gh-release
       - name: Create release and upload assets
