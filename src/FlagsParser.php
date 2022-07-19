@@ -699,7 +699,7 @@ abstract class FlagsParser implements ParserInterface
      */
     public function getScriptName(): string
     {
-        return $this->scriptName;
+        return $this->scriptName ?: FlagUtil::getBinName();
     }
 
     /**

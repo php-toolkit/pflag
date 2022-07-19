@@ -313,12 +313,16 @@ class CliApp
     protected function initCommandFlags(string $command, $handler): FlagsParser
     {
         $cFlags = SFlags::new();
+        /** @var $config = COMMAND_CONFIG */
         $config = $this->metadata[$command] ?? [];
 
         $cFlags->setDesc($config['desc']);
         if (!empty($config['help'])) {
             $cFlags->setHelp($config['help']);
         }
+
+        // update script name.
+        $cFlags->setScriptName($cFlags->getScriptName() . ' ' . $command);
 
         $cFlags->addOptsByRules($config['options'] ?? []);
         $cFlags->addArgsByRules($config['arguments'] ?? []);

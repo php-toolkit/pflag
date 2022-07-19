@@ -113,37 +113,10 @@ trait HelperRenderTrait
         $hasOpts = count($optDefines) > 0;
 
         // ------- usage -------
-        $binName = $this->scriptName ?: FlagUtil::getBinName();
+        $binName = $this->getScriptName();
         if ($hasArgs || $hasOpts) {
             $buf->writeln("<ylw>Usage:</ylw> $binName [--Options ...] [Arguments ...]\n");
         }
-
-        // ------- args -------
-        $nameTag = 'info';
-        $fmtArgs = $this->buildArgsForHelp($argDefines);
-
-        if ($hasArgs) {
-            $buf->writeln('<ylw>Arguments:</ylw>');
-        }
-
-        $nameLen = $this->settings['argNameLen'];
-        foreach ($fmtArgs as $hName => $arg) {
-            [$desc, $lines] = $this->formatDesc($arg);
-
-            // write to buffer.
-            $hName = Str::padRight($hName, $nameLen);
-            $buf->writef("  <%s>%s</%s>    %s\n", $nameTag, $hName, $nameTag, $desc);
-
-            // remaining desc lines
-            if ($lines) {
-                $indent = Str::repeat(' ', $nameLen);
-                foreach ($lines as $line) {
-                    $buf->writef("      %s%s\n", $indent, $line);
-                }
-            }
-        }
-
-        $hasArgs && $buf->writeln('');
 
         // ------- opts -------
         if ($hasOpts) {
@@ -166,6 +139,33 @@ trait HelperRenderTrait
             } else {
                 $buf->writef("  <%s>%s</%s>   %s\n", $nameTag, $hName, $nameTag, $desc);
             }
+
+            // remaining desc lines
+            if ($lines) {
+                $indent = Str::repeat(' ', $nameLen);
+                foreach ($lines as $line) {
+                    $buf->writef("      %s%s\n", $indent, $line);
+                }
+            }
+        }
+
+        $hasOpts && $buf->writeln('');
+
+        // ------- args -------
+        // $nameTag = 'info';
+        $fmtArgs = $this->buildArgsForHelp($argDefines);
+
+        if ($hasArgs) {
+            $buf->writeln('<ylw>Arguments:</ylw>');
+        }
+
+        $nameLen = $this->settings['argNameLen'];
+        foreach ($fmtArgs as $hName => $arg) {
+            [$desc, $lines] = $this->formatDesc($arg);
+
+            // write to buffer.
+            $hName = Str::padRight($hName, $nameLen);
+            $buf->writef("  <%s>%s</%s>    %s\n", $nameTag, $hName, $nameTag, $desc);
 
             // remaining desc lines
             if ($lines) {
