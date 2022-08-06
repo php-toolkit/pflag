@@ -24,13 +24,13 @@ filters:
 rules:
   - name: Refactor
     start_withs: [refactor, break]
-    contains: ['refactor:']
+    contains: ['refactor:', 'break:']
   - name: Fixed
     start_withs: [fix]
     contains: ['fix:']
   - name: Feature
     start_withs: [feat, new]
-    contains: [feature]
+    contains: ['feat:', 'new:']
   - name: Update
-    start_withs: [update, 'up:']
-    contains: []
+    start_withs: [up]
+    contains: ['update:', 'up:']

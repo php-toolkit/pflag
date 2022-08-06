@@ -21,7 +21,7 @@ use Toolkit\Stdlib\Obj\Traits\AutoConfigTrait;
 class CliCmd
 {
     use AutoConfigTrait {
-        __construct as supper;
+        AutoConfigTrait::__construct as supper;
     }
 
     public string $name = '';

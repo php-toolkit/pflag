@@ -27,6 +27,7 @@ use function ksort;
 use function sprintf;
 use function str_split;
 use function strlen;
+use function strpos;
 use function substr;
 
 /**
@@ -216,16 +217,11 @@ class Flags extends FlagsParser
 
         $value  = '';
         $hasVal = false;
-        for ($i = 0; $i < $optLen; $i++) {
-            if ($name[$i] === '=') {
-                $hasVal = true;
-                $name   = substr($name, 0, $i);
-
-                // fix: `--name=` no value string.
-                if ($i + 1 < $optLen) {
-                    $value = substr($name, $i + 1);
-                }
-            }
+        $eqPos  = strpos($name, '=');
+        if ($eqPos > 0) {
+            $hasVal = true;
+            $value  = substr($name, $eqPos + 1);
+            $name   = substr($name, 0, $eqPos);
         }
 
         $rName = $this->resolveAlias($name);

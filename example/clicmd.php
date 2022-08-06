@@ -31,6 +31,7 @@ CliCmd::newWith(static function (CliCmd $cmd): void {
 
     // or use property
     // $cmd->arguments = [...];
+    // $cmd->getFlags()->setExample($example);
 })
     ->withArguments([
         'arg1' => 'this is arg1, is string'
