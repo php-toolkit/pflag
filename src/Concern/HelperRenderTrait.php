@@ -202,7 +202,7 @@ trait HelperRenderTrait
     }
 
     /**
-     * @param array|Argument|Option $define
+     * @param array|Argument|Option $define = FlagsParser::DEFINE_ITEM
      *
      * @return array
      * @see FlagsParser::DEFINE_ITEM for array $define
@@ -235,6 +235,10 @@ trait HelperRenderTrait
         if (strpos($desc, "\n") > 0) {
             $lines = explode("\n", $desc);
             $desc  = array_shift($lines);
+        }
+
+        if (FlagType::isArray($define['type'])) {
+            $desc .= ColorTag::wrap(' (repeatable)', 'cyan');
         }
 
         return [$desc, $lines];

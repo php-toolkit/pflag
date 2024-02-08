@@ -128,7 +128,7 @@ trait RuleParserTrait
     }
 
     /**
-     * @param array $rules
+     * @param array $rules data like: [name => rule, ...]
      *
      * @see addArgByRule()
      */
