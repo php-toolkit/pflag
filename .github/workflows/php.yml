@@ -52,12 +52,13 @@ jobs:
         run: composer update --no-progress
 
       # phpunit -v --debug
+      # phpunit --coverage-clover ./test/clover.info
       # phpdbg -dauto_globals_jit=Off-qrr $(which phpunit) --coverage-clover ./test/clover.info
       - name: Run test suite
         run: |
           php example/flags-demo.php -h
           php example/sflags-demo.php --help
-          phpunit --coverage-clover ./test/clover.info
+          phpunit
 
 #      - name: Coveralls parallel
 #        uses: coverallsapp/github-action@master
