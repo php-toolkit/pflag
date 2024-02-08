@@ -12,6 +12,7 @@ vendor/
 *.tgz
 *.txt
 *.cache
+*.bak
 .phpintel/
 .env
 .phpstorm.meta.php
