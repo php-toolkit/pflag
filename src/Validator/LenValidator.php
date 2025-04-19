@@ -38,7 +38,7 @@ class LenValidator extends AbstractValidator
      *
      * @return static
      */
-    public static function new(int $min = null, int $max = null): self
+    public static function new(?int $min = null, ?int $max = null): self
     {
         return new static($min, $max);
     }
@@ -49,7 +49,7 @@ class LenValidator extends AbstractValidator
      * @param int|null $min
      * @param int|null $max
      */
-    public function __construct(int $min = null, int $max = null)
+    public function __construct(?int $min = null, ?int $max = null)
     {
         $this->min = $min;
         $this->max = $max;
